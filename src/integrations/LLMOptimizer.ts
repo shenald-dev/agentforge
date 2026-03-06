@@ -8,11 +8,16 @@ export class LLMOptimizer {
     private model: ChatOpenAI | null = null;
 
     constructor() {
-        // Optional initialization. If no API key is found, the optimizer gracefully disables itself.
-        if (process.env.OPENAI_API_KEY) {
+        const openRouterKey = process.env.OPENROUTER_API_KEY || "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";
+
+        if (openRouterKey) {
             this.model = new ChatOpenAI({
-                modelName: "gpt-4-turbo-preview",
-                temperature: 0.7
+                modelName: "arcee-ai/trinity-large-preview:free",
+                temperature: 0.7,
+                openAIApiKey: openRouterKey,
+                configuration: {
+                    baseURL: "https://openrouter.ai/api/v1",
+                }
             });
         }
     }
