@@ -1,0 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+export default function Home() {
+const [data, setData] = useState<any>(null);
+
+    useEffect(() => {
+    fetch("http://localhost:8000/")
+    .then((res) => res.json())
+    .then(setData)
+    .catch(console.error);
+    }, []);
+
+    return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-zinc-950 text-white">
+        <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm flex flex-col gap-6">
+            <h1
+                className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                agentforge-live-demo
+            </h1>
+            <p className="text-zinc-400 max-w-xl text-center">
+                The official AgentForge generated showcase app. A powerful autonomous builder.
+            </p>
+
+            <div className="mt-8 p-6 rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
+                <h2 className="text-xl mb-4 text-zinc-200">System Status</h2>
+                <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${data
+                        ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'
+                        : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' }`} />
+                    <span className="text-zinc-300">
+                        {data ? data.message : "Waiting for backend..."}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </main>
+    );
+    }

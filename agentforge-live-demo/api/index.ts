@@ -1,0 +1,16 @@
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+const port = process.env.PORT || 8000;
+
+app.use(cors());
+app.use(express.json());
+
+app.get('/', (req, res) => {
+res.json({ status: 'ok', message: 'Landing API for agentforge-live-demo is live!' });
+});
+
+app.listen(port, () => {
+console.log(`Landing API running on port ${port}`);
+});

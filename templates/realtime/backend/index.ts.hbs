@@ -1,0 +1,28 @@
+import { Server } from "socket.io";
+import { createServer } from "http";
+
+const httpServer = createServer();
+const io = new Server(httpServer, {
+cors: {
+origin: "*",
+}
+});
+
+io.on("connection", (socket) => {
+console.log("Client connected:", socket.id);
+
+socket.emit("message", "Welcome to {{projectName}} Realtime Hub!");
+
+socket.on("ping", () => {
+socket.emit("pong", { time: new Date().toISOString() });
+});
+
+socket.on("disconnect", () => {
+console.log("Client disconnected:", socket.id);
+});
+});
+
+const port = process.env.PORT || 8000;
+httpServer.listen(port, () => {
+console.log(`Realtime socket server running on port ${port}`);
+});
