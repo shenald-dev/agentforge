@@ -1,0 +1,52 @@
+{
+    "name": "agentforge",
+    "version": "1.0.0",
+    "description": "Autonomous Full-Stack App Builder CLI.",
+    "main": "dist/cli/index.js",
+    "bin": {
+        "agentforge": "./dist/cli/index.js"
+    },
+    "scripts": {
+        "start": "node dist/cli/index.js",
+        "dev": "tsx watch src/cli/index.ts",
+        "build": "tsc",
+        "test": "jest",
+        "lint": "eslint src --ext .ts",
+        "format": "prettier --write \"src/**/*.ts\""
+    },
+    "keywords": [
+        "cli",
+        "scaffold",
+        "generator",
+        "ai",
+        "vibe",
+        "boilerplate"
+    ],
+    "author": "shenald-dev",
+    "license": "MIT",
+    "dependencies": {
+        "@langchain/core": "^1.1.31",
+        "@langchain/openai": "^1.2.12",
+        "chalk": "^4.1.2",
+        "commander": "^12.0.0",
+        "dotenv": "^16.4.5",
+        "handlebars": "^4.7.8",
+        "inquirer": "^9.2.16",
+        "ora": "^5.4.1",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "@types/inquirer": "^9.0.7",
+        "@types/jest": "^29.5.12",
+        "@types/node": "^20.11.24",
+        "@typescript-eslint/eslint-plugin": "^7.1.0",
+        "@typescript-eslint/parser": "^7.1.0",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "jest": "^29.7.0",
+        "prettier": "^3.2.5",
+        "ts-jest": "^29.1.2",
+        "tsx": "^4.7.1",
+        "typescript": "^5.3.3"
+    }
+}
