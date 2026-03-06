@@ -18,7 +18,7 @@
   
   <br />
 
-  <a href="https://agentforge-demo-shenald-dev.vercel.app/"><b>Check out a live generated Next.js App Demo</b></a>
+  <a href="https://frontend-sooty-xi-69.vercel.app"><b>Check out a live generated Next.js App Demo</b></a>
 </div>
 
 ---
