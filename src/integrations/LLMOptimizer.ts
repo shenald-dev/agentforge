@@ -8,7 +8,7 @@ export class LLMOptimizer {
     private model: ChatOpenAI | null = null;
 
     constructor() {
-        const openRouterKey = process.env.OPENROUTER_API_KEY || "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";
+        const openRouterKey = process.env.OPENROUTER_API_KEY;
 
         if (openRouterKey) {
             this.model = new ChatOpenAI({

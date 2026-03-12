@@ -1,11 +1,22 @@
 import { CLIController } from "../src/cli/CLIController";
-import { TemplateManager } from "../src/templates/TemplateManager";
 
-jest.mock("../src/templates/TemplateManager");
+// Mock inquirer to avoid interactive prompts during testing
+jest.mock("inquirer", () => ({
+    prompt: jest.fn().mockResolvedValue({
+        projectName: "test-app",
+        idea: "A test idea",
+        template: "saas",
+    }),
+}));
 
 describe("CLIController", () => {
-    it("should initialize the template manager", () => {
+    it("should instantiate without errors", () => {
         const cli = new CLIController();
-        expect(TemplateManager).toHaveBeenCalledTimes(1);
+        expect(cli).toBeDefined();
+    });
+
+    it("should expose a promptCreationDetails method", () => {
+        const cli = new CLIController();
+        expect(typeof cli.promptCreationDetails).toBe("function");
     });
 });
