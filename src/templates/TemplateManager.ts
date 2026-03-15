@@ -21,7 +21,16 @@ export class TemplateManager {
     }
 
     async getTemplatePath(templateName: string): Promise<string> {
-        const templatePath = path.join(this.templatesDir, templateName);
+        const templatePath = path.resolve(this.templatesDir, templateName);
+
+        // Security check: ensure the resolved path is within the templates directory
+        const relative = path.relative(this.templatesDir, templatePath);
+        const isSafe = relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+
+        if (!isSafe) {
+            throw new Error(`Template '${templateName}' does not exist.`);
+        }
+
         try {
             const stats = await fs.stat(templatePath);
             if (!stats.isDirectory()) throw new Error();
