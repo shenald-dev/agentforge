@@ -1,6 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { BaseMessage } from "@langchain/core/messages";
 import chalk from "chalk";
 import ora from "ora";
 
