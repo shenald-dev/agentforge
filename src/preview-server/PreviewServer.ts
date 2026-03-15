@@ -31,9 +31,8 @@ export class PreviewServer {
                 }
             });
 
-            composeProcess.stderr.on("data", (data) => {
-                // Some build steps write to stderr naturally, so we just log it dynamically if debugging
-            });
+            // Drain stderr to prevent the pipe buffer from filling up and hanging the process
+            composeProcess.stderr.resume();
 
             composeProcess.on("close", (code) => {
                 if (code !== 0) {
