@@ -27,7 +27,9 @@ export class ProjectGenerator {
     private async copyAndParseDir(sourceDir: string, destDir: string, context: GenerateOptions): Promise<void> {
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 
-        for (const entry of entries) {
+        // Optimization: Use Promise.all to process entries concurrently.
+        // Previously used a sequential for-loop which significantly slowed down generation for large folders.
+        await Promise.all(entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
             // Remove trailing .hbs if present during copy
             const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
@@ -49,6 +51,6 @@ export class ProjectGenerator {
                     await fs.copyFile(srcPath, destPath);
                 }
             }
-        }
+        }));
     }
 }

@@ -64,9 +64,11 @@ program
             // ── Post-generation npm install ──
             const installSpinner = ora("Installing dependencies in generated project...").start();
             await new Promise<void>((resolve, reject) => {
+                // Optimization: Use stdio: 'ignore' to prevent the child process
+                // from hanging when its output buffer gets full, as we only need the exit code.
                 const install = spawn("npm", ["install"], {
                     cwd: outputPath,
-                    stdio: "pipe",
+                    stdio: "ignore",
                     shell: true,
                 });
                 install.on("close", (code) => {
