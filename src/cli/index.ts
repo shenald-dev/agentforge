@@ -67,7 +67,7 @@ program
                 const install = spawn("npm", ["install"], {
                     cwd: outputPath,
                     stdio: "pipe",
-                    shell: true,
+                    shell: false,
                 });
                 install.on("close", (code) => {
                     if (code === 0) {
