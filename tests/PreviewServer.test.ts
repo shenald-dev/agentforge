@@ -54,7 +54,8 @@ describe("PreviewServer", () => {
     it("should start docker-compose and resolve when backend is ready", async () => {
         const mockComposeProcess = new EventEmitter() as any;
         mockComposeProcess.stdout = new EventEmitter();
-        mockComposeProcess.stderr = new EventEmitter();
+        mockComposeProcess.stderr = new EventEmitter() as any;
+        mockComposeProcess.stderr.resume = jest.fn();
 
         (spawn as jest.Mock).mockReturnValue(mockComposeProcess);
 
@@ -77,7 +78,8 @@ describe("PreviewServer", () => {
     it("should resolve when frontend is ready", async () => {
         const mockComposeProcess = new EventEmitter() as any;
         mockComposeProcess.stdout = new EventEmitter();
-        mockComposeProcess.stderr = new EventEmitter();
+        mockComposeProcess.stderr = new EventEmitter() as any;
+        mockComposeProcess.stderr.resume = jest.fn();
 
         (spawn as jest.Mock).mockReturnValue(mockComposeProcess);
 
@@ -95,7 +97,8 @@ describe("PreviewServer", () => {
     it("should reject if docker-compose exits with non-zero code", async () => {
         const mockComposeProcess = new EventEmitter() as any;
         mockComposeProcess.stdout = new EventEmitter();
-        mockComposeProcess.stderr = new EventEmitter();
+        mockComposeProcess.stderr = new EventEmitter() as any;
+        mockComposeProcess.stderr.resume = jest.fn();
 
         (spawn as jest.Mock).mockReturnValue(mockComposeProcess);
 
@@ -113,7 +116,8 @@ describe("PreviewServer", () => {
     it("should handle stderr without throwing", async () => {
         const mockComposeProcess = new EventEmitter() as any;
         mockComposeProcess.stdout = new EventEmitter();
-        mockComposeProcess.stderr = new EventEmitter();
+        mockComposeProcess.stderr = new EventEmitter() as any;
+        mockComposeProcess.stderr.resume = jest.fn();
 
         (spawn as jest.Mock).mockReturnValue(mockComposeProcess);
 
@@ -140,7 +144,8 @@ describe("PreviewServer", () => {
 
         const mockComposeProcess = new EventEmitter() as any;
         mockComposeProcess.stdout = new EventEmitter();
-        mockComposeProcess.stderr = new EventEmitter();
+        mockComposeProcess.stderr = new EventEmitter() as any;
+        mockComposeProcess.stderr.resume = jest.fn();
 
         (spawn as jest.Mock).mockReturnValue(mockComposeProcess);
 

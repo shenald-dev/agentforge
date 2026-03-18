@@ -66,7 +66,7 @@ program
             await new Promise<void>((resolve, reject) => {
                 const install = spawn("npm", ["install"], {
                     cwd: outputPath,
-                    stdio: "pipe",
+                    stdio: "ignore",
                     shell: false,
                 });
                 install.on("close", (code) => {
