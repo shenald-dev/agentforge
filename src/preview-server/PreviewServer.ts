@@ -32,7 +32,9 @@ export class PreviewServer {
             });
 
             // Drain stderr to prevent the pipe buffer from filling up and hanging the process
-            composeProcess.stderr.resume();
+            if (composeProcess.stderr) {
+                composeProcess.stderr.resume();
+            }
 
             composeProcess.on("close", (code) => {
                 if (code !== 0) {
