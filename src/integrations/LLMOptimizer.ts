@@ -1,14 +1,19 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { BaseMessage } from "@langchain/core/messages";
-import chalk from "chalk";
-import ora from "ora";
+import pc from "picocolors";
+import * as p from "@clack/prompts";
+import { ConfigManager } from "../utils/config";
 
 export class LLMOptimizer {
     private model: ChatOpenAI | null = null;
+    private configManager: ConfigManager;
 
     constructor() {
-        const openRouterKey = process.env.OPENROUTER_API_KEY;
+        this.configManager = new ConfigManager();
+    }
+
+    async init() {
+        const openRouterKey = await this.configManager.getApiKey();
 
         if (openRouterKey) {
             this.model = new ChatOpenAI({
@@ -23,15 +28,42 @@ export class LLMOptimizer {
     }
 
     /**
+     * Executes an API call with exponential backoff and retries.
+     */
+    private async withRetries<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+        let attempt = 0;
+        while (attempt < maxRetries) {
+            try {
+                return await operation();
+            } catch (error: any) {
+                attempt++;
+                p.log.warn(pc.yellow(`[LLM] API call failed. Attempt ${attempt}/${maxRetries}. Retrying...`));
+                
+                if (attempt === maxRetries) {
+                    throw error;
+                }
+                
+                // Exponential backoff: 1s, 2s, 4s
+                const delayMs = Math.pow(2, attempt - 1) * 1000;
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+        throw new Error("Max retries exceeded.");
+    }
+
+    /**
      * Enhances a generated application's README using the user's idea string.
      */
     async enhanceReadme(idea: string, currentReadme: string): Promise<string> {
+        await this.init();
+
         if (!this.model) {
-            console.log(chalk.gray(`\n[LLM] OPENAI_API_KEY not found. Skipping README refinement.`));
+            p.log.warn(pc.gray(`[LLM] API key not found. Skipping README refinement.`));
             return currentReadme;
         }
 
-        const spinner = ora("Refining project documentation via LLM...").start();
+        const spinner = p.spinner();
+        spinner.start("Refining project documentation via LLM...");
 
         try {
             const prompt = PromptTemplate.fromTemplate(`
@@ -47,15 +79,19 @@ Return ONLY the raw markdown content. No conversational text.
           `);
 
             const chain = prompt.pipe(this.model);
-            const response = await chain.invoke({
-                idea: idea,
-                currentReadme: currentReadme
+            
+            // Execute with retries
+            const response = await this.withRetries(async () => {
+                return await chain.invoke({
+                    idea: idea,
+                    currentReadme: currentReadme
+                });
             });
 
-            spinner.succeed(chalk.green("✨ README enhanced via LLM!"));
+            spinner.stop(pc.green("✨ README enhanced via LLM!"));
             return String(response.content);
         } catch (err: any) {
-            spinner.fail(chalk.yellow(`LLM enhancement failed: ${err.message}. Falling back to default.`));
+            spinner.stop(pc.yellow(`LLM enhancement failed: ${err.message}. Falling back to default.`));
             return currentReadme;
         }
     }

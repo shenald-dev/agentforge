@@ -1,5 +1,5 @@
-import inquirer from "inquirer";
-import chalk from "chalk";
+import * as p from "@clack/prompts";
+import pc from "picocolors";
 import { TemplateManager } from "../templates/TemplateManager";
 
 export class CLIController {
@@ -13,36 +13,40 @@ export class CLIController {
      * Guides the user through an interactive setup process for generation.
      */
     async promptCreationDetails(defaultIdea: string) {
-        console.log(chalk.cyan(`\n✨ AgentForge Interactive Scaffolding`));
-        console.log(chalk.gray(`=====================================\n`));
+        console.clear();
+        p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
 
         const templates = await this.templateManager.listTemplates();
 
-        const answers = await inquirer.prompt([
+        const project = await p.group(
             {
-                type: "input",
-                name: "projectName",
-                message: "What is the name of your new application?",
-                default: "my-vibe-app",
-                validate: (input) => {
-                    if (/^[a-z0-9-]+$/.test(input)) return true;
-                    return "Project name may only include lowercase letters, numbers, and dashes.";
+                projectName: () => p.text({
+                    message: "What is the name of your new application?",
+                    placeholder: "my-vibe-app",
+                    defaultValue: "my-vibe-app",
+                    validate: (value) => {
+                        if (!value) return "Please enter a name.";
+                        if (!/^[a-z0-9-]+$/.test(value)) return "Project name may only include lowercase letters, numbers, and dashes.";
+                    }
+                }),
+                idea: () => p.text({
+                    message: "Describe your idea in one sentence:",
+                    placeholder: defaultIdea || "A stunning new web app.",
+                    defaultValue: defaultIdea || "A stunning new web app.",
+                }),
+                template: () => p.select({
+                    message: "Which scaffold template best fits your architecture?",
+                    options: templates.map(t => ({ value: t, label: t })),
+                })
+            },
+            {
+                onCancel: () => {
+                    p.cancel("Operation cancelled.");
+                    process.exit(0);
                 }
-            },
-            {
-                type: "input",
-                name: "idea",
-                message: "Describe your idea in one sentence:",
-                default: defaultIdea || "A stunning new web app.",
-            },
-            {
-                type: "list",
-                name: "template",
-                message: "Which scaffold template best fits your architecture?",
-                choices: templates,
             }
-        ]);
+        );
 
-        return answers;
+        return project;
     }
 }

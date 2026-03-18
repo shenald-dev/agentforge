@@ -1,0 +1,65 @@
+FAIL tests/LLMUtils.test.ts
+  ΓùÅ Test suite failed to run
+
+    TypeError: picocolors.createColors is not a function
+
+      at Object.createColors (node_modules/@babel/code-frame/src/defs.ts:56:26)
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:9:24)
+      at Object.<anonymous> (node_modules/expect/build/index.js:23:48)
+      at _expect (node_modules/@jest/expect/build/index.js:8:16)
+      at createJestExpect (node_modules/@jest/expect/build/index.js:29:3)
+      at Object.<anonymous> (node_modules/@jest/expect/build/index.js:39:20)
+
+FAIL tests/LLMOptimizer.test.ts
+  ΓùÅ Test suite failed to run
+
+    TypeError: picocolors.createColors is not a function
+
+      at Object.createColors (node_modules/@babel/code-frame/src/defs.ts:56:26)
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:9:24)
+      at Object.<anonymous> (node_modules/expect/build/index.js:23:48)
+      at _expect (node_modules/@jest/expect/build/index.js:8:16)
+      at createJestExpect (node_modules/@jest/expect/build/index.js:29:3)
+      at Object.<anonymous> (node_modules/@jest/expect/build/index.js:39:20)
+
+FAIL tests/ProjectGenerator.test.ts
+  ΓùÅ Test suite failed to run
+
+    TypeError: picocolors.createColors is not a function
+
+      at Object.createColors (node_modules/@babel/code-frame/src/defs.ts:56:26)
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:9:24)
+      at Object.<anonymous> (node_modules/expect/build/index.js:23:48)
+      at _expect (node_modules/@jest/expect/build/index.js:8:16)
+      at createJestExpect (node_modules/@jest/expect/build/index.js:29:3)
+      at Object.<anonymous> (node_modules/@jest/expect/build/index.js:39:20)
+
+FAIL tests/TemplateManager.test.ts
+  ΓùÅ Test suite failed to run
+
+    TypeError: picocolors.createColors is not a function
+
+      at Object.createColors (node_modules/@babel/code-frame/src/defs.ts:56:26)
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:9:24)
+      at Object.<anonymous> (node_modules/expect/build/index.js:23:48)
+      at _expect (node_modules/@jest/expect/build/index.js:8:16)
+      at createJestExpect (node_modules/@jest/expect/build/index.js:29:3)
+      at Object.<anonymous> (node_modules/@jest/expect/build/index.js:39:20)
+
+FAIL tests/cli.test.ts
+  ΓùÅ Test suite failed to run
+
+    TypeError: picocolors.createColors is not a function
+
+      at Object.createColors (node_modules/@babel/code-frame/src/defs.ts:56:26)
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:9:24)
+      at Object.<anonymous> (node_modules/expect/build/index.js:23:48)
+      at _expect (node_modules/@jest/expect/build/index.js:8:16)
+      at createJestExpect (node_modules/@jest/expect/build/index.js:29:3)
+      at Object.<anonymous> (node_modules/@jest/expect/build/index.js:39:20)
+
+Test Suites: 5 failed, 5 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        0.887 s
+Ran all test suites.

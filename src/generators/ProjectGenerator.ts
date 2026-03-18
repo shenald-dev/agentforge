@@ -12,7 +12,7 @@ export interface GenerateOptions {
 export class ProjectGenerator {
 
     /**
-     * Generates a new project from a template, replacing handlebar tokens.
+     * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
     async generate(options: GenerateOptions): Promise<void> {
         const { templatePath, outputPath } = options;
@@ -20,35 +20,51 @@ export class ProjectGenerator {
         // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
 
-        // 2. Recursively copy and parse
-        await this.copyAndParseDir(templatePath, outputPath, options);
+        // 2. Recursively copy and parse concurrently
+        await this.copyAndParseDir(templatePath, outputPath, outputPath, options);
     }
 
-    private async copyAndParseDir(sourceDir: string, destDir: string, context: GenerateOptions): Promise<void> {
+    private async copyAndParseDir(sourceDir: string, destDir: string, baseOutputDir: string, context: GenerateOptions): Promise<void> {
+        // Strict path traversal prevention
+        const normalizedDestDir = path.resolve(destDir);
+        const normalizedBase = path.resolve(baseOutputDir);
+        
+        if (!normalizedDestDir.startsWith(normalizedBase)) {
+            throw new Error(`Security Exception: Path traversal attempt blocked. Target path ${normalizedDestDir} escapes the base directory ${normalizedBase}`);
+        }
+
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 
-        for (const entry of entries) {
+        const operations = entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
-            // Remove trailing .hbs if present during copy
             const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
             const destPath = path.join(destDir, destName);
+
+            // Double check file-level traversal
+            const normalizedDestPath = path.resolve(destPath);
+            if (!normalizedDestPath.startsWith(normalizedBase)) {
+                throw new Error(`Security Exception: Path traversal attempt blocked for file ${entry.name}`);
+            }
 
             if (entry.isDirectory()) {
                 // Create target directory and recurse
                 await fs.mkdir(destPath, { recursive: true });
-                await this.copyAndParseDir(srcPath, destPath, context);
+                return this.copyAndParseDir(srcPath, destPath, baseOutputDir, context);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = Handlebars.compile(content);
                     const rendered = template(context);
-                    await fs.writeFile(destPath, rendered, "utf-8");
+                    return fs.writeFile(destPath, rendered, "utf-8");
                 } else {
                     // Standard copy (images, lockfiles, etc)
-                    await fs.copyFile(srcPath, destPath);
+                    return fs.copyFile(srcPath, destPath);
                 }
             }
-        }
+        });
+
+        // Await all file operations concurrently
+        await Promise.all(operations);
     }
 }
