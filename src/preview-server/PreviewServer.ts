@@ -15,15 +15,28 @@ export class PreviewServer {
         const spinner = ora("Building and starting Docker containers...").start();
 
         return new Promise((resolve, reject) => {
+            let settled = false;
             const composeProcess = spawn("docker-compose", ["up", "--build"], {
                 cwd: composePath,
                 stdio: "pipe", // Capture output to avoid overwhelming the console, but still monitor
             });
 
+            // Timeout after 120s to prevent hanging indefinitely on slow builds
+            const timeout = setTimeout(() => {
+                if (!settled) {
+                    settled = true;
+                    composeProcess.kill();
+                    spinner.fail(chalk.red("Docker compose timed out after 120 seconds"));
+                    reject(new Error("Preview server startup timed out"));
+                }
+            }, 120_000);
+
             composeProcess.stdout.on("data", (data) => {
                 const out = data.toString();
                 // Simple health heuristic: waiting for the backend or frontend to bind
-                if (out.includes("Application startup complete") || out.includes("ready started server on")) {
+                if (!settled && (out.includes("Application startup complete") || out.includes("ready started server on"))) {
+                    settled = true;
+                    clearTimeout(timeout);
                     spinner.succeed(chalk.green("✨ Preview environment is live!"));
                     console.log(chalk.yellow("   Frontend: http://localhost:3000"));
                     console.log(chalk.yellow("   Backend API: http://localhost:8000"));
@@ -37,9 +50,13 @@ export class PreviewServer {
             }
 
             composeProcess.on("close", (code) => {
-                if (code !== 0) {
-                    spinner.fail(chalk.red(`Docker compose exited with code ${code}`));
-                    reject(new Error(`Docker compose failed`));
+                if (!settled) {
+                    settled = true;
+                    clearTimeout(timeout);
+                    if (code !== 0) {
+                        spinner.fail(chalk.red(`Docker compose exited with code ${code}`));
+                        reject(new Error(`Docker compose failed`));
+                    }
                 }
             });
 
