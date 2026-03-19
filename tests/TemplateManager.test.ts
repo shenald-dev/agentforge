@@ -1,10 +1,21 @@
 import { TemplateManager } from "../src/templates/TemplateManager";
+import * as fs from "fs/promises";
+
+jest.mock("fs/promises", () => {
+    const actual = jest.requireActual("fs/promises");
+    return {
+        ...actual,
+        readdir: jest.fn().mockImplementation(actual.readdir),
+        stat: jest.fn().mockImplementation(actual.stat),
+    };
+});
 
 describe("TemplateManager", () => {
     let manager: TemplateManager;
 
     beforeEach(() => {
         manager = new TemplateManager();
+        jest.clearAllMocks();
     });
 
     it("should list available templates", async () => {
@@ -37,6 +48,15 @@ describe("TemplateManager", () => {
 
         await expect(manager.getTemplatePath("../src")).rejects.toThrow(
             "Template '../src' does not exist."
+        );
+    });
+
+    it("should throw an error when reading templates directory fails", async () => {
+        const mockError = new Error("Simulated permission denied");
+        (fs.readdir as jest.Mock).mockRejectedValueOnce(mockError);
+
+        await expect(manager.listTemplates()).rejects.toThrow(
+            `Failed to read templates directory: ${mockError}`
         );
     });
 });
