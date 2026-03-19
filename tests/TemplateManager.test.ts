@@ -29,4 +29,14 @@ describe("TemplateManager", () => {
             "Template 'nonexistent-template' does not exist."
         );
     });
+
+    it("should prevent directory traversal attacks", async () => {
+        await expect(manager.getTemplatePath("../../etc/passwd")).rejects.toThrow(
+            "Template '../../etc/passwd' does not exist."
+        );
+
+        await expect(manager.getTemplatePath("../src")).rejects.toThrow(
+            "Template '../src' does not exist."
+        );
+    });
 });
