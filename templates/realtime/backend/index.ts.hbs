@@ -4,7 +4,8 @@ import { createServer } from "http";
 const httpServer = createServer();
 const io = new Server(httpServer, {
 cors: {
-origin: "*",
+origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+methods: ["GET", "POST"],
 }
 });
 
