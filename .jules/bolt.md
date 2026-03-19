@@ -13,3 +13,11 @@ Using `stdio: "pipe"` when spawning a child process without actively consuming o
 
 Action:
 Use `stdio: "ignore"` or actively drain the stream (`stream.resume()`) for child processes where output isn't needed.
+
+## 2024-05-16 — Path Traversal Prevention
+
+Learning:
+Using `path.join` to append user input directly to a base directory allows for trivial path traversal vulnerabilities (e.g., `../../etc/passwd`).
+
+Action:
+Always use `path.relative(baseDir, targetDir)` and verify that the resulting relative path does not start with `..` and is not an absolute path to ensure strict path confinement.
