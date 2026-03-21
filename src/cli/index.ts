@@ -45,44 +45,49 @@ program
 
             spinner.succeed(chalk.green(`✨ Project scaffolded!`));
 
-            // ── Optional LLM Enhancement ──
-            if (options.llm !== false) {
-                const optimizer = new LLMOptimizer();
-                const fs = await import("fs/promises");
-                const readmePath = path.join(outputPath, "README.md");
-                try {
-                    const currentReadme = await fs.readFile(readmePath, "utf-8");
-                    const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
-                    await fs.writeFile(readmePath, enhancedReadme, "utf-8");
-                } catch {
-                    // Silently skip if README doesn't exist
-                }
-            } else {
-                console.log(chalk.gray(`  ⏭  LLM enhancement skipped (--no-llm flag)`));
-            }
-
-            // ── Post-generation npm install ──
-            const installSpinner = ora("Installing dependencies in generated project...").start();
-            await new Promise<void>((resolve, reject) => {
-                const install = spawn("npm", ["install"], {
-                    cwd: outputPath,
-                    stdio: "ignore",
-                    shell: false,
-                });
-                install.on("close", (code) => {
-                    if (code === 0) {
-                        installSpinner.succeed(chalk.green("Dependencies installed!"));
-                        resolve();
-                    } else {
-                        installSpinner.warn(chalk.yellow("npm install returned non-zero. You may need to install dependencies manually."));
-                        resolve(); // Don't block on install failure
+            // Run LLM enhancement and npm install concurrently to reduce wait times
+            const llmTask = (async () => {
+                if (options.llm !== false) {
+                    const optimizer = new LLMOptimizer();
+                    const fs = await import("fs/promises");
+                    const readmePath = path.join(outputPath, "README.md");
+                    try {
+                        const currentReadme = await fs.readFile(readmePath, "utf-8");
+                        const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
+                        await fs.writeFile(readmePath, enhancedReadme, "utf-8");
+                    } catch {
+                        // Silently skip if README doesn't exist
                     }
+                } else {
+                    console.log(chalk.gray(`  ⏭  LLM enhancement skipped (--no-llm flag)`));
+                }
+            })();
+
+            const npmInstallTask = (async () => {
+                const installSpinner = ora("Installing dependencies in generated project...").start();
+                return new Promise<void>((resolve) => {
+                    const install = spawn("npm", ["install"], {
+                        cwd: outputPath,
+                        stdio: "ignore",
+                        shell: false,
+                    });
+                    install.on("close", (code) => {
+                        if (code === 0) {
+                            installSpinner.succeed(chalk.green("Dependencies installed!"));
+                            resolve();
+                        } else {
+                            installSpinner.warn(chalk.yellow("npm install returned non-zero. You may need to install dependencies manually."));
+                            resolve(); // Don't block on install failure
+                        }
+                    });
+                    install.on("error", () => {
+                        installSpinner.warn(chalk.yellow("Could not run npm install automatically."));
+                        resolve();
+                    });
                 });
-                install.on("error", () => {
-                    installSpinner.warn(chalk.yellow("Could not run npm install automatically."));
-                    resolve();
-                });
-            });
+            })();
+
+            await Promise.all([llmTask, npmInstallTask]);
 
             console.log(chalk.cyan(`\n🎉 Successfully crafted ${chalk.bold(answers.projectName)} using the ${chalk.bold(answers.template)} template!\n`));
             console.log(chalk.white(`Next steps:`));

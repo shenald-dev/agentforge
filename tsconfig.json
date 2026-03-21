@@ -8,18 +8,15 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "outDir": "./dist",
-        "rootDir": "./"
+        "rootDir": "./src"
     },
     "include": [
-        "cli/**/*",
-        "generators/**/*",
-        "integrations/**/*",
-        "preview-server/**/*",
-        "tests/**/*"
+        "src/**/*"
     ],
     "exclude": [
         "node_modules",
         "dist",
-        "templates"
+        "templates",
+        "tests"
     ]
 }

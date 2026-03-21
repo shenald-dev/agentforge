@@ -21,3 +21,11 @@ Using `path.join` to append user input directly to a base directory allows for t
 
 Action:
 Always use `path.relative(baseDir, targetDir)` and verify that the resulting relative path does not start with `..` and is not an absolute path to ensure strict path confinement.
+
+## 2024-05-17 — Concurrent Scaffolding Post-Processing
+
+Learning:
+During project scaffolding, LLM-based documentation enhancement and dependency installation via `npm install` are independent post-processing steps. Running them sequentially increases the total scaffolding time since they both involve lengthy operations (network I/O and child process execution, respectively).
+
+Action:
+Execute independent, lengthy post-processing operations like LLM enhancements and child process installations concurrently using `Promise.all` to significantly reduce total wait times for the user.
