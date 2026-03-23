@@ -35,6 +35,8 @@ export class ProjectGenerator {
 
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 
+        // Optimization: Process all file and directory entries concurrently
+        // instead of sequentially to significantly reduce I/O wait times.
         const operations = entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
             const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
