@@ -21,3 +21,11 @@ Using `path.join` to append user input directly to a base directory allows for t
 
 Action:
 Always use `path.relative(baseDir, targetDir)` and verify that the resulting relative path does not start with `..` and is not an absolute path to ensure strict path confinement.
+
+## 2025-03-23 — Lazy Loading Heavy CLI Modules
+
+Learning:
+Importing heavy modules like `@langchain/openai`, `inquirer`, and `handlebars` eagerly at the top of the CLI entry point (`src/cli/index.ts`) causes significant startup latency (~0.6s), even for simple commands like `agentforge help`.
+
+Action:
+Future CLI additions should use dynamic `await import(...)` inside the `.action()` handler of Commander commands to lazy-load heavy dependencies only when needed, maintaining a fast initial load.
