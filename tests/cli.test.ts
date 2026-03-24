@@ -39,8 +39,6 @@ describe("CLIController", () => {
         const cli = new CLIController();
         expect(typeof cli.promptCreationDetails).toBe("function");
     });
-<<<<<<< HEAD
-=======
 
     it("should validate the project name correctly", async () => {
         const cli = new CLIController();
@@ -61,5 +59,4 @@ describe("CLIController", () => {
         expect(capturedValidate("invalid.name")).toBe(errorMsg);
         expect(capturedValidate("invalid@name")).toBe(errorMsg);
     });
->>>>>>> 350a5bbe (fix(audit): resolve merge conflicts and fix broken tests from bad sync)
 });

@@ -29,4 +29,13 @@ describe("TemplateManager", () => {
             "Template 'nonexistent-template' does not exist."
         );
     });
+
+    it("should block path traversal attempts", async () => {
+        await expect(manager.getTemplatePath("../src")).rejects.toThrow(
+            "Security Exception: Path traversal attempt blocked for template '../src'"
+        );
+        await expect(manager.getTemplatePath("../../package.json")).rejects.toThrow(
+            "Security Exception: Path traversal attempt blocked for template '../../package.json'"
+        );
+    });
 });
