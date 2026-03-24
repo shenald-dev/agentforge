@@ -21,7 +21,14 @@ export class TemplateManager {
     }
 
     async getTemplatePath(templateName: string): Promise<string> {
-        const templatePath = path.join(this.templatesDir, templateName);
+        const templatePath = path.resolve(this.templatesDir, templateName);
+
+        // Prevent path traversal
+        const relativePath = path.relative(this.templatesDir, templatePath);
+        if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+            throw new Error(`Security Exception: Path traversal attempt blocked for template '${templateName}'`);
+        }
+
         try {
             const stats = await fs.stat(templatePath);
             if (!stats.isDirectory()) throw new Error();
