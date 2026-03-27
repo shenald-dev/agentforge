@@ -1,32 +1,51 @@
 #!/usr/bin/env node
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
-<<<<<<< HEAD
-const chalk_1 = __importDefault(require("chalk"));
-=======
 const picocolors_1 = __importDefault(require("picocolors"));
 const p = __importStar(require("@clack/prompts"));
 const path = __importStar(require("path"));
 const child_process_1 = require("child_process");
-const TemplateManager_1 = require("../templates/TemplateManager");
->>>>>>> 350a5bbe (fix(audit): resolve merge conflicts and fix broken tests from bad sync)
 const program = new commander_1.Command();
 program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
-<<<<<<< HEAD
-    .version("1.0.0");
-program
-    .command("create <idea>")
-    .description("Scaffold a new application from a short natural language idea.")
-    .action((idea) => {
-    console.log(chalk_1.default.cyanBright(`\n✨ AgentForge initiating creation sequence for idea: `) + chalk_1.default.yellow(`"${idea}"`));
-    // TODO: Implement generation logic
-=======
     .version("3.0.0");
 // ─────────────────────────────────────
 // agentforge auth
@@ -65,9 +84,10 @@ program
     .action(async (idea, options) => {
     const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
     const { ProjectGenerator } = await Promise.resolve().then(() => __importStar(require("../generators/ProjectGenerator")));
+    const { TemplateManager } = await Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")));
     const cli = new CLIController();
     const generator = new ProjectGenerator();
-    const templateManager = new TemplateManager_1.TemplateManager();
+    const templateManager = new TemplateManager();
     try {
         const answers = await cli.promptCreationDetails(idea);
         const templatePath = await templateManager.getTemplatePath(answers.template);
@@ -105,8 +125,8 @@ program
         await new Promise((resolve, reject) => {
             const install = (0, child_process_1.spawn)("npm", ["install"], {
                 cwd: outputPath,
-                stdio: "ignore",
-                shell: false,
+                stdio: "pipe",
+                shell: true,
             });
             install.on("close", (code) => {
                 if (code === 0) {
@@ -132,20 +152,16 @@ program
         p.cancel(picocolors_1.default.red(`\n✖ Generation failed: ${err.message}`));
         process.exit(1);
     }
->>>>>>> 350a5bbe (fix(audit): resolve merge conflicts and fix broken tests from bad sync)
 });
+// ─────────────────────────────────────
+// agentforge list
+// ─────────────────────────────────────
 program
-<<<<<<< HEAD
-    .command("preview <path>")
-    .description("Spin up the generated application locally using Docker Compose.")
-    .action((path) => {
-    console.log(chalk_1.default.magentaBright(`\n🐳 Preparing preview container from path: `) + chalk_1.default.white(`${path}`));
-    // TODO: Implement preview logic
-=======
     .command("list")
     .description("List all available project templates.")
     .action(async () => {
-    const templateManager = new TemplateManager_1.TemplateManager();
+    const { TemplateManager } = await Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")));
+    const templateManager = new TemplateManager();
     try {
         const templates = await templateManager.listTemplates();
         console.log(picocolors_1.default.cyan(`\n✨ Available Templates:\n`));
@@ -178,6 +194,5 @@ program
     catch (err) {
         console.error(picocolors_1.default.red(`\n✖ Preview server failed: ${err.message}`));
     }
->>>>>>> 350a5bbe (fix(audit): resolve merge conflicts and fix broken tests from bad sync)
 });
 program.parse();
