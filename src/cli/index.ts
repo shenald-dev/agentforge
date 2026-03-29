@@ -97,11 +97,12 @@ program
             // ── Post-generation npm install ──
             const installSpinner = p.spinner();
             installSpinner.start("Installing dependencies in generated project...");
-            await new Promise<void>((resolve, reject) => {
-                const install = spawn("npm", ["install"], {
+            await new Promise<void>((resolve) => {
+                const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+                const install = spawn(npmCmd, ["install"], {
                     cwd: outputPath,
-                    stdio: "pipe",
-                    shell: true,
+                    stdio: "ignore",
+                    shell: false,
                 });
                 install.on("close", (code) => {
                     if (code === 0) {

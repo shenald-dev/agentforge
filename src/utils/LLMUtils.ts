@@ -20,7 +20,7 @@ export class LLMUtils {
                 const match = jsonRegex.exec(llmResponse);
                 if (match && match[1]) {
                     // Try to clean up trailing commas
-                    let cleaned = match[1].replace(/,\s*([\]}])/g, '$1');
+                    const cleaned = match[1].replace(/,\s*([\]}])/g, '$1');
                     return JSON.parse(cleaned) as T;
                 }
                 
@@ -28,7 +28,7 @@ export class LLMUtils {
                 const fallbackRegex = /({[\s\S]*?}|\[[\s\S]*?\])/;
                 const fallbackMatch = fallbackRegex.exec(llmResponse);
                 if (fallbackMatch && fallbackMatch[1]) {
-                    let cleaned = fallbackMatch[1].replace(/,\s*([\]}])/g, '$1');
+                    const cleaned = fallbackMatch[1].replace(/,\s*([\]}])/g, '$1');
                     return JSON.parse(cleaned) as T;
                 }
                 
