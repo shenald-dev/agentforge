@@ -31,7 +31,7 @@ export class PreviewServer {
                 }
             });
 
-            composeProcess.stderr.on("data", (data) => {
+            composeProcess.stderr.on("data", () => {
                 // Some build steps write to stderr naturally, so we just log it dynamically if debugging
             });
 
