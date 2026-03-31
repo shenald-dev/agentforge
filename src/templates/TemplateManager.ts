@@ -25,7 +25,7 @@ export class TemplateManager {
 
         // Prevent path traversal
         const relativePath = path.relative(this.templatesDir, templatePath);
-        if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
             throw new Error(`Security Exception: Path traversal attempt blocked for template '${templateName}'`);
         }
 

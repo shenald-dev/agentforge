@@ -30,7 +30,7 @@ export class ProjectGenerator {
         const normalizedBase = path.resolve(baseOutputDir);
         
         const relativeDest = path.relative(normalizedBase, normalizedDestDir);
-        if (relativeDest.startsWith("..") || path.isAbsolute(relativeDest)) {
+        if (relativeDest === ".." || relativeDest.startsWith(".." + path.sep) || path.isAbsolute(relativeDest)) {
             throw new Error(`Security Exception: Path traversal attempt blocked. Target path ${normalizedDestDir} escapes the base directory ${normalizedBase}`);
         }
 
@@ -46,7 +46,7 @@ export class ProjectGenerator {
             // Double check file-level traversal
             const normalizedDestPath = path.resolve(destPath);
             const relativePath = path.relative(normalizedBase, normalizedDestPath);
-            if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+            if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
                 throw new Error(`Security Exception: Path traversal attempt blocked for file ${entry.name}`);
             }
 

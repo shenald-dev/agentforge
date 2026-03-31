@@ -70,4 +70,23 @@ describe("ProjectGenerator Security", () => {
             outputPath: base,
         })).rejects.toThrow(/Security Exception: Path traversal attempt blocked/);
     });
+
+    it("should allow files starting with .. but not escaping directory", async () => {
+        const maliciousEntry = {
+            name: "..env",
+            isDirectory: () => false,
+            isFile: () => true,
+        };
+
+        (fs.readdir as jest.Mock).mockResolvedValue([maliciousEntry]);
+        (fs.mkdir as jest.Mock).mockResolvedValue(undefined);
+        (fs.copyFile as jest.Mock).mockResolvedValue(undefined);
+
+        await expect(generator.generate({
+            projectName: "test",
+            idea: "test",
+            templatePath: "/templates/saas",
+            outputPath: baseOutputDir,
+        })).resolves.not.toThrow();
+    });
 });
