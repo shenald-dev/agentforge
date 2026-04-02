@@ -31,8 +31,12 @@ export class PreviewServer {
                 }
             });
 
-            composeProcess.stderr.on("data", () => {
-                // Some build steps write to stderr naturally, so we just log it dynamically if debugging
+            // Actively drain stderr without the overhead of an empty callback
+            composeProcess.stderr.resume();
+
+            composeProcess.on("error", (err) => {
+                spinner.fail(chalk.red(`Failed to start preview server: ${err.message}`));
+                reject(err);
             });
 
             composeProcess.on("close", (code) => {
