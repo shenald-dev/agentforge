@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import * as path from "path";
+import pc from "picocolors";
 
 export class PreviewServer {
 
@@ -7,13 +8,10 @@ export class PreviewServer {
      * Spawns a docker-compose process in the target generated directory.
      */
     async start(projectPath: string): Promise<void> {
-        const [{ default: chalk }, { default: ora }] = await Promise.all([
-            import("chalk"),
-            import("ora")
-        ]);
+        const { default: ora } = await import("ora");
 
         const composePath = path.resolve(projectPath);
-        console.log(chalk.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
+        console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
 
         const spinner = ora("Building and starting Docker containers...").start();
 
@@ -27,9 +25,9 @@ export class PreviewServer {
                 const out = data.toString();
                 // Simple health heuristic: waiting for the backend or frontend to bind
                 if (out.includes("Application startup complete") || out.includes("ready started server on")) {
-                    spinner.succeed(chalk.green("✨ Preview environment is live!"));
-                    console.log(chalk.yellow("   Frontend: http://localhost:3000"));
-                    console.log(chalk.yellow("   Backend API: http://localhost:8000"));
+                    spinner.succeed(pc.green("✨ Preview environment is live!"));
+                    console.log(pc.yellow("   Frontend: http://localhost:3000"));
+                    console.log(pc.yellow("   Backend API: http://localhost:8000"));
                     resolve();
                 }
             });
@@ -38,20 +36,20 @@ export class PreviewServer {
             composeProcess.stderr.resume();
 
             composeProcess.on("error", (err) => {
-                spinner.fail(chalk.red(`Failed to start preview server: ${err.message}`));
+                spinner.fail(pc.red(`Failed to start preview server: ${err.message}`));
                 reject(err);
             });
 
             composeProcess.on("close", (code) => {
                 if (code !== 0) {
-                    spinner.fail(chalk.red(`Docker compose exited with code ${code}`));
+                    spinner.fail(pc.red(`Docker compose exited with code ${code}`));
                     reject(new Error(`Docker compose failed`));
                 }
             });
 
             // Handle graceful shutdown
             process.on('SIGINT', () => {
-                console.log(chalk.magenta("\nGracefully shutting down preview containers..."));
+                console.log(pc.magenta("\nGracefully shutting down preview containers..."));
                 spawn("docker-compose", ["down"], { cwd: composePath, stdio: "inherit" }).on('close', () => {
                     process.exit(0);
                 });
