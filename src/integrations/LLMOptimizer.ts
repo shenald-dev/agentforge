@@ -83,20 +83,10 @@ Return ONLY the raw markdown content. No conversational text.
             
             // Execute with retries
             const response = await this.withRetries(async () => {
-                const controller = new AbortController();
-                // 60-second generous timeout for long-running generations
-                const timeoutId = setTimeout(() => controller.abort(), 60000);
-                try {
-                    return await chain.invoke(
-                        {
-                            idea: idea,
-                            currentReadme: currentReadme
-                        },
-                        { signal: controller.signal }
-                    );
-                } finally {
-                    clearTimeout(timeoutId);
-                }
+                return await chain.invoke({
+                    idea: idea,
+                    currentReadme: currentReadme
+                });
             });
 
             spinner.stop(pc.green("✨ README enhanced via LLM!"));
