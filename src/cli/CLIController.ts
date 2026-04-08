@@ -1,4 +1,3 @@
-import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { TemplateManager } from "../templates/TemplateManager";
 
@@ -13,6 +12,7 @@ export class CLIController {
      * Guides the user through an interactive setup process for generation.
      */
     async promptCreationDetails(defaultIdea: string) {
+        const p = await import("@clack/prompts");
         console.clear();
         p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
 

@@ -39,7 +39,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
 const picocolors_1 = __importDefault(require("picocolors"));
-const p = __importStar(require("@clack/prompts"));
 const path = __importStar(require("path"));
 const child_process_1 = require("child_process");
 const program = new commander_1.Command();
@@ -54,6 +53,7 @@ program
     .command("auth")
     .description("Set your OpenRouter API key for LLM enchantments securely.")
     .action(async () => {
+    const p = await Promise.resolve().then(() => __importStar(require("@clack/prompts")));
     const { ConfigManager } = await Promise.resolve().then(() => __importStar(require("../utils/config")));
     const configManager = new ConfigManager();
     p.intro(picocolors_1.default.bgCyan(picocolors_1.default.black(" AgentForge Configuration ")));
@@ -82,6 +82,7 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
+    const p = await Promise.resolve().then(() => __importStar(require("@clack/prompts")));
     const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
     const { ProjectGenerator } = await Promise.resolve().then(() => __importStar(require("../generators/ProjectGenerator")));
     const { TemplateManager } = await Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")));
