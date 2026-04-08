@@ -24,7 +24,7 @@ export class CLIController {
                     message: "What is the name of your new application?",
                     placeholder: "my-vibe-app",
                     defaultValue: "my-vibe-app",
-                    validate: (value) => {
+                    validate: (value?: string) => {
                         if (!value) return "Please enter a name.";
                         if (!/^[a-z0-9-]+$/.test(value)) return "Project name may only include lowercase letters, numbers, and dashes.";
                     }
