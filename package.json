@@ -25,7 +25,7 @@
     "author": "shenald-dev",
     "license": "MIT",
     "dependencies": {
-        "@clack/prompts": "^1.1.0",
+        "@clack/prompts": "^1.2.0",
         "@langchain/core": "^1.1.31",
         "@langchain/openai": "^1.2.12",
         "commander": "^12.0.0",
