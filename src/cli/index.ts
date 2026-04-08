@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import pc from "picocolors";
+import * as p from "@clack/prompts";
 import * as path from "path";
 import { spawn } from "child_process";
 
@@ -18,7 +19,6 @@ program
     .command("auth")
     .description("Set your OpenRouter API key for LLM enchantments securely.")
     .action(async () => {
-        const p = await import("@clack/prompts");
         const { ConfigManager } = await import("../utils/config");
         const configManager = new ConfigManager();
         
@@ -52,7 +52,6 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-        const p = await import("@clack/prompts");
         const { CLIController } = await import("./CLIController");
         const { ProjectGenerator } = await import("../generators/ProjectGenerator");
         const { TemplateManager } = await import("../templates/TemplateManager");
