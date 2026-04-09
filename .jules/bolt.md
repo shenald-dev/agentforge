@@ -29,17 +29,18 @@ Dynamic imports of `chalk` can cause missing dependency issues if not properly m
 
 Action:
 Replaced the `chalk` dependency with `picocolors` in `PreviewServer.ts` for unified and safe terminal styling across the CLI commands.
-## $(date +%Y-%m-%d) — Optimize CLI startup performance via lazy loading
+## 2026-04-09 — Optimize CLI startup performance via lazy loading
 
 Learning:
 Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI entry files drastically slow down cold start times, even for lightweight commands like `--help`. In this repository, `picocolors` and `@clack/prompts` were imported statically in `src/cli/index.ts`, adding ~30ms overhead per execution.
 
 Action:
-Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
-## 2026-04-08 — Optimize CLI startup performance via lazy loading
+Replaced static imports with dynamic ones (`await import())` localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+
+## 2026-04-09 — Reliability Improvement: Timeout for LLM
 
 Learning:
-Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI entry files drastically slow down cold start times, even for lightweight commands like `--help`. In this repository, `picocolors` and `@clack/prompts` were imported statically in `src/cli/index.ts`, adding ~30ms overhead per execution.
+Langchain's `chain.invoke` does not have a built in timeout, so it could hang indefinitely if the API request stalls.
 
 Action:
-Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+Added a timeout using `AbortController` to prevent the CLI from hanging indefinitely on stalled API requests.
