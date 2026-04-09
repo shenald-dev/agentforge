@@ -43,3 +43,11 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+
+## 2024-04-09 — LangChain Reliability
+
+Learning:
+LLM API calls (like OpenRouter/LangChain) can hang indefinitely, especially on free tier models. `chain.invoke` does not timeout by default.
+
+Action:
+Always use `AbortController` and a fallback `setTimeout` to wrap long-running network invocations. Clean up the timeout handle with `clearTimeout` in a `finally` block to prevent testing framework hangs (Jest open handles).
