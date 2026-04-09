@@ -1,22 +1,22 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { TemplateManager } from "../templates/TemplateManager";
 
 export class CLIController {
-    private templateManager: TemplateManager;
 
     constructor() {
-        this.templateManager = new TemplateManager();
     }
 
     /**
      * Guides the user through an interactive setup process for generation.
      */
     async promptCreationDetails(defaultIdea: string) {
+        const { TemplateManager } = await import("../templates/TemplateManager");
+        const templateManager = new TemplateManager();
+
         console.clear();
         p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
 
-        const templates = await this.templateManager.listTemplates();
+        const templates = await templateManager.listTemplates();
 
         const project = await p.group(
             {

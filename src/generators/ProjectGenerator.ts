@@ -1,6 +1,5 @@
 import * as fs from "fs/promises";
 import * as path from "path";
-import Handlebars from "handlebars";
 
 export interface GenerateOptions {
     projectName: string;
@@ -26,6 +25,7 @@ export class ProjectGenerator {
 
     private async copyAndParseDir(sourceDir: string, destDir: string, baseOutputDir: string, context: GenerateOptions): Promise<void> {
         // Strict path traversal prevention
+        const { default: Handlebars } = await import("handlebars");
         const normalizedDestDir = path.resolve(destDir);
         const normalizedBase = path.resolve(baseOutputDir);
         

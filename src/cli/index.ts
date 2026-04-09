@@ -4,11 +4,6 @@ import pc from "picocolors";
 import * as p from "@clack/prompts";
 import * as path from "path";
 import { spawn } from "child_process";
-import { CLIController } from "./CLIController";
-import { ProjectGenerator } from "../generators/ProjectGenerator";
-import { TemplateManager } from "../templates/TemplateManager";
-import { PreviewServer } from "../preview-server/PreviewServer";
-import { LLMOptimizer } from "../integrations/LLMOptimizer";
 
 const program = new Command();
 
@@ -57,6 +52,9 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
+        const { CLIController } = await import("./CLIController");
+        const { ProjectGenerator } = await import("../generators/ProjectGenerator");
+        const { TemplateManager } = await import("../templates/TemplateManager");
         const cli = new CLIController();
         const generator = new ProjectGenerator();
         const templateManager = new TemplateManager();
@@ -80,6 +78,7 @@ program
 
             // ── Optional LLM Enhancement ──
             if (options.llm !== false) {
+                const { LLMOptimizer } = await import("../integrations/LLMOptimizer");
                 const optimizer = new LLMOptimizer();
                 const fs = await import("fs/promises");
                 const readmePath = path.join(outputPath, "README.md");
@@ -137,6 +136,7 @@ program
     .command("list")
     .description("List all available project templates.")
     .action(async () => {
+        const { TemplateManager } = await import("../templates/TemplateManager");
         const templateManager = new TemplateManager();
         try {
             const templates = await templateManager.listTemplates();
@@ -162,6 +162,7 @@ program
     .command("preview <targetPath>")
     .description("Spin up the generated application locally using Docker Compose.")
     .action(async (targetPath) => {
+        const { PreviewServer } = await import("../preview-server/PreviewServer");
         const preview = new PreviewServer();
         try {
             await preview.start(targetPath);

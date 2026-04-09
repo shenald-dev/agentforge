@@ -1,7 +1,5 @@
 import { spawn } from "child_process";
 import * as path from "path";
-import chalk from "chalk";
-import ora from "ora";
 
 export class PreviewServer {
 
@@ -9,6 +7,8 @@ export class PreviewServer {
      * Spawns a docker-compose process in the target generated directory.
      */
     async start(projectPath: string): Promise<void> {
+        const { default: chalk } = await import("chalk");
+        const { default: ora } = await import("ora");
         const composePath = path.resolve(projectPath);
         console.log(chalk.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
 
