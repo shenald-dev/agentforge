@@ -43,3 +43,10 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+## 2025-04-10 — Prevent LLM Hangups with AbortController
+
+Learning:
+LLM API calls (`chain.invoke` with `@langchain`) do not have built-in timeouts by default, which can lead to indefinite CLI hangs and dangling test handles when the provider API (e.g. OpenRouter) stalls or when credentials fail silently.
+
+Action:
+Always wrap external, network-reliant asynchronous code (especially LLM invocations) with an `AbortController` combined with a `setTimeout` (cleared via a `finally` block) to ensure bounded execution time and prevent memory leaks.
