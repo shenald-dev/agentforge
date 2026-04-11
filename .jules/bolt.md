@@ -43,3 +43,10 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+## 2026-04-11 — Configuration Directory Security permissions
+
+Learning:
+When managing local configuration files (e.g., `~/.agentforge/config.json`) containing sensitive information such as API keys, relying solely on restricting the file permissions (`0o600`) is insufficient if the parent directory itself (`~/.agentforge`) can be accessed or enumerated by other local users on a shared machine.
+
+Action:
+Ensure the parent configuration directory is created with restricted directory permissions (`0o700` in `fs.mkdir`). This tightens security and strictly restricts directory-level access to the owner only, preventing unauthorized local users from inspecting or reading the sensitive directory's contents.

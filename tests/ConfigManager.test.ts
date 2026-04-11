@@ -47,7 +47,7 @@ describe("ConfigManager", () => {
             const newConfig = { OPENROUTER_API_KEY: "new-key" };
             await configManager.setConfig(newConfig);
 
-            expect(fs.mkdir).toHaveBeenCalledWith(mockConfigDir, { recursive: true });
+            expect(fs.mkdir).toHaveBeenCalledWith(mockConfigDir, { recursive: true, mode: 0o700 });
             expect(fs.writeFile).toHaveBeenCalledWith(
                 mockConfigPath,
                 JSON.stringify(newConfig, null, 2),
