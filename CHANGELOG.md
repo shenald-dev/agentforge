@@ -9,3 +9,4 @@
 
 ## [2.0.3] - 2026-04-09
 * **Lifecycle:** Fixed TypeScript compilation errors (`TS7006`, `TS2322`) related to `@clack/prompts` introduced during refactoring of dynamic imports to static. Restored failing tests and verified the build pipeline.
+* **Reliability:** Applied AbortController with generous timeouts (e.g., 60s) to LLM or long-running network calls, and ensure the timeout is cleared in a finally block to prevent Jest leaks.
