@@ -43,3 +43,11 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+
+## 2026-04-08 — Prevent Hanging LLM Requests and Open Handles
+
+Learning:
+Unbounded LLM network requests (like `chain.invoke`) can cause background processes to hang indefinitely if the API provider hangs or throttles heavily without returning an error. In testing environments like Jest, these hanging promises and internal timers lead to open handle leaks and ungraceful test failures.
+
+Action:
+Always wrap LLM network requests with an `AbortController` using a generous timeout (e.g., 60+ seconds). Ensure the timeout timer is explicitly cleared in a `finally` block to prevent open handle leaks in the test environment while guaranteeing the request can be actively cancelled if it hangs.
