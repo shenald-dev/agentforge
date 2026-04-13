@@ -43,3 +43,10 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+## $(date +%Y-%m-%d) — Secure ConfigManager Directory Permissions
+
+Learning:
+The `ConfigManager` in `src/utils/config.ts` was securely setting file permissions to `0o600` for `~/.agentforge/config.json`, but the parent directory `.agentforge` was being created with default permissions using `fs.mkdir(..., { recursive: true })`. This could potentially allow other users on the system to inspect the directory contents, even if the file itself was restricted.
+
+Action:
+Updated the `fs.mkdir` call to explicitly set `mode: 0o700` to ensure that only the owner has read, write, and execute permissions on the `.agentforge` configuration directory.
