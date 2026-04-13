@@ -43,3 +43,11 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+
+## 2024-04-13 — LLM Network Timeout Reliability
+
+Learning:
+LLM generations can sometimes stall or hang indefinitely when network requests do not explicitly enforce timeouts, leading to unreliable build and scaffold processes and hanging tests.
+
+Action:
+Always ensure `AbortController` and explicit timeouts (e.g. 60 seconds) are included on long-running network integrations like LangChain's `chain.invoke`. Ensure timers are properly cleaned up in a `finally` block to prevent open handle leaks in testing environments.
