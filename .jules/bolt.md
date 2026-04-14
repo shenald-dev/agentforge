@@ -43,3 +43,11 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+
+## 2026-04-14 — Robust Network Dependency Boundaries
+
+Learning:
+Unbounded network calls to third-party LLM providers (e.g., OpenRouter) can hang indefinitely if the API silently fails to return a response or close the connection, causing the CLI to freeze and leak open handles.
+
+Action:
+Always enforce a rigid timeout ceiling (e.g., 60 seconds) with an `AbortController` around long-running external API invocations to guarantee process completion and release of resources.
