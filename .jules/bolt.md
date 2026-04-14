@@ -43,3 +43,10 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+## 2025-04-14 — Implement Explicit timeouts for LLM network requests
+
+Learning:
+LLM network requests can occasionally stall indefinitely, leading to hung processes or memory leaks in long-running services or CI environments.
+
+Action:
+Always wrap network requests, especially those calling external AI models (like LangChain's `chain.invoke`), with an `AbortController` and a generous explicit timeout (e.g., 60 seconds). Ensure timeouts are properly cleaned up using `clearTimeout` in a `try...finally` block to avoid Jest open-handle leaks.
