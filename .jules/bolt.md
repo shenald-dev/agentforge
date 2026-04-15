@@ -36,10 +36,10 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
-## 2026-04-08 — Optimize CLI startup performance via lazy loading
+## 2024-04-16 — Secure Config Directory Permissions
 
 Learning:
-Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI entry files drastically slow down cold start times, even for lightweight commands like `--help`. In this repository, `picocolors` and `@clack/prompts` were imported statically in `src/cli/index.ts`, adding ~30ms overhead per execution.
+The local configuration directory (`~/.agentforge`) created by `ConfigManager.setConfig` was being created with default permissions, which could be overly permissive depending on the user's `umask`. While the config file itself was secured with `mode: 0o600`, the directory should also be restricted to prevent unauthorized access to its contents.
 
 Action:
-Replaced static imports with dynamic ones (`await import()`) localized inside the specific command `.action()` blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve sub-100ms startup times.
+Modified `fs.mkdir` in `src/utils/config.ts` to include `{ recursive: true, mode: 0o700 }`, ensuring the `.agentforge` configuration directory is created with restricted permissions (owner read/write/execute only).
