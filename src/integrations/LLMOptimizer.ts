@@ -6,9 +6,11 @@ import * as p from "@clack/prompts";
 export class LLMOptimizer {
     private model: ChatOpenAI | null = null;
     private configManager: ConfigManager;
+    private timeoutMs: number;
 
-    constructor() {
+    constructor(timeoutMs: number = 60000) {
         this.configManager = new ConfigManager();
+        this.timeoutMs = timeoutMs;
     }
 
     async init() {
@@ -84,7 +86,7 @@ Return ONLY the raw markdown content. No conversational text.
             // Execute with retries
             const response = await this.withRetries(async () => {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000);
+                const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
                 try {
                     return await chain.invoke({
