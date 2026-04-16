@@ -47,3 +47,11 @@ Replaced static imports with dynamic ones (`await import()`) localized inside th
 ## 2024-04-16 — Timeout for LLM Requests
 Learning: Network requests using LangChain can hang indefinitely if not properly timed out.
 Action: When implementing timeouts for LLM network requests, use a generous timeout (e.g., 60+ seconds) with `AbortController` and ensure timers are cleaned up to prevent leaks.
+
+## 2026-04-16 — Secure Configuration Directory Permissions
+
+Learning:
+When managing local configuration files (e.g., `~/.agentforge/config.json`), setting restricted permissions on the file itself (`0o600`) is important, but leaving the directory with default permissions can expose metadata or allow unauthorized access depending on the environment. Both directory and file permissions should be tightened to restrict access to the owner only.
+
+Action:
+Ensure configuration directories created via `fs.mkdir` have their mode explicitly set to `0o700` (`mode: 0o700`), in addition to setting the configuration files to `0o600`.

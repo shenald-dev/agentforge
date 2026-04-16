@@ -34,7 +34,7 @@ export class ConfigManager {
         const current = await this.getConfig();
         const merged = { ...current, ...newConfig };
 
-        await fs.mkdir(this.configDir, { recursive: true });
+        await fs.mkdir(this.configDir, { recursive: true, mode: 0o700 });
 
         await fs.writeFile(this.configPath, JSON.stringify(merged, null, 2), {
             encoding: "utf-8",
