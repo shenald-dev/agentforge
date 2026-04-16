@@ -1,6 +1,6 @@
 {
     "name": "agentforge",
-    "version": "2.0.3",
+    "version": "2.0.5",
     "description": "Autonomous Full-Stack App Builder CLI.",
     "main": "dist/cli/index.js",
     "bin": {
@@ -26,11 +26,11 @@
     "license": "MIT",
     "dependencies": {
         "@clack/prompts": "^1.2.0",
-        "@langchain/core": "^1.1.31",
-        "@langchain/openai": "^1.2.12",
+        "@langchain/core": "1.1.40",
+        "@langchain/openai": "1.4.4",
         "commander": "^12.0.0",
         "dotenv": "^16.4.5",
-        "handlebars": "^4.7.8",
+        "handlebars": "4.7.9",
         "ora": "^5.4.1",
         "picocolors": "^1.1.1",
         "zod": "^3.22.4"
@@ -44,8 +44,8 @@
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
         "jest": "^29.7.0",
-        "prettier": "^3.2.5",
-        "ts-jest": "^29.1.2",
+        "prettier": "3.8.3",
+        "ts-jest": "29.4.9",
         "tsx": "^4.7.1",
         "typescript": "^5.3.3"
     }
