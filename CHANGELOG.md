@@ -9,3 +9,8 @@
 
 ## [2.0.3] - 2026-04-09
 * **Lifecycle:** Fixed TypeScript compilation errors (`TS7006`, `TS2322`) related to `@clack/prompts` introduced during refactoring of dynamic imports to static. Restored failing tests and verified the build pipeline.
+
+## [2.0.4] - 2026-04-16
+* **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai, handlebars, prettier, ts-jest).
+* **Optimization/QA:** Verified recent reliability improvement (AbortController timeout to LLM invoke calls) that didn't break tests.
+* **Docs:** Updated `warden.md` ledger.
