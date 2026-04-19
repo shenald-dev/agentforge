@@ -14,3 +14,6 @@
 * **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai, handlebars, prettier, ts-jest).
 * **Optimization/QA:** Verified recent reliability improvement (AbortController timeout to LLM invoke calls) that didn't break tests.
 * **Docs:** Updated `warden.md` ledger.
+
+## [2.0.6] - 2026-04-18
+* **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai).
