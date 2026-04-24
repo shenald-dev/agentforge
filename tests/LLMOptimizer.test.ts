@@ -4,6 +4,10 @@ import { PromptTemplate } from "@langchain/core/prompts";
 
 // Mock the ConfigManager
 jest.mock("../src/utils/config");
+jest.mock("@clack/prompts", () => ({
+    spinner: () => ({ start: jest.fn(), stop: jest.fn() }),
+    log: { warn: jest.fn(), gray: jest.fn() }
+}));
 
 describe("LLMOptimizer", () => {
     beforeEach(() => {

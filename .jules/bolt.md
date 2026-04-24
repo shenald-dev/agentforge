@@ -55,3 +55,10 @@ When managing local configuration files (e.g., `~/.agentforge/config.json`), set
 
 Action:
 Ensure configuration directories created via `fs.mkdir` have their mode explicitly set to `0o700` (`mode: 0o700`), in addition to setting the configuration files to `0o600`.
+## $(date +%Y-%m-%d) — Optimize CLI startup performance via lazy loading
+
+Learning:
+Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI entry files drastically slow down cold start times, even for lightweight commands like `--help`. In this repository, `picocolors` and `@clack/prompts` were imported statically in `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts`.
+
+Action:
+Replaced static imports with dynamic ones (`await import()`) localized inside the specific method blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve fast startup times.
