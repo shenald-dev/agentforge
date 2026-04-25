@@ -62,3 +62,11 @@ Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI 
 
 Action:
 Replaced static imports with dynamic ones (`await import()`) localized inside the specific method blocks that require them. This pattern should be replicated for all future heavy CLI dependencies to preserve fast startup times.
+
+## 2026-04-25 — Undo unnecessary dynamic imports in dynamically loaded modules
+
+Learning:
+Lazy-loading dependencies (e.g., using `await import('@clack/prompts')`) inside a module that is already dynamically imported (like `CLIController.ts` or `LLMOptimizer.ts`, which are already lazy-loaded by `index.ts`) provides no additional startup performance benefit and only introduces unnecessary code complexity.
+
+Action:
+Refactored `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts` to statically import `picocolors` and `@clack/prompts` at the top level. Since these files are already dynamically imported only when their respective commands are executed, the heavy dependencies do not impact the root CLI's cold start times.
