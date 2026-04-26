@@ -1,6 +1,6 @@
 {
     "name": "agentforge",
-    "version": "2.0.6",
+    "version": "2.0.7",
     "description": "Autonomous Full-Stack App Builder CLI.",
     "main": "dist/cli/index.js",
     "bin": {
