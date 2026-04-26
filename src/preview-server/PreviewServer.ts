@@ -50,7 +50,14 @@ export class PreviewServer {
             // Handle graceful shutdown
             process.on('SIGINT', () => {
                 console.log(pc.magenta("\nGracefully shutting down preview containers..."));
-                spawn("docker-compose", ["down"], { cwd: composePath, stdio: "inherit" }).on('close', () => {
+                const shutdownProcess = spawn("docker-compose", ["down"], { cwd: composePath, stdio: "inherit" });
+
+                shutdownProcess.on('error', (err) => {
+                    console.error(pc.red(`\nFailed to gracefully shutdown containers: ${err instanceof Error ? err.message : String(err)}`));
+                    process.exit(1);
+                });
+
+                shutdownProcess.on('close', () => {
                     process.exit(0);
                 });
             });
