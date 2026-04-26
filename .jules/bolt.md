@@ -70,3 +70,11 @@ Lazy-loading dependencies (e.g., using `await import('@clack/prompts')`) inside 
 
 Action:
 Refactored `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts` to statically import `picocolors` and `@clack/prompts` at the top level. Since these files are already dynamically imported only when their respective commands are executed, the heavy dependencies do not impact the root CLI's cold start times.
+
+## $(date +%Y-%m-%d) — Prevent Unhandled Exceptions from Failed Spawn Commands
+
+Learning:
+Node.js \`ChildProcess\` instances created via \`spawn\` emit an \`error\` event if they fail to spawn (e.g., missing executable like \`docker-compose\`). Without an explicit \`.on('error', ...)\` listener, Node.js treats this as an unhandled exception and crashes the process. Also, using \`catch (err: any)\` in TypeScript obscures the structure of the error object, potentially causing unsafe property access.
+
+Action:
+Refactored error handling across \`CLIController\`, \`PreviewServer\`, and \`LLMOptimizer\` to use strict \`catch (err: unknown)\` types and safely resolve error messages via \`err instanceof Error ? err.message : String(err)\`. Added an explicit error listener to the \`docker-compose down\` command during graceful shutdown to prevent unexpected process crashes.

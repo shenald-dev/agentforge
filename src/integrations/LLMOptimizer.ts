@@ -35,7 +35,7 @@ export class LLMOptimizer {
         while (attempt < maxRetries) {
             try {
                 return await operation();
-            } catch (error: any) {
+            } catch (error: unknown) {
                 attempt++;
                 p.log.warn(pc.yellow(`[LLM] API call failed. Attempt ${attempt}/${maxRetries}. Retrying...`));
                 
@@ -98,8 +98,8 @@ Return ONLY the raw markdown content. No conversational text.
 
             spinner.stop(pc.green("✨ README enhanced via LLM!"));
             return String(response.content);
-        } catch (err: any) {
-            spinner.stop(pc.yellow(`LLM enhancement failed: ${err.message}. Falling back to default.`));
+        } catch (err: unknown) {
+            spinner.stop(pc.yellow(`LLM enhancement failed: ${err instanceof Error ? err.message : String(err)}. Falling back to default.`));
             return currentReadme;
         }
     }

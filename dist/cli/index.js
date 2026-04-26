@@ -153,7 +153,7 @@ program
         p.log.step(pc.cyan(`$ agentforge preview .`));
     }
     catch (err) {
-        p.cancel(pc.red(`\n✖ Generation failed: ${err.message}`));
+        p.cancel(pc.red(`\n✖ Generation failed: ${err instanceof Error ? err.message : String(err)}`));
         process.exit(1);
     }
 });
@@ -181,7 +181,7 @@ program
         console.log();
     }
     catch (err) {
-        console.error(pc.red(`\n✖ Failed to list templates: ${err.message}`));
+        console.error(pc.red(`\n✖ Failed to list templates: ${err instanceof Error ? err.message : String(err)}`));
     }
 });
 // ─────────────────────────────────────
@@ -198,7 +198,7 @@ program
         await preview.start(targetPath);
     }
     catch (err) {
-        console.error(pc.red(`\n✖ Preview server failed: ${err.message}`));
+        console.error(pc.red(`\n✖ Preview server failed: ${err instanceof Error ? err.message : String(err)}`));
     }
 });
 program.parse();
