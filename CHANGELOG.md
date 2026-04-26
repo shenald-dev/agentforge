@@ -17,3 +17,8 @@
 
 ## [2.0.6] - 2026-04-18
 * **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai).
+
+## [2.0.7] - 2026-04-26
+* **Optimization/QA:** Verified recent CLI optimization for lazy-loading heavy UI dependencies. No dead code found to prune.
+* **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai, @types/node).
+* **Docs:** Updated `warden.md` ledger.
