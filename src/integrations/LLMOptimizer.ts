@@ -13,6 +13,7 @@ export class LLMOptimizer {
 
     async init() {
         const openRouterKey = await this.configManager.getApiKey();
+        const openRouterBaseUrl = await this.configManager.getBaseUrl();
 
         if (openRouterKey) {
             const { ChatOpenAI } = await import("@langchain/openai");
@@ -21,7 +22,7 @@ export class LLMOptimizer {
                 temperature: 0.7,
                 openAIApiKey: openRouterKey,
                 configuration: {
-                    baseURL: "https://openrouter.ai/api/v1",
+                    baseURL: openRouterBaseUrl || "https://openrouter.ai/api/v1",
                 }
             });
         }

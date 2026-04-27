@@ -85,6 +85,42 @@ describe("ConfigManager", () => {
         });
     });
 
+    describe("getBaseUrl", () => {
+        const originalEnv = process.env;
+
+        beforeEach(() => {
+            jest.resetModules();
+            process.env = { ...originalEnv };
+        });
+
+        afterAll(() => {
+            process.env = originalEnv;
+        });
+
+        it("should return base URL from process.env if present", async () => {
+            process.env.OPENROUTER_BASE_URL = "https://custom.url";
+            const baseUrl = await configManager.getBaseUrl();
+            expect(baseUrl).toBe("https://custom.url");
+        });
+
+        it("should return base URL from config file if not in env", async () => {
+            delete process.env.OPENROUTER_BASE_URL;
+            const mockConfig = { OPENROUTER_BASE_URL: "https://config.url" };
+            (fs.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockConfig));
+
+            const baseUrl = await configManager.getBaseUrl();
+            expect(baseUrl).toBe("https://config.url");
+        });
+
+        it("should return undefined if not in env or config", async () => {
+            delete process.env.OPENROUTER_BASE_URL;
+            (fs.readFile as jest.Mock).mockRejectedValue(new Error("File not found"));
+
+            const baseUrl = await configManager.getBaseUrl();
+            expect(baseUrl).toBeUndefined();
+        });
+    });
+
     describe("getApiKey", () => {
         const originalEnv = process.env;
 
