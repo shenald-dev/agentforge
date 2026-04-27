@@ -4,6 +4,7 @@ import * as os from "os";
 
 export interface AgentForgeConfig {
     OPENROUTER_API_KEY?: string;
+    OPENROUTER_BASE_URL?: string;
 }
 
 export class ConfigManager {
@@ -51,5 +52,16 @@ export class ConfigManager {
         }
         const config = await this.getConfig();
         return config.OPENROUTER_API_KEY;
+    }
+
+    /**
+     * Gets the custom Base URL for OpenRouter, falling back to process.env, or undefined.
+     */
+    async getBaseUrl(): Promise<string | undefined> {
+        if (process.env.OPENROUTER_BASE_URL) {
+            return process.env.OPENROUTER_BASE_URL;
+        }
+        const config = await this.getConfig();
+        return config.OPENROUTER_BASE_URL;
     }
 }

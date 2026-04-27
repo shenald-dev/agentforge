@@ -15,8 +15,8 @@ export class TemplateManager {
         try {
             const dirents = await fs.readdir(this.templatesDir, { withFileTypes: true });
             return dirents.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
-        } catch (err) {
-            throw new Error(`Failed to read templates directory: ${err}`);
+        } catch (err: unknown) {
+            throw new Error(`Failed to read templates directory: ${err instanceof Error ? err.message : String(err)}`);
         }
     }
 
@@ -33,7 +33,7 @@ export class TemplateManager {
             const stats = await fs.stat(templatePath);
             if (!stats.isDirectory()) throw new Error();
             return templatePath;
-        } catch {
+        } catch (err: unknown) {
             throw new Error(`Template '${templateName}' does not exist.`);
         }
     }

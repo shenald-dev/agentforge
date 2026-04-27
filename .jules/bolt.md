@@ -78,3 +78,11 @@ Node.js \`ChildProcess\` instances created via \`spawn\` emit an \`error\` event
 
 Action:
 Refactored error handling across \`CLIController\`, \`PreviewServer\`, and \`LLMOptimizer\` to use strict \`catch (err: unknown)\` types and safely resolve error messages via \`err instanceof Error ? err.message : String(err)\`. Added an explicit error listener to the \`docker-compose down\` command during graceful shutdown to prevent unexpected process crashes.
+
+## 2024-05-18 — Configurable OpenRouter Base URL
+
+Learning:
+LLM networks like LangChain interact with API providers like OpenRouter and require configurable endpoints depending on network setup. In `LLMOptimizer`, the `baseURL` was strictly hardcoded to `https://openrouter.ai/api/v1`, not allowing overriding for users inside specific environments or proxies.
+
+Action:
+Added `OPENROUTER_BASE_URL` to `AgentForgeConfig` and `ConfigManager` (exposing `getBaseUrl()`), falling back to `process.env.OPENROUTER_BASE_URL`. Updated `LLMOptimizer` to use this method to set the `baseURL`, returning to `https://openrouter.ai/api/v1` as the final default if undefined.
