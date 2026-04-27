@@ -22,3 +22,7 @@
 * **Optimization/QA:** Verified recent CLI optimization for lazy-loading heavy UI dependencies. No dead code found to prune.
 * **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai, @types/node).
 * **Docs:** Updated `warden.md` ledger.
+
+## [2.0.8] - 2024-05-18
+
+* **[Lifecycle]:** Assured codebase stability after previous optimizations. Pruned unused dependencies `@types/inquirer` from package manifests. Updated `@langchain/core` to `1.1.41` and `@types/node` to `20.19.39` safely.

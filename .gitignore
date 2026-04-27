@@ -1,25 +1,3 @@
-# Dependencies
 node_modules/
-
-# Build
 dist/
-
-# Environment
-*.env
-.env.*
-
-# Generated test outputs
-agentforge-live-demo/
-my-vibe-app/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-
-# Vercel
-.vercel/
-node_modules/
+.env
