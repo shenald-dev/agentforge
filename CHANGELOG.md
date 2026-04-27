@@ -26,3 +26,6 @@
 ## [2.0.8] - 2024-05-18
 
 * **[Lifecycle]:** Assured codebase stability after previous optimizations. Pruned unused dependencies `@types/inquirer` from package manifests. Updated `@langchain/core` to `1.1.41` and `@types/node` to `20.19.39` safely.
+
+## [2.0.10] - 2026-04-27
+* **[Lifecycle]:** Assured codebase stability. Safely updated `@langchain/core` to `1.1.42` and `@langchain/openai` to `1.4.5`. No dead code found.
