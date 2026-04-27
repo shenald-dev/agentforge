@@ -78,4 +78,19 @@ describe("ProjectGenerator", () => {
         const frontendExists = await fs.stat(frontendDir).then(() => true).catch(() => false);
         expect(frontendExists).toBe(true);
     });
+
+    it("should not escape special characters in generated files", async () => {
+        const outputPath = path.join(tempDir, "test-project");
+        const templatePath = path.resolve(__dirname, "../templates/saas");
+
+        await generator.generate({
+            projectName: "test-project",
+            idea: "A \"cool\" <app> & others",
+            templatePath,
+            outputPath,
+        });
+
+        const readmeContent = await fs.readFile(path.join(outputPath, "README.md"), "utf-8");
+        expect(readmeContent).toContain("A \"cool\" <app> & others");
+    });
 });

@@ -48,3 +48,11 @@ Verified structural soundness of the `CLIController`, `PreviewServer`, and `LLMO
 
 Alignment / Deferred:
 Deferred major upgrades (e.g. `commander`, `eslint`, `jest`, `ora`, `typescript`, `zod`) to avoid breaking changes or complex refactoring without an isolated migration plan. Updated `@langchain/core` and `@types/node` safely. Version bumped to `2.0.8`.
+
+## $(date +%Y-%m-%d) — Assessment & Lifecycle
+
+Observation / Pruned:
+Assessed codebase for correctness bugs. Discovered and fixed an issue where Handlebars would HTML-escape variables (like the generated project idea string) in non-HTML files, causing invalid markdown/code scaffolding. No dead code found to prune.
+
+Alignment / Deferred:
+Deferred major dependency upgrades to maintain stability. Bumped patch version.

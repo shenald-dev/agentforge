@@ -86,3 +86,11 @@ LLM networks like LangChain interact with API providers like OpenRouter and requ
 
 Action:
 Added `OPENROUTER_BASE_URL` to `AgentForgeConfig` and `ConfigManager` (exposing `getBaseUrl()`), falling back to `process.env.OPENROUTER_BASE_URL`. Updated `LLMOptimizer` to use this method to set the `baseURL`, returning to `https://openrouter.ai/api/v1` as the final default if undefined.
+
+## $(date +%Y-%m-%d) — Fix Handlebars HTML Escaping
+
+Learning:
+Handlebars escapes HTML entities by default (e.g., `<` to `&lt;`). When generating non-HTML files such as code or markdown, natural language input containing special characters will be improperly formatted if default compilation is used.
+
+Action:
+Always use `{ noEscape: true }` when compiling Handlebars templates for scaffolding standard text or code files to prevent unwanted HTML entity escaping.
