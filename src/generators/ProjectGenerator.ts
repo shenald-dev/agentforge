@@ -58,7 +58,7 @@ export class ProjectGenerator {
                 if (entry.name.endsWith(".hbs")) {
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
-                    const template = Handlebars.compile(content);
+                    const template = Handlebars.compile(content, { noEscape: true });
                     const rendered = template(context);
                     return fs.writeFile(destPath, rendered, "utf-8");
                 } else {

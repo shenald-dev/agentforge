@@ -29,7 +29,7 @@ Dynamic imports of `chalk` can cause missing dependency issues if not properly m
 
 Action:
 Replaced the `chalk` dependency with `picocolors` in `PreviewServer.ts` for unified and safe terminal styling across the CLI commands.
-## $(date +%Y-%m-%d) — Optimize CLI startup performance via lazy loading
+## 2026-04-28 — Optimize CLI startup performance via lazy loading
 
 Learning:
 Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI entry files drastically slow down cold start times, even for lightweight commands like `--help`. In this repository, `picocolors` and `@clack/prompts` were imported statically in `src/cli/index.ts`, adding ~30ms overhead per execution.
@@ -55,7 +55,7 @@ When managing local configuration files (e.g., `~/.agentforge/config.json`), set
 
 Action:
 Ensure configuration directories created via `fs.mkdir` have their mode explicitly set to `0o700` (`mode: 0o700`), in addition to setting the configuration files to `0o600`.
-## $(date +%Y-%m-%d) — Optimize CLI startup performance via lazy loading
+## 2026-04-28 — Optimize CLI startup performance via lazy loading
 
 Learning:
 Static imports of heavy UI libraries (like `@clack/prompts`) at the root of CLI entry files drastically slow down cold start times, even for lightweight commands like `--help`. In this repository, `picocolors` and `@clack/prompts` were imported statically in `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts`.
@@ -71,7 +71,7 @@ Lazy-loading dependencies (e.g., using `await import('@clack/prompts')`) inside 
 Action:
 Refactored `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts` to statically import `picocolors` and `@clack/prompts` at the top level. Since these files are already dynamically imported only when their respective commands are executed, the heavy dependencies do not impact the root CLI's cold start times.
 
-## $(date +%Y-%m-%d) — Prevent Unhandled Exceptions from Failed Spawn Commands
+## 2026-04-28 — Prevent Unhandled Exceptions from Failed Spawn Commands
 
 Learning:
 Node.js \`ChildProcess\` instances created via \`spawn\` emit an \`error\` event if they fail to spawn (e.g., missing executable like \`docker-compose\`). Without an explicit \`.on('error', ...)\` listener, Node.js treats this as an unhandled exception and crashes the process. Also, using \`catch (err: any)\` in TypeScript obscures the structure of the error object, potentially causing unsafe property access.
@@ -86,3 +86,11 @@ LLM networks like LangChain interact with API providers like OpenRouter and requ
 
 Action:
 Added `OPENROUTER_BASE_URL` to `AgentForgeConfig` and `ConfigManager` (exposing `getBaseUrl()`), falling back to `process.env.OPENROUTER_BASE_URL`. Updated `LLMOptimizer` to use this method to set the `baseURL`, returning to `https://openrouter.ai/api/v1` as the final default if undefined.
+
+## 2026-04-28 — Prevent Unintended HTML Entity Escaping in Code Generation
+
+Learning:
+Handlebars escapes HTML entities (`<`, `>`, `&`, etc.) by default. Since the `ProjectGenerator` uses Handlebars to compile and scaffold source code files (like Markdown, Next.js, and FastAPI files), escaping these characters can unintentionally cause broken syntax in the generated code when user inputs (like the "idea" field) contain characters such as `<` or `>`.
+
+Action:
+When using Handlebars to scaffold standard text or code files (e.g., generating Markdown or TypeScript), always compile templates using `Handlebars.compile(content, { noEscape: true })` to prevent unintended HTML entity escaping of special characters.
