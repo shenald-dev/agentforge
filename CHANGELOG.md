@@ -29,3 +29,8 @@
 
 ## [2.0.10] - 2026-04-27
 * **[Lifecycle]:** Assured codebase stability. Safely updated `@langchain/core` to `1.1.42` and `@langchain/openai` to `1.4.5`. No dead code found.
+
+## [2.0.11] - 2026-04-28
+* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous additions (path traversal security tests in `ProjectGenerator.test.ts`). No dead code found to prune.
+* **[Fix]:** Ensured tests are complete and build is stable.
+* **[Docs]:** Updated `CHANGELOG.md` and `.jules/warden.md` ledger.
