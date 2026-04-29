@@ -94,3 +94,12 @@ Handlebars escapes HTML entities (`<`, `>`, `&`, etc.) by default. Since the `Pr
 
 Action:
 When using Handlebars to scaffold standard text or code files (e.g., generating Markdown or TypeScript), always compile templates using `Handlebars.compile(content, { noEscape: true })` to prevent unintended HTML entity escaping of special characters.
+
+
+## 2024-05-19 — Optimize I/O and Recursion Overheads
+
+Learning:
+Uncached disk reads inside frequently called configuration methods (like `getConfig` in `ConfigManager`) create unnecessary synchronous bottlenecks, particularly when fetching multiple configuration keys during a single CLI session. Similarly, repeatedly resolving static base paths (e.g., `path.resolve(baseOutputDir)`) inside recursive directory traversal loops adds redundant CPU overhead, especially when parsing deeply nested template directories.
+
+Action:
+Introduced an in-memory `cachedConfig` inside `ConfigManager` to cache parsed configurations and avoid redundant file reads. Pre-resolved the `normalizedBase` path once at the top level of `ProjectGenerator.generate` and passed it as an argument down the recursive chain, reducing CPU cycles during project scaffolding.

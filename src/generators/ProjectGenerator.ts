@@ -20,14 +20,15 @@ export class ProjectGenerator {
         // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
 
+        const normalizedBase = path.resolve(outputPath);
+
         // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, outputPath, outputPath, options);
+        await this.copyAndParseDir(templatePath, outputPath, normalizedBase, options);
     }
 
-    private async copyAndParseDir(sourceDir: string, destDir: string, baseOutputDir: string, context: GenerateOptions): Promise<void> {
+    private async copyAndParseDir(sourceDir: string, destDir: string, normalizedBase: string, context: GenerateOptions): Promise<void> {
         // Strict path traversal prevention
         const normalizedDestDir = path.resolve(destDir);
-        const normalizedBase = path.resolve(baseOutputDir);
         
         const relativeDest = path.relative(normalizedBase, normalizedDestDir);
         if (relativeDest === ".." || relativeDest.startsWith(".." + path.sep) || path.isAbsolute(relativeDest)) {
@@ -53,7 +54,7 @@ export class ProjectGenerator {
             if (entry.isDirectory()) {
                 // Create target directory and recurse
                 await fs.mkdir(destPath, { recursive: true });
-                return this.copyAndParseDir(srcPath, destPath, baseOutputDir, context);
+                return this.copyAndParseDir(srcPath, destPath, normalizedBase, context);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
                     // Read, compile Handlebars, and write
