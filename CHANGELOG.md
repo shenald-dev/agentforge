@@ -34,3 +34,5 @@
 * **[Lifecycle]:** Assessed codebase and verified structural soundness after previous additions (path traversal security tests in `ProjectGenerator.test.ts`). No dead code found to prune.
 * **[Fix]:** Ensured tests are complete and build is stable.
 * **[Docs]:** Updated `CHANGELOG.md` and `.jules/warden.md` ledger.
+
+* **[Dependencies]:** Bumped @clack/prompts from 1.2.0 to 1.3.0.
