@@ -103,3 +103,10 @@ Uncached disk reads inside frequently called configuration methods (like `getCon
 
 Action:
 Introduced an in-memory `cachedConfig` inside `ConfigManager` to cache parsed configurations and avoid redundant file reads. Pre-resolved the `normalizedBase` path once at the top level of `ProjectGenerator.generate` and passed it as an argument down the recursive chain, reducing CPU cycles during project scaffolding.
+## 2024-05-01 — Path Resolution Optimization in Generator
+
+Learning:
+Inside `ProjectGenerator.ts`, `path.resolve` was being called redundantly for every single file and subdirectory during the recursive template scaffolding. This caused excessive CPU overhead as templates scaled up in file count.
+
+Action:
+Pre-resolve the destination path (`normalizedDestDir`) once per recursive iteration, rather than inside the concurrent map loop. This speeds up scaffolding and is measurable by tracking project generation time for large templates.
