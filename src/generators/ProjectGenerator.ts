@@ -23,13 +23,11 @@ export class ProjectGenerator {
         const normalizedBase = path.resolve(outputPath);
 
         // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, outputPath, normalizedBase, options);
+        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options);
     }
 
-    private async copyAndParseDir(sourceDir: string, destDir: string, normalizedBase: string, context: GenerateOptions): Promise<void> {
+    private async copyAndParseDir(sourceDir: string, normalizedDestDir: string, normalizedBase: string, context: GenerateOptions): Promise<void> {
         // Strict path traversal prevention
-        const normalizedDestDir = path.resolve(destDir);
-        
         const relativeDest = path.relative(normalizedBase, normalizedDestDir);
         if (relativeDest === ".." || relativeDest.startsWith(".." + path.sep) || path.isAbsolute(relativeDest)) {
             throw new Error(`Security Exception: Path traversal attempt blocked. Target path ${normalizedDestDir} escapes the base directory ${normalizedBase}`);
@@ -42,10 +40,9 @@ export class ProjectGenerator {
         const operations = entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
             const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
-            const destPath = path.join(destDir, destName);
+            const normalizedDestPath = path.join(normalizedDestDir, destName);
 
             // Double check file-level traversal
-            const normalizedDestPath = path.resolve(destPath);
             const relativePath = path.relative(normalizedBase, normalizedDestPath);
             if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
                 throw new Error(`Security Exception: Path traversal attempt blocked for file ${entry.name}`);
@@ -53,18 +50,18 @@ export class ProjectGenerator {
 
             if (entry.isDirectory()) {
                 // Create target directory and recurse
-                await fs.mkdir(destPath, { recursive: true });
-                return this.copyAndParseDir(srcPath, destPath, normalizedBase, context);
+                await fs.mkdir(normalizedDestPath, { recursive: true });
+                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = Handlebars.compile(content, { noEscape: true });
                     const rendered = template(context);
-                    return fs.writeFile(destPath, rendered, "utf-8");
+                    return fs.writeFile(normalizedDestPath, rendered, "utf-8");
                 } else {
                     // Standard copy (images, lockfiles, etc)
-                    return fs.copyFile(srcPath, destPath);
+                    return fs.copyFile(srcPath, normalizedDestPath);
                 }
             }
         });
