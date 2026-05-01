@@ -36,3 +36,7 @@
 * **[Docs]:** Updated `CHANGELOG.md` and `.jules/warden.md` ledger.
 
 * **[Dependencies]:** Bumped @clack/prompts from 1.2.0 to 1.3.0.
+
+## [2.0.14] - 2026-05-01
+* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous path resolution optimization. No dead code found to prune.
+* **[Dependencies]:** Deferred major upgrades.
