@@ -110,3 +110,11 @@ Inside `ProjectGenerator.ts`, `path.resolve` was being called redundantly for ev
 
 Action:
 Pre-resolve the destination path (`normalizedDestDir`) once per recursive iteration, rather than inside the concurrent map loop. This speeds up scaffolding and is measurable by tracking project generation time for large templates.
+
+## 2026-05-18 — Optimize Post-Generation Finalization
+
+Learning:
+Executing `npm install` and the LLM README enhancement sequentially in `src/cli/index.ts` creates a bottleneck in the scaffolding process.
+
+Action:
+Replaced the sequential execution with a concurrent `Promise.all` approach to overlap network wait time with disk I/O, speeding up overall execution time significantly. Updated `LLMOptimizer` to support an optional `showSpinner` parameter to avoid conflicting UI elements during concurrent execution.

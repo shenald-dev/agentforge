@@ -55,16 +55,16 @@ export class LLMOptimizer {
     /**
      * Enhances a generated application's README using the user's idea string.
      */
-    async enhanceReadme(idea: string, currentReadme: string): Promise<string> {
+    async enhanceReadme(idea: string, currentReadme: string, showSpinner: boolean = true): Promise<string> {
         await this.init();
 
         if (!this.model) {
-            p.log.warn(pc.gray(`[LLM] API key not found. Skipping README refinement.`));
+            if (showSpinner) p.log.warn(pc.gray(`[LLM] API key not found. Skipping README refinement.`));
             return currentReadme;
         }
 
         const spinner = p.spinner();
-        spinner.start("Refining project documentation via LLM...");
+        if (showSpinner) spinner.start("Refining project documentation via LLM...");
 
         try {
             const { PromptTemplate } = await import("@langchain/core/prompts");
@@ -97,10 +97,10 @@ Return ONLY the raw markdown content. No conversational text.
                 }
             });
 
-            spinner.stop(pc.green("✨ README enhanced via LLM!"));
+            if (showSpinner) spinner.stop(pc.green("✨ README enhanced via LLM!"));
             return String(response.content);
         } catch (err: unknown) {
-            spinner.stop(pc.yellow(`LLM enhancement failed: ${err instanceof Error ? err.message : String(err)}. Falling back to default.`));
+            if (showSpinner) spinner.stop(pc.yellow(`LLM enhancement failed: ${err instanceof Error ? err.message : String(err)}. Falling back to default.`));
             return currentReadme;
         }
     }

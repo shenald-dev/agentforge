@@ -83,27 +83,14 @@ program
 
             s.stop(pc.green(`✨ Project scaffolded successfully!`));
 
-            // ── Optional LLM Enhancement ──
-            if (options.llm !== false) {
-                const { LLMOptimizer } = await import("../integrations/LLMOptimizer");
-                const optimizer = new LLMOptimizer();
-                const fs = await import("fs/promises");
-                const readmePath = path.join(outputPath, "README.md");
-                try {
-                    const currentReadme = await fs.readFile(readmePath, "utf-8");
-                    const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
-                    await fs.writeFile(readmePath, enhancedReadme, "utf-8");
-                } catch {
-                    // Silently skip if README doesn't exist
-                }
-            } else {
-                p.log.warn(pc.gray(`⏭  LLM enhancement skipped (--no-llm flag)`));
-            }
+            // ── Post-generation Finalization (Concurrent LLM + Install) ──
+            const finalSpinner = p.spinner();
+            finalSpinner.start("Finalizing project (installing dependencies & refining README)...");
 
-            // ── Post-generation npm install ──
-            const installSpinner = p.spinner();
-            installSpinner.start("Installing dependencies in generated project...");
-            await new Promise<void>((resolve) => {
+            const finalizationTasks: Promise<void>[] = [];
+
+            // Task 1: npm install
+            finalizationTasks.push(new Promise<void>((resolve) => {
                 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
                 const install = spawn(npmCmd, ["install"], {
                     cwd: outputPath,
@@ -111,19 +98,38 @@ program
                     shell: false,
                 });
                 install.on("close", (code) => {
-                    if (code === 0) {
-                        installSpinner.stop(pc.green("Dependencies installed!"));
-                        resolve();
-                    } else {
-                        installSpinner.stop(pc.yellow("npm install returned non-zero. You may need to install dependencies manually."));
-                        resolve(); // Don't block on install failure
+                    if (code !== 0) {
+                        p.log.warn(pc.yellow("npm install returned non-zero. You may need to install dependencies manually."));
                     }
-                });
-                install.on("error", () => {
-                    installSpinner.stop(pc.yellow("Could not run npm install automatically."));
                     resolve();
                 });
-            });
+                install.on("error", () => {
+                    p.log.warn(pc.yellow("Could not run npm install automatically."));
+                    resolve();
+                });
+            }));
+
+            // Task 2: LLM Enhancement
+            if (options.llm !== false) {
+                finalizationTasks.push((async () => {
+                    const { LLMOptimizer } = await import("../integrations/LLMOptimizer");
+                    const optimizer = new LLMOptimizer();
+                    const fs = await import("fs/promises");
+                    const readmePath = path.join(outputPath, "README.md");
+                    try {
+                        const currentReadme = await fs.readFile(readmePath, "utf-8");
+                        const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme, false);
+                        await fs.writeFile(readmePath, enhancedReadme, "utf-8");
+                    } catch {
+                        // Silently skip if README doesn't exist
+                    }
+                })());
+            } else {
+                p.log.warn(pc.gray(`⏭  LLM enhancement skipped (--no-llm flag)`));
+            }
+
+            await Promise.all(finalizationTasks);
+            finalSpinner.stop(pc.green("✨ Finalization complete!"));
 
             p.outro(pc.cyan(`🎉 Successfully crafted ${pc.bold(answers.projectName)} using the ${pc.bold(answers.template)} template!`));
             
