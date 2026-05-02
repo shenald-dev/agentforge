@@ -4,7 +4,7 @@
         The repository's `tsconfig.json` was improperly configured with `"rootDir": "./"`. This caused `tsc` to replicate the `src/` directory structure inside `dist/`, resulting in `dist/src/cli/index.js`. The package configuration (`package.json`) expected the entrypoint to be `dist/cli/index.js`, breaking the compiled CLI entirely.
 
         Action:
-        Always configure `"rootDir": "./src"` and `"include": ["src/**/*"]` when all source code is housed within a `src` directory, 
+        Always configure `"rootDir": "./src"` and `"include": ["src/**/*"]` when all source code is housed within a `src` directory,
 
         // ... 8373.8 characters truncated (middle section) ...
 
