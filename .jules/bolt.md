@@ -110,3 +110,11 @@ Inside `ProjectGenerator.ts`, `path.resolve` was being called redundantly for ev
 
 Action:
 Pre-resolve the destination path (`normalizedDestDir`) once per recursive iteration, rather than inside the concurrent map loop. This speeds up scaffolding and is measurable by tracking project generation time for large templates.
+
+## 2024-05-20 — Short-circuit stdout Evaluation for Long-running Processes
+
+Learning:
+For long-running processes (like docker-compose) emitting continuous stdout data chunks, evaluating `.toString()` and performing string `.includes()` on every single chunk after the desired startup state is met causes unnecessary CPU overhead.
+
+Action:
+Use a boolean state flag (e.g., `let isReady = false;`) to short-circuit repeated string evaluations inside the `stdout.on('data')` event handler after the process has successfully started.
