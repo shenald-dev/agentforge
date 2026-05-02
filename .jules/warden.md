@@ -78,3 +78,10 @@ Assessed codebase and verified structural soundness after the previous path reso
 
 Alignment / Deferred:
 Deferred major upgrades. Safe minor/patch dependencies are already at their latest wanted versions. Committing lifecycle release tag (v2.0.14) and logging the update.
+## 2026-05-02 — Assessment & Lifecycle
+
+Observation / Pruned:
+Assessed codebase for runtime performance and reliability issues. Discovered a noisy event listener loop in `PreviewServer.ts` that repeatedly executed string allocations and evaluation on Docker logs after the container was already live. Found redundant path evaluation logic in recursive nested traversals within `ProjectGenerator.ts`. No dead code found to prune. Removed `coverage/` directory generated during coverage checks before committing.
+
+Alignment / Deferred:
+Optimized `PreviewServer.ts` by introducing an `isReady` flag to short-circuit repeated log string parsing. Optimized `ProjectGenerator.ts` by eliminating the redundant directory-level path traversal check. All safety, functional, and security tests pass correctly. Committing lifecycle release tag and logging the update.
