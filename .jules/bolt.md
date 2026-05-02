@@ -55,15 +55,15 @@ We are given three versions: ancestor, base (master), and head (PR branch).
         Base (master): 8 lines changed (lines 114-121)
         Action:
         Pre-resolve the destination path (`normalizedDestDir`) once per recursive iteration, rather than inside the concurrent map loop. This speeds up scaffolding and is measurable by tracking project generation time for large templates.
-        
+
       + ## 2026-05-02 — Avoid Redundant String Parsing on Long-Running Processes
-      + 
+      +
       + Learning:
       + Long-running processes (like docker-compose) emit continuous `stdout` data chunks. Evaluating `.toString()` and performing string `includes()` on every single chunk after the desired startup state is already met creates thousands of unnecessary allocations and CPU cycles.
-      + 
+      +
       + Action:
       + Always use a boolean state flag (e.g., `let isReady = false;`) inside event listeners for long-running processes to short-circuit repeated and expensive string evaluations once the initialization condition is met.
-      + 
+      +
 
  However, the base version text provided in the "File Versions" section only shows up to the truncation and then the 2026-05-02 section? Actually, the base version text says:
 
@@ -101,8 +101,8 @@ We are given three versions: ancestor, base (master), and head (PR branch).
    - Then a line that says: "template scaffolding. This caused excessive CPU overhead as templates scaled up in file count." (which seems to be part of a Learning section for an earlier entry? but note the truncation)
    - Then an Action section (indented) that talks about pre-resolving the destination path.
 
- And note: the base branch has the same pre-resolve line in the 2026-05-02 section? Actually, no: the base branch has two sections at the end: 
-   - 2026-05-02 (about string parsing) 
+ And note: the base branch has the same pre-resolve line in the 2026-05-02 section? Actually, no: the base branch has two sections at the end:
+   - 2026-05-02 (about string parsing)
    - and then the base version text provided in the context for the base branch does not show a second section? But wait, the base branch context says 8 lines changed (lines 114-121) and then shows the 2026-05-02 section? Actually, the 8 lines changed might be just the pre-resolve line? But the context says:
 
         Base (master): 8 lines changed (lines 114-121)
@@ -110,7 +110,7 @@ We are given three versions: ancestor, base (master), and head (PR branch).
         Pre-resolve the destination path (`normalizedDestDir`) once per recursive iteration, rather than inside the concurrent map loop. This speeds up scaffolding and is measurable by tracking project generation time for large templates.
 
         + ## 2026-05-02 — Avoid Redundant String Parsing on Long-Running Processes
-        + 
+        +
         + ... (the rest of that section)
 
  So the 8 lines changed are actually the entire 2026-05-02 section? But that section is more than 8 lines.
@@ -123,24 +123,24 @@ We are given three versions: ancestor, base (master), and head (PR branch).
 
    @@ -1,112 +1,17 @@
    ## 2024-03-26 — Fix TypeScript Build Outputs
-   
+
    -Learning:
    -The repository's `tsconfig.json` was improperly configured with `"rootDir": "./"`. This caused `tsc` to replicate the `src/` directory structure inside `dist/`, resulting in `dist/src/cli/index.js`. The package configuration (`package.json`) expected the entrypoint to be `dist/cli/index.js`, breaking the compiled CLI entirely.
    +        Learning:
    +        The repository's `tsconfig.json` was improperly configured with `"rootDir": "./"`. This caused `tsc` to replicate the `src/` directory structure inside `dist/`, resulting in `dist/src/cli/index.js`. The package configuration (`package.json`) expected the entrypoint to be `dist/cli/index.js`, breaking the compiled CLI entirely.
-   
+
    -Action:
    -Always configure `"rootDir": "./src"` and `"include": ["src/**/*"]` when all source code is housed within a `src` directory, to ensure compiled assets map cleanly into the `dist` directory.
    +        Action:
    +        Always configure `"rootDir": "./src"` and `"include": ["src/**/*"]` when all source code is housed within a `src` directory,
-   
+
    -## 2024-03-29 — Fix Spawn Command Injection and Hangs
    +        // ... 8373.8 characters truncated (middle section) ...
-   
+
    -Learning:
    -Using `spawn` with `shell: true` and `stdio: "pipe"` without consuming the stream is a command injection risk and can cause the process to hang if the buffer fills. It also causes lint errors when unused parameters are left in event handlers.
    +        h Resolution Optimization in Generator
-   
+
    -Action:
    -Always use `shell: false` for `spawn`, resolve the correct executable (e.g., `npm.cmd` vs `npm`), and set `stdio: "ignore"` if the output is not needed. Ensure event handlers do not declare unused parameters, and use `const` for variables that are not reassigned.
    +        Learning:
@@ -158,17 +158,17 @@ We are given three versions: ancestor, base (master), and head (PR branch).
    The 17 lines in the head branch are:
 
         ## 2024-03-26 — Fix TypeScript Build Outputs
-        
+
                 Learning:
                 The repository's `tsconfig.json` was improperly configured with `"rootDir": "./"`. This caused `tsc` to replicate the `src/` directory structure inside `dist/`, resulting in `dist/src/cli/index.js`. The package configuration (`package.json`) expected the entrypoint to be `dist/cli/index.js`, breaking the compiled CLI entirely.
-        
+
                 Action:
                 Always configure `"rootDir": "./src"` and `"include": ["src/**/*"]` when all source code is housed within a `src` directory,
-        
+
                 // ... 8373.8 characters truncated (middle section) ...
-        
+
                 h Resolution Optimization in Generator
-        
+
                 Learning:
                 Inside `ProjectGenerator.ts`, `path.resolve` was being called redundantly for every single file and subdirectory during the recursive template scaffold
 
@@ -185,7 +185,7 @@ We are given three versions: ancestor, base (master), and head (PR branch).
 
    We know:
      - The ancestor has a certain content (truncated in the middle).
-     - The base branch has the ancestor content (without indentation) plus two new sections at the end: 
+     - The base branch has the ancestor content (without indentation) plus two new sections at the end:
           1. 2026-05-02 — Avoid Redundant String Parsing on Long-Running Processes
           2. [Note: the base branch context only shows one new section, but the head branch version text shows a pre-resolve line that is similar to the base branch's 2026-05-02 section? Actually, no: the base branch's 2026-05-02 section is about string parsing, and the pre-resolve line is about path resolution.]
 
@@ -196,22 +196,22 @@ We are given three versions: ancestor, base (master), and head (PR branch).
         Base (master): 8 lines changed (lines 114-121)
             Action:
             Pre-resolve the destination path (`normalizedDestDir`) once per recursive iteration, rather than inside the concurrent map loop. This speeds up scaffolding and is measurable by tracking project generation time for large templates.
-            
+
           + ## 2026-05-02 — Avoid Redundant String Parsing on Long-Running Processes
-          + 
+          +
           + Learning:
           + Long-running processes (like docker-compose) emit continuous `stdout` data chunks. Evaluating `.toString()` and performing string `includes()` on every single chunk after the desired startup state is already met creates thousands of unnecessary allocations and CPU cycles.
-          + 
+          +
           + Action:
           + Always use a boolean state flag (e.g., `let isReady = false;`) inside event listeners for long-running processes to short-circuit repeated and expensive string evaluations once the initialization condition is met.
-          + 
+          +
 
-   This seems to be showing two changes: 
+   This seems to be showing two changes:
         First, an 8-line change (the pre-resolve line) and then an addition of a new section (2026-05-02).
 
    But note: the 8 lines changed are lines 114-121, and then the new section is added after that? So the base branch has:
         [ancestor content up to line 113]
-        then 8 lines (the pre-resolve action) 
+        then 8 lines (the pre-resolve action)
         then the new section (2026-05-02)
 
    However, the base version text provided in the "File Versions" section does not show the pre-resolve line as a separate action but rather shows the 2026-05-02 section after a truncation.
@@ -224,15 +224,15 @@ We are given three versions: ancestor, base (master), and head (PR branch).
 
    1. The head branch has indented the entire ancestor content (from the beginning to the truncation point) by 8 spaces. This suggests that the head branch is trying to put the entire changelog inside a code block or a blockquote? But note: the file is markdown, and 8 spaces at the beginning of a line is not standard for a code block (which usually uses 4 spaces or triple backticks). However, it might be a mistake.
 
-   2. The base branch has added two new sections at the end: 
-        - An action line about pre-resolving the destination path (which is 8 lines? but the context says 8 lines changed for that action) 
+   2. The base branch has added two new sections at the end:
+        - An action line about pre-resolving the destination path (which is 8 lines? but the context says 8 lines changed for that action)
         - And then a new section for 2026-05-02 about string parsing.
 
-   3. The head branch version text shows that after the truncated ancestor content (indented) it has a line that says: 
+   3. The head branch version text shows that after the truncated ancestor content (indented) it has a line that says:
             "template scaffolding. This caused excessive CPU overhead as templates scaled up in file count."
         and then an action section about pre-resolving the destination path.
 
-   This action section in the head branch is exactly the same as the 8-line change in the base branch? 
+   This action section in the head branch is exactly the same as the 8-line change in the base branch?
 
    Let's compare:
 
@@ -248,7 +248,7 @@ We are given three versions: ancestor, base (master), and head (PR branch).
 
    4. The base branch also has a new section (2026-05-02) that the head branch does not show in its version text (because it's truncated). But note: the head branch version text ends with the pre-resolve action, so it does not include the 2026-05-02 section.
 
-   5. The head branch version text also shows, in the truncated middle, a line: "h Resolution Optimization in Generator" and then a learning section about path.resolve being called redundantly. This seems to be part of an entry that is not present in the base branch? 
+   5. The head branch version text also shows, in the truncated middle, a line: "h Resolution Optimization in Generator" and then a learning section about path.resolve being called redundantly. This seems to be part of an entry that is not present in the base branch?
 
    However, the base branch version text does not show that learning section.
 
@@ -277,7 +277,7 @@ We are given three versions: ancestor, base (master), and head (PR branch).
         - The head branch has indented it (8 spaces).
         - The base branch has left it unchanged.
 
-   Since the base branch does not have an obvious bug fix or security patch in the ancestor content (it's just left as is), and the head branch has changed it (by indenting), we should prefer the head branch's version for the ancestor content? 
+   Since the base branch does not have an obvious bug fix or security patch in the ancestor content (it's just left as is), and the head branch has changed it (by indenting), we should prefer the head branch's version for the ancestor content?
 
    However, note: the head branch's version of the ancestor content is truncated in the middle (we don't have the full text). But we are given the ancestor version text (which is truncated too). We must assume that the ancestor content in the head branch is the same as the ancestor we were given, just indented.
 
@@ -324,9 +324,9 @@ We are given three versions: ancestor, base (master), and head (PR branch).
 
         - For the part that corresponds to the ancestor (from the beginning to the point where the head branch truncates), we take the head branch's version (which is the ancestor content indented by 8 spaces).
 
-        - Then, we take the head branch's content after the truncation (which is: 
+        - Then, we take the head branch's content after the truncation (which is:
                 "template scaffolding. This caused excessive CPU overhead as templates scaled up in file count."
-                then a blank line? 
+                then a blank line?
                 then the action section (indented) about pre-resolving the destination path.
 
           However, note: the head branch version text shows the learning line and then the action section without a blank line in between? Actually, it shows:
@@ -419,10 +419,10 @@ We are given three versions: ancestor, base (master), and head (PR branch).
    But let's check the base branch version text for the 2026-05-02 section:
 
         ## 2026-05-02 — Avoid Redundant String Parsing on Long-Running Processes
-        
+
         Learning:
         Long-running processes (like docker-compose) emit continuous `stdout` data chunks. Evaluating `.toString()` and performing string `includes()` on every single chunk after the desired startup state is already met creates thousands of unnecessary allocations and CPU cycles.
-        
+
         Action:
         Always use a boolean state flag (e.g., `let isReady = false;`) inside event listeners for long-running processes to short-circuit repeated and expensive string evaluations once the initialization condition is met.
 
@@ -444,7 +444,7 @@ We are given three versions: ancestor, base (master), and head (PR branch).
 
    Then, we take the head branch version text (as provided in the "File Versions" section for head) and remove the ancestor part (because we are replacing it with our indented ancestor) and then take the rest? But note: the head branch version text is:
 
-        [indented ancestor content (truncated)] 
+        [indented ancestor content (truncated)]
         [then the template scaffolding line and action section]
 
    So if we take the entire head branch version text, it already has the indented ancestor content (truncated) and then the additional lines.
@@ -460,7 +460,7 @@ We are given three versions: ancestor, base (master), and head (PR branch).
 
    But note: the head branch version text ends with the action section about pre-resolving the destination path. We are adding the 2026-05-02 section after that.
 
-   This matches the base branch's structure: [ancestor] [pre-resolve action] [2026-05-02 section] 
+   This matches the base branch's structure: [ancestor] [pre-resolve action] [2026-05-02 section]
         but in our case:
             [indented ancestor] [indented pre-resolve action (from head)] [indented 2026-05-02 section (from base)]
 
