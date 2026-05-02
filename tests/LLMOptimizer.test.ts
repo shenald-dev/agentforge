@@ -52,4 +52,25 @@ describe("LLMOptimizer", () => {
         expect(result).toBe(originalReadme);
         expect(ConfigManager.prototype.getApiKey).toHaveBeenCalledTimes(1);
     });
+    it("should suppress spinner execution when showSpinner is false", async () => {
+        (ConfigManager.prototype.getApiKey as jest.Mock).mockResolvedValue("fake_key");
+
+        const mockInvoke = jest.fn().mockResolvedValue({ content: "Enhanced Readme" });
+        const mockPipe = jest.fn().mockReturnValue({ invoke: mockInvoke });
+        jest.spyOn(PromptTemplate, "fromTemplate").mockReturnValue({ pipe: mockPipe } as any);
+
+        const optimizer = new LLMOptimizer();
+        const originalReadme = "# My App\n\nA simple app.";
+
+        const prompts = require("@clack/prompts");
+        const mockStart = jest.fn();
+        const mockStop = jest.fn();
+        jest.spyOn(prompts, "spinner").mockReturnValue({ start: mockStart, stop: mockStop });
+
+        await optimizer.enhanceReadme("test idea", originalReadme, false);
+
+        expect(mockStart).not.toHaveBeenCalled();
+        expect(mockStop).not.toHaveBeenCalled();
+    });
+
 });
