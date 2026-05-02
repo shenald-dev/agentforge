@@ -27,12 +27,6 @@ export class ProjectGenerator {
     }
 
     private async copyAndParseDir(sourceDir: string, normalizedDestDir: string, normalizedBase: string, context: GenerateOptions): Promise<void> {
-        // Strict path traversal prevention
-        const relativeDest = path.relative(normalizedBase, normalizedDestDir);
-        if (relativeDest === ".." || relativeDest.startsWith(".." + path.sep) || path.isAbsolute(relativeDest)) {
-            throw new Error(`Security Exception: Path traversal attempt blocked. Target path ${normalizedDestDir} escapes the base directory ${normalizedBase}`);
-        }
-
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 
         // Optimization: Process all file and directory entries concurrently

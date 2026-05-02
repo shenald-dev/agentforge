@@ -110,3 +110,11 @@ Inside `ProjectGenerator.ts`, `path.resolve` was being called redundantly for ev
 
 Action:
 Pre-resolve the destination path (`normalizedDestDir`) once per recursive iteration, rather than inside the concurrent map loop. This speeds up scaffolding and is measurable by tracking project generation time for large templates.
+
+## 2026-05-02 — Avoid Redundant String Parsing on Long-Running Processes
+
+Learning:
+Long-running processes (like docker-compose) emit continuous `stdout` data chunks. Evaluating `.toString()` and performing string `includes()` on every single chunk after the desired startup state is already met creates thousands of unnecessary allocations and CPU cycles.
+
+Action:
+Always use a boolean state flag (e.g., `let isReady = false;`) inside event listeners for long-running processes to short-circuit repeated and expensive string evaluations once the initialization condition is met.

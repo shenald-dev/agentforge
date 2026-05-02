@@ -21,10 +21,13 @@ export class PreviewServer {
                 stdio: "pipe", // Capture output to avoid overwhelming the console, but still monitor
             });
 
+            let isReady = false;
             composeProcess.stdout.on("data", (data) => {
+                if (isReady) return;
                 const out = data.toString();
                 // Simple health heuristic: waiting for the backend or frontend to bind
                 if (out.includes("Application startup complete") || out.includes("ready started server on")) {
+                    isReady = true;
                     spinner.succeed(pc.green("✨ Preview environment is live!"));
                     console.log(pc.yellow("   Frontend: http://localhost:3000"));
                     console.log(pc.yellow("   Backend API: http://localhost:8000"));
