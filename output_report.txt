@@ -1,5 +1,0 @@
-QA Status: PASS (Tests & Linting green)
-Entropy Pruned: 0 lines
-Dependencies Bumped: 0
-Docs Updated: .jules/bolt.md, .jules/warden.md
-Release: v2.0.15
