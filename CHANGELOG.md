@@ -40,3 +40,6 @@
 ## [2.0.14] - 2026-05-01
 * **[Lifecycle]:** Assessed codebase and verified structural soundness after previous path resolution optimization. No dead code found to prune.
 * **[Dependencies]:** Deferred major upgrades.
+
+## [2.0.15] - 2026-05-02
+* **[Lifecycle]:** Assurance run executed. Bumped patch dependencies to secure the workspace environment. Validated testing suites and pruning completed.
