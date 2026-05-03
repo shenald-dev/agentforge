@@ -58,8 +58,7 @@ class PreviewServer {
             composeProcess.stdout.on("data", (data) => {
                 if (isReady)
                     return;
-                const output = data.toString();
-                if (output.includes("Starting Preview Server") || output.includes("preview-server")) {
+                if (data.toString().includes("Preview server ready")) {
                     isReady = true;
                     spinner.succeed();
                     resolve();
