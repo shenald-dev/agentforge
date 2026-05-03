@@ -118,3 +118,11 @@ Long-running processes (like docker-compose) emit continuous `stdout` data chunk
 
 Action:
 Always use a boolean state flag (e.g., `let isReady = false;`) inside event listeners for long-running processes to short-circuit repeated and expensive string evaluations once the initialization condition is met.
+
+## 2026-05-04 — Secure Dependency Tree
+
+Learning:
+The project contained 5 known vulnerabilities (2 high, 3 moderate) in its dependency tree (e.g., flatted, picomatch, brace-expansion). Resolving these is a critical security priority for any project.
+
+Action:
+Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
