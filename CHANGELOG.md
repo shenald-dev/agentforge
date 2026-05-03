@@ -40,3 +40,8 @@
 ## [2.0.14] - 2026-05-01
 * **[Lifecycle]:** Assessed codebase and verified structural soundness after previous path resolution optimization. No dead code found to prune.
 * **[Dependencies]:** Deferred major upgrades.
+
+
+## [2.0.16] - 2026-05-03
+* **[Performance]:** Optimized generated path validation checks and Docker compose stdout parsing heuristics.
+* **[Lifecycle]:** Bumped `@langchain/core` to `1.1.44` for security and stability.
