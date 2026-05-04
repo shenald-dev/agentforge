@@ -92,3 +92,11 @@ Verified BOLT's runtime optimizations in `ProjectGenerator` and `PreviewServer`.
 
 Alignment / Deferred:
 Applied safe patch bump for `@langchain/core`. Deferred major framework updates (`eslint`, `jest`, `commander`, `ora`) to prevent destabilizing the CLI toolkit.
+
+## 2025-05-04 — Assessment & Lifecycle
+
+Observation / Pruned:
+- Removed unnecessary dynamic imports (`await import`) from `src/integrations/LLMOptimizer.ts` and `src/preview-server/PreviewServer.ts`. These modules are already dynamically loaded by `src/cli/index.ts`.
+
+Alignment / Deferred:
+- Test suites pass correctly with standard ESM imports. No major structural changes required.
