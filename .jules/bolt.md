@@ -126,3 +126,11 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+
+## 2025-05-04 — Remove unnecessary dynamic imports in dynamically loaded modules
+
+Learning:
+Lazy-loading dependencies (e.g., using `await import('@langchain/openai')` or `await import('ora')`) inside a module that is already dynamically imported (like `LLMOptimizer.ts` or `PreviewServer.ts`, which are lazy-loaded by `index.ts`) provides no additional startup performance benefit and only introduces unnecessary code complexity and test failures.
+
+Action:
+Refactored `src/integrations/LLMOptimizer.ts` and `src/preview-server/PreviewServer.ts` to statically import their dependencies at the top level.

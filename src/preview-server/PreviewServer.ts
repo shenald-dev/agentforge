@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import * as path from "path";
 import pc from "picocolors";
+import ora from "ora";
 
 export class PreviewServer {
 
@@ -8,8 +9,6 @@ export class PreviewServer {
      * Spawns a docker-compose process in the target generated directory.
      */
     async start(projectPath: string): Promise<void> {
-        const { default: ora } = await import("ora");
-
         const composePath = path.resolve(projectPath);
         console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
 
