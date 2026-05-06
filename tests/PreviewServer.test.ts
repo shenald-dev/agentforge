@@ -60,6 +60,41 @@ describe("PreviewServer", () => {
         expect(mockOn).toHaveBeenCalledWith("close", expect.any(Function));
     });
 
+    it("should correctly handle split chunks in stdout", async () => {
+        const mockOn = jest.fn();
+        const mockResume = jest.fn();
+        const mockStdoutOn = jest.fn((event, callback) => {
+            if (event === "data") {
+                // Simulate split chunk
+                setTimeout(() => {
+                    callback("Application startup ");
+                    setTimeout(() => callback("complete"), 10);
+                }, 10);
+            }
+        });
+
+        mockSpawn.mockReturnValue({
+            stdout: { on: mockStdoutOn },
+            stderr: { resume: mockResume },
+            on: mockOn,
+        });
+
+        const previewServer = new PreviewServer();
+        const testPath = "./test-dir";
+
+        await Promise.race([
+            previewServer.start(testPath),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 100)),
+        ]);
+
+        expect(mockSpawn).toHaveBeenCalledWith("docker-compose", ["up", "--build"], {
+            cwd: path.resolve(testPath),
+            stdio: "pipe",
+        });
+
+        expect(mockStdoutOn).toHaveBeenCalledWith("data", expect.any(Function));
+    });
+
     it("should handle spawn errors gracefully", async () => {
         const mockOn = jest.fn((event, callback) => {
             if (event === "error") {

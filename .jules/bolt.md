@@ -126,3 +126,8 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+## 2026-05-06 — Fix `PreviewServer` Split Chunk Handling
+Learning:
+When reading from stdout of a spawned process (like docker-compose), chunks of data may be split arbitrarily. A simple `.includes` check on each isolated string chunk can fail if the expected message crosses chunk boundaries.
+Action:
+Buffer incoming chunks into a single string (`outputBuffer`) to safely detect complete messages, keeping the buffer size reasonable to avoid unbounded memory growth.
