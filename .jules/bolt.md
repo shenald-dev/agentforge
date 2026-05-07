@@ -126,3 +126,11 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+
+## 2025-05-07 — Optimize Cold Start and Fix Buffer Splitting
+
+Learning:
+Static imports of heavy UI libraries like `@clack/prompts` severely delay CLI execution. Additionally, naive stream parsing without buffers can drop substrings spanning chunk boundaries.
+
+Action:
+Always use dynamic imports localized to methods for heavy dependencies. Always implement size-limited buffers for stream parsing, ensuring substring checks occur before truncation.
