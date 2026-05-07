@@ -1,4 +1,8 @@
 
+## [3.0.0] - 2026-05-07
+* **[Lifecycle]:** Assessed codebase. Fixed versioning mismatch by dynamically loading version from `package.json`. No dead code found to prune.
+* **[Dependencies]:** Bumped `@langchain/core` to `1.1.45`.
+
 ## [2.0.1] - 2026-03-29
 * **Lifecycle:** Pruned dead code (`LLMUtils`) and its corresponding unit tests.
 * **Fix:** Added missing `.eslintrc.js` to restore linting step.

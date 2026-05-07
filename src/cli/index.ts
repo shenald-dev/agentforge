@@ -3,12 +3,16 @@ import { Command } from "commander";
 import * as path from "path";
 import { spawn } from "child_process";
 
+import { readFileSync } from "fs";
+
 const program = new Command();
+
+const packageJson = JSON.parse(readFileSync(path.join(__dirname, "../../package.json"), "utf8"));
 
 program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
-    .version("3.0.0");
+    .version(packageJson.version);
 
 // ─────────────────────────────────────
 // agentforge auth

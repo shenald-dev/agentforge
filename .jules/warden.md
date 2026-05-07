@@ -99,3 +99,10 @@ Assessed codebase after the previous run. Verified the stability of the reposito
 
 Alignment / Deferred:
 Deferred major upgrades. Safe minor/patch dependencies are already at their latest wanted versions. Committing lifecycle release tag and logging the update.
+## 2026-05-07 — Assessment & Lifecycle
+
+Observation / Pruned:
+Assessed codebase. Detected a version mismatch between `src/cli/index.ts` hardcoded to "3.0.0" and `package.json` at "2.0.17". No dead code found to prune.
+
+Alignment / Deferred:
+Applied safe patch bump for @langchain/core to 1.1.45. Fixed the CLI version parameter to dynamically read from `package.json` and bumped the project version to `3.0.0` to reflect the major underlying CLI changes. Deferred major framework updates.
