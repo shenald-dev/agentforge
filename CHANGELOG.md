@@ -1,3 +1,8 @@
+## [2.0.18] - 2026-05-06
+* **[Lifecycle]:** Assessed codebase after the previous run. Verified the stability of the repository and the successful execution of tests. No dead code found to prune.
+* **[Dependencies]:** Safely bumped minor/patch dependencies (`@langchain/core` 1.1.44 -> 1.1.45, `@types/node` 20.19.39 -> 20.19.40). Deferred major upgrades.
+
+
 
 ## [2.0.1] - 2026-03-29
 * **Lifecycle:** Pruned dead code (`LLMUtils`) and its corresponding unit tests.
