@@ -126,3 +126,11 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+
+## 2024-05-10 — Improve Startup Performance by replacing Static Imports with Dynamic Imports
+
+Learning:
+Static imports of heavy UI libraries (like @clack/prompts) at the root of CLI entry files drastically slow down cold start times. Also it can cause module resolution errors with ESM mocking when testing with ts-jest in a non-ESM environment.
+
+Action:
+Replace static heavy UI imports with dynamic imports (await import()) localized inside the specific method blocks that require them.
