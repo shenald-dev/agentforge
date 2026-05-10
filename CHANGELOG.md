@@ -46,3 +46,7 @@
 * **[Performance]:** Optimized generated path validation checks and Docker compose stdout parsing heuristics.
 * **[Lifecycle]:** Bumped `@langchain/core` to `1.1.44` for security and stability.
 * **Lifecycle:** Assured repository stability, verified test execution, and confirmed no dead code or safe dependency updates were required.
+
+## [2.0.18] - 2026-05-10
+* **[Lifecycle]:** Assessed codebase and verified structural soundness. No dead code found to prune.
+* **[Dependencies]:** Safely bumped patch versions for `@langchain/core` and `@types/node`.
