@@ -126,3 +126,6 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+2024-05-10 — Dynamic Import Performance
+Learning: Static imports of ESM-only UI libraries (like @clack/prompts) at the root of dynamically loaded files negate performance benefits and cause Jest SyntaxErrors.
+Action: Always use localized dynamic imports (await import) inside the specific methods that require them.
