@@ -126,3 +126,6 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+2025-02-23 — Dynamic Imports Optimization
+Learning: Static imports of heavy UI libraries like `@clack/prompts` at the root level of lazy-loaded classes negate their performance benefits.
+Action: Always use localized dynamic imports inside the specific method blocks that require heavy dependencies to improve CLI cold start times.
