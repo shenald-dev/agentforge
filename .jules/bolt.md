@@ -126,3 +126,10 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+## 2024-05-11 — Optimize Cold Start Performance
+
+Learning:
+Static imports of heavy UI libraries like `@clack/prompts` and `picocolors` at the root of CLI entry files drastically slow down cold start times. Even dynamically imported modules execute root static imports immediately upon load.
+
+Action:
+Replace static imports of heavy UI libraries with localized dynamic imports (`await Promise.all([import('picocolors'), import('@clack/prompts')])`) inside the specific methods that require them to improve CLI responsiveness.
