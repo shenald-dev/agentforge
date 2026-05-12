@@ -1,3 +1,9 @@
+## [2.0.18] - 2026-05-06
+
+* **[Lifecycle]:** Assured codebase stability and execution of newly added tests.
+
+* **[Dependencies]:** Safely bumped `@langchain/core` to 1.1.45 and `@types/node` to 20.19.40.
+
 
 ## [2.0.1] - 2026-03-29
 * **Lifecycle:** Pruned dead code (`LLMUtils`) and its corresponding unit tests.
