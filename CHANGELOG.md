@@ -1,3 +1,9 @@
+## [2.0.18] - 2026-05-06
+
+* **[Lifecycle]:** Assured codebase stability and execution of newly added tests.
+
+* **[Dependencies]:** Safely bumped `@langchain/core` to 1.1.45 and `@types/node` to 20.19.40.
+
 
 ## [2.0.1] - 2026-03-29
 * **Lifecycle:** Pruned dead code (`LLMUtils`) and its corresponding unit tests.
@@ -46,3 +52,7 @@
 * **[Performance]:** Optimized generated path validation checks and Docker compose stdout parsing heuristics.
 * **[Lifecycle]:** Bumped `@langchain/core` to `1.1.44` for security and stability.
 * **Lifecycle:** Assured repository stability, verified test execution, and confirmed no dead code or safe dependency updates were required.
+
+## [2.0.19] - 2026-05-10
+* **[Lifecycle]:** Assessed codebase and verified structural soundness. No dead code found to prune.
+* **[Dependencies]:** Safely bumped patch versions for `@langchain/core` and `@types/node`.
