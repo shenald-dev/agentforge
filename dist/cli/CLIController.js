@@ -32,14 +32,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CLIController = void 0;
 const TemplateManager_1 = require("../templates/TemplateManager");
-const picocolors_1 = __importDefault(require("picocolors"));
-const p = __importStar(require("@clack/prompts"));
 class CLIController {
     templateManager;
     constructor() {
@@ -49,8 +44,12 @@ class CLIController {
      * Guides the user through an interactive setup process for generation.
      */
     async promptCreationDetails(defaultIdea) {
+        const [{ default: pc }, p] = await Promise.all([
+            Promise.resolve().then(() => __importStar(require("picocolors"))),
+            Promise.resolve().then(() => __importStar(require("@clack/prompts")))
+        ]);
         console.clear();
-        p.intro(`${picocolors_1.default.bgCyan(picocolors_1.default.black(" ✨ AgentForge Interactive Scaffolding "))}`);
+        p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
         const templates = await this.templateManager.listTemplates();
         const project = await p.group({
             projectName: () => p.text({
