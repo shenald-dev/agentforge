@@ -129,3 +129,11 @@ Executed `npm audit fix` to bump vulnerable dependencies across the project, saf
 Date/Title: 2026-05-09 - Dynamic imports for heavy UI libraries
 Learning: Static imports of heavy UI libraries (like @clack/prompts) at the root of CLI entry files drastically slow down cold start times and cause ESM/CommonJS issues in Jest.
 Action: Replace them with dynamic imports (await import()) localized inside the specific method blocks that require them.
+
+## 2024-05-10 — Dynamic UI Library Imports
+
+Learning:
+Static imports of heavy UI libraries like `@clack/prompts` at the root of CLI files slow down cold start performance because they are evaluated immediately upon load.
+
+Action:
+Always use localized dynamic imports (`await import()`) for heavy UI libraries inside the specific methods that require them, rather than at the root level.
