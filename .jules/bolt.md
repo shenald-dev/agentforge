@@ -126,6 +126,3 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
-2025-05-07 — Stream Chunk Buffering Reliability
-Learning: Substring checks (.includes) directly on stream data chunks can fail if the target string spans across a chunk boundary.
-Action: Always buffer stream chunks into a persistent string, perform the substring check on the buffer, and then truncate the buffer size to bound memory usage.
