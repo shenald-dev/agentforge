@@ -62,6 +62,7 @@ export class LLMOptimizer {
             import("picocolors"),
             import("@clack/prompts")
         ]);
+
         await this.init();
 
         if (!this.model) {

@@ -15,6 +15,7 @@ export class CLIController {
             import("picocolors"),
             import("@clack/prompts")
         ]);
+
         console.clear();
         p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
 
