@@ -126,3 +126,11 @@ The project contained 5 known vulnerabilities (2 high, 3 moderate) in its depend
 
 Action:
 Executed `npm audit fix` to bump vulnerable dependencies across the project, safely securing the application against prototype pollution, ReDoS, and memory exhaustion vectors without breaking functionality.
+
+## $(date +%Y-%m-%d) — Dynamic UI Module Imports
+
+Learning:
+Static imports of heavy UI libraries like `@clack/prompts` and `picocolors` at the module root of a CLI file get evaluated upon load, significantly degrading cold start performance.
+
+Action:
+Replaced static imports in `CLIController.ts`, `LLMOptimizer.ts` and `PreviewServer.ts` with local dynamic imports (`await import()`) inside the specific methods where they are used to improve startup time.
