@@ -17,7 +17,6 @@ export class CLIController {
         p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
 
         const templates = await this.templateManager.listTemplates();
-
         const project = await p.group(
             {
                 projectName: () => p.text({
