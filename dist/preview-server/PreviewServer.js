@@ -55,17 +55,22 @@ class PreviewServer {
                 stdio: "pipe", // Capture output to avoid overwhelming the console, but still monitor
             });
             let isReady = false;
+            let outputBuffer = "";
             composeProcess.stdout.on("data", (data) => {
                 if (isReady)
                     return;
-                const out = data.toString();
+                outputBuffer += data.toString();
                 // Simple health heuristic: waiting for the backend or frontend to bind
-                if (out.includes("Application startup complete") || out.includes("ready started server on")) {
+                if (outputBuffer.includes("Application startup complete") || outputBuffer.includes("ready started server on")) {
                     isReady = true;
                     spinner.succeed(picocolors_1.default.green("✨ Preview environment is live!"));
                     console.log(picocolors_1.default.yellow("   Frontend: http://localhost:3000"));
                     console.log(picocolors_1.default.yellow("   Backend API: http://localhost:8000"));
                     resolve();
+                }
+                // Truncate buffer to prevent unbound memory growth
+                if (outputBuffer.length > 5000) {
+                    outputBuffer = outputBuffer.slice(-5000);
                 }
             });
             // Actively drain stderr without the overhead of an empty callback
