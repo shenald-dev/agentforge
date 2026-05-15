@@ -32,22 +32,21 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PreviewServer = void 0;
 const child_process_1 = require("child_process");
 const path = __importStar(require("path"));
-const picocolors_1 = __importDefault(require("picocolors"));
 class PreviewServer {
     /**
      * Spawns a docker-compose process in the target generated directory.
      */
     async start(projectPath) {
-        const { default: ora } = await Promise.resolve().then(() => __importStar(require("ora")));
+        const [{ default: pc }, { default: ora }] = await Promise.all([
+            Promise.resolve().then(() => __importStar(require("picocolors"))),
+            Promise.resolve().then(() => __importStar(require("ora")))
+        ]);
         const composePath = path.resolve(projectPath);
-        console.log(picocolors_1.default.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
+        console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
         const spinner = ora("Building and starting Docker containers...").start();
         return new Promise((resolve, reject) => {
             const composeProcess = (0, child_process_1.spawn)("docker-compose", ["up", "--build"], {
@@ -55,37 +54,42 @@ class PreviewServer {
                 stdio: "pipe", // Capture output to avoid overwhelming the console, but still monitor
             });
             let isReady = false;
+            let outputBuffer = "";
             composeProcess.stdout.on("data", (data) => {
                 if (isReady)
                     return;
-                const out = data.toString();
+                outputBuffer += data.toString();
                 // Simple health heuristic: waiting for the backend or frontend to bind
-                if (out.includes("Application startup complete") || out.includes("ready started server on")) {
+                if (outputBuffer.includes("Application startup complete") || outputBuffer.includes("ready started server on")) {
                     isReady = true;
-                    spinner.succeed(picocolors_1.default.green("✨ Preview environment is live!"));
-                    console.log(picocolors_1.default.yellow("   Frontend: http://localhost:3000"));
-                    console.log(picocolors_1.default.yellow("   Backend API: http://localhost:8000"));
+                    spinner.succeed(pc.green("✨ Preview environment is live!"));
+                    console.log(pc.yellow("   Frontend: http://localhost:3000"));
+                    console.log(pc.yellow("   Backend API: http://localhost:8000"));
                     resolve();
+                }
+                // Truncate buffer to prevent unbound memory growth
+                if (outputBuffer.length > 5000) {
+                    outputBuffer = outputBuffer.slice(-5000);
                 }
             });
             // Actively drain stderr without the overhead of an empty callback
             composeProcess.stderr.resume();
             composeProcess.on("error", (err) => {
-                spinner.fail(picocolors_1.default.red(`Failed to start preview server: ${err.message}`));
+                spinner.fail(pc.red(`Failed to start preview server: ${err.message}`));
                 reject(err);
             });
             composeProcess.on("close", (code) => {
                 if (code !== 0) {
-                    spinner.fail(picocolors_1.default.red(`Docker compose exited with code ${code}`));
+                    spinner.fail(pc.red(`Docker compose exited with code ${code}`));
                     reject(new Error(`Docker compose failed`));
                 }
             });
             // Handle graceful shutdown
             process.on('SIGINT', () => {
-                console.log(picocolors_1.default.magenta("\nGracefully shutting down preview containers..."));
+                console.log(pc.magenta("\nGracefully shutting down preview containers..."));
                 const shutdownProcess = (0, child_process_1.spawn)("docker-compose", ["down"], { cwd: composePath, stdio: "inherit" });
                 shutdownProcess.on('error', (err) => {
-                    console.error(picocolors_1.default.red(`\nFailed to gracefully shutdown containers: ${err instanceof Error ? err.message : String(err)}`));
+                    console.error(pc.red(`\nFailed to gracefully shutdown containers: ${err instanceof Error ? err.message : String(err)}`));
                     process.exit(1);
                 });
                 shutdownProcess.on('close', () => {
