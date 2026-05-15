@@ -1,6 +1,5 @@
 import * as fs from "fs/promises";
 import * as path from "path";
-import Handlebars from "handlebars";
 
 export interface GenerateOptions {
     projectName: string;
@@ -49,6 +48,7 @@ export class ProjectGenerator {
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
                     // Read, compile Handlebars, and write
+                    const { default: Handlebars } = await import("handlebars");
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = Handlebars.compile(content, { noEscape: true });
                     const rendered = template(context);
