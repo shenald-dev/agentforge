@@ -2,13 +2,14 @@
 import { Command } from "commander";
 import * as path from "path";
 import { spawn } from "child_process";
+import * as fs from "fs";
 
 const program = new Command();
 
 program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
-    .version("3.0.0");
+    .version(JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version);
 
 // ─────────────────────────────────────
 // agentforge auth
