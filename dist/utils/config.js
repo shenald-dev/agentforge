@@ -40,7 +40,7 @@ const os = __importStar(require("os"));
 class ConfigManager {
     configDir;
     configPath;
-    cachedConfig = null;
+    static cachedConfig = null;
     constructor() {
         this.configDir = path.join(os.homedir(), ".agentforge");
         this.configPath = path.join(this.configDir, "config.json");
@@ -49,17 +49,17 @@ class ConfigManager {
      * Retrieves the current configuration.
      */
     async getConfig() {
-        if (this.cachedConfig) {
-            return this.cachedConfig;
+        if (ConfigManager.cachedConfig) {
+            return ConfigManager.cachedConfig;
         }
         try {
             const data = await fs.readFile(this.configPath, "utf-8");
-            this.cachedConfig = JSON.parse(data);
-            return this.cachedConfig;
+            ConfigManager.cachedConfig = JSON.parse(data);
+            return ConfigManager.cachedConfig;
         }
         catch {
-            this.cachedConfig = {};
-            return this.cachedConfig;
+            ConfigManager.cachedConfig = {};
+            return ConfigManager.cachedConfig;
         }
     }
     /**
@@ -73,7 +73,7 @@ class ConfigManager {
             encoding: "utf-8",
             mode: 0o600 // Secure permissions: read/write for owner only
         });
-        this.cachedConfig = merged;
+        ConfigManager.cachedConfig = merged;
     }
     /**
      * Gets the API key, falling back to process.env if available (for CI/CD or legacy).

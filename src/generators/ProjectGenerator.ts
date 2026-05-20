@@ -1,6 +1,6 @@
 import * as fs from "fs/promises";
 import * as path from "path";
-import Handlebars from "handlebars";
+import type HandlebarsType from "handlebars";
 
 export interface GenerateOptions {
     projectName: string;
@@ -17,16 +17,18 @@ export class ProjectGenerator {
     async generate(options: GenerateOptions): Promise<void> {
         const { templatePath, outputPath } = options;
 
+        const { default: Handlebars } = await import("handlebars");
+
         // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
 
         const normalizedBase = path.resolve(outputPath);
 
         // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options);
+        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options, Handlebars);
     }
 
-    private async copyAndParseDir(sourceDir: string, normalizedDestDir: string, normalizedBase: string, context: GenerateOptions): Promise<void> {
+    private async copyAndParseDir(sourceDir: string, normalizedDestDir: string, normalizedBase: string, context: GenerateOptions, Handlebars: typeof HandlebarsType): Promise<void> {
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 
         // Optimization: Process all file and directory entries concurrently
@@ -45,7 +47,7 @@ export class ProjectGenerator {
             if (entry.isDirectory()) {
                 // Create target directory and recurse
                 await fs.mkdir(normalizedDestPath, { recursive: true });
-                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
+                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context, Handlebars);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
                     // Read, compile Handlebars, and write

@@ -57,13 +57,19 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-        const [{ default: pc }, p] = await Promise.all([
+        const [
+            { default: pc },
+            p,
+            { CLIController },
+            { ProjectGenerator },
+            { TemplateManager }
+        ] = await Promise.all([
             import("picocolors"),
-            import("@clack/prompts")
+            import("@clack/prompts"),
+            import("./CLIController"),
+            import("../generators/ProjectGenerator"),
+            import("../templates/TemplateManager")
         ]);
-        const { CLIController } = await import("./CLIController");
-        const { ProjectGenerator } = await import("../generators/ProjectGenerator");
-        const { TemplateManager } = await import("../templates/TemplateManager");
 
         const cli = new CLIController();
         const generator = new ProjectGenerator();
