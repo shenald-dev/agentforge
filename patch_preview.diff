@@ -1,0 +1,17 @@
+--- src/preview-server/PreviewServer.ts
++++ src/preview-server/PreviewServer.ts
+@@ -8,14 +8,10 @@
+      * Spawns a docker-compose process in the target generated directory.
+      */
+     async start(projectPath: string): Promise<void> {
+-<<<<<<< HEAD
+-        const [{ default: pc }, { default: ora }] = await Promise.all([import("picocolors"), import("ora")]);
+-=======
+         const [{ default: ora }, { default: pc }] = await Promise.all([
+             import("ora"),
+             import("picocolors")
+         ]);
+->>>>>>> origin/master
+
+         const composePath = path.resolve(projectPath);
+         console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
