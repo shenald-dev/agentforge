@@ -2,11 +2,7 @@
 import { Command } from "commander";
 import * as path from "path";
 import { spawn } from "child_process";
-<<<<<<< HEAD
-import * as fs from "fs";
-=======
 import { readFileSync } from "fs";
->>>>>>> origin/master
 
 const program = new Command();
 
@@ -16,7 +12,7 @@ program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
 <<<<<<< HEAD
-    .version(JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version);
+    .version(JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version);
 =======
     .version(pkgVersion);
 >>>>>>> origin/master
@@ -34,9 +30,9 @@ program
         ]);
         const { ConfigManager } = await import("../utils/config");
         const configManager = new ConfigManager();
-        
+
         p.intro(pc.bgCyan(pc.black(" AgentForge Configuration ")));
-        
+
         const apiKey = await p.password({
             message: "Enter your OpenRouter API key:",
             validate: (value) => {
@@ -53,7 +49,7 @@ program
         s.start("Saving API key securely...");
         await configManager.setConfig({ OPENROUTER_API_KEY: apiKey as string });
         s.stop(pc.green("API key saved securely to ~/.agentforge/config.json"));
-        
+
         p.outro(pc.cyan("You're ready to forge!"));
     });
 
@@ -137,7 +133,7 @@ program
             });
 
             p.outro(pc.cyan(`🎉 Successfully crafted ${pc.bold(answers.projectName)} using the ${pc.bold(answers.template)} template!`));
-            
+
             p.log.message(pc.white(`Next steps:`));
             p.log.step(pc.cyan(`$ cd ${answers.projectName}`));
             p.log.step(pc.cyan(`$ agentforge preview .`));

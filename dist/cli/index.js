@@ -37,12 +37,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
 const path = __importStar(require("path"));
 const child_process_1 = require("child_process");
+<<<<<<< HEAD
 const fs = __importStar(require("fs"));
+=======
+const fs_1 = require("fs");
+>>>>>>> origin/master
 const program = new commander_1.Command();
+const pkgVersion = JSON.parse((0, fs_1.readFileSync)(path.join(__dirname, '../../package.json'), 'utf8')).version;
 program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
+<<<<<<< HEAD
     .version(JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version);
+=======
+    .version(pkgVersion);
+>>>>>>> origin/master
 // ─────────────────────────────────────
 // agentforge auth
 // ─────────────────────────────────────
