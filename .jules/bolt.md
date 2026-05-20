@@ -134,3 +134,11 @@ Static imports of heavy UI libraries like `@clack/prompts` at the root of CLI fi
 
 Action:
 Always use localized dynamic imports (`await import()`) for heavy UI libraries inside the specific methods that require them, rather than at the root level.
+
+## 2026-05-05 — Dynamic Version Loading
+
+Learning:
+Hardcoding the CLI version string (e.g., `.version("3.0.0")`) in `src/cli/index.ts` leads to version drift and incorrect outputs when the package version changes. Using `require()` to load `package.json` violates the `@typescript-eslint/no-var-requires` rule and causes linting errors.
+
+Action:
+Always dynamically load the project version in TypeScript CLI entry files by reading `package.json` using `readFileSync` and `JSON.parse` (e.g., `JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version`).
