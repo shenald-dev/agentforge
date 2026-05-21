@@ -1,0 +1,52 @@
+<<<<<<< SEARCH
+import * as fs from "fs/promises";
+import * as path from "path";
+<<<<<<< HEAD
+import type HandlebarsType from "handlebars";
+=======
+>>>>>>> origin/master
+
+export interface GenerateOptions {
+=======
+import * as fs from "fs/promises";
+import * as path from "path";
+import type HandlebarsType from "handlebars";
+
+export interface GenerateOptions {
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+            if (entry.isDirectory()) {
+                // Create target directory and recurse
+                await fs.mkdir(normalizedDestPath, { recursive: true });
+                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context, Handlebars);
+            } else if (entry.isFile()) {
+                if (entry.name.endsWith(".hbs")) {
+                    const { default: Handlebars } = await import("handlebars");
+                    // Read, compile Handlebars, and write
+                    const content = await fs.readFile(srcPath, "utf-8");
+                    const template = Handlebars.compile(content, { noEscape: true });
+                    const rendered = template(context);
+                    return fs.writeFile(normalizedDestPath, rendered, "utf-8");
+                } else {
+                    // Standard copy (images, lockfiles, etc)
+                    return fs.copyFile(srcPath, normalizedDestPath);
+                }
+            }
+=======
+            if (entry.isDirectory()) {
+                // Create target directory and recurse
+                await fs.mkdir(normalizedDestPath, { recursive: true });
+                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context, Handlebars);
+            } else if (entry.isFile()) {
+                if (entry.name.endsWith(".hbs")) {
+                    // Read, compile Handlebars, and write
+                    const content = await fs.readFile(srcPath, "utf-8");
+                    const template = Handlebars.compile(content, { noEscape: true });
+                    const rendered = template(context);
+                    return fs.writeFile(normalizedDestPath, rendered, "utf-8");
+                } else {
+                    // Standard copy (images, lockfiles, etc)
+                    return fs.copyFile(srcPath, normalizedDestPath);
+                }
+            }
+>>>>>>> REPLACE
