@@ -30,6 +30,17 @@ describe("ConfigManager", () => {
             expect(fs.readFile).toHaveBeenCalledWith(mockConfigPath, "utf-8");
         });
 
+        it("should return cached config on subsequent calls without reading the file again", async () => {
+            const mockConfig = { OPENROUTER_API_KEY: "test-key" };
+            (fs.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockConfig));
+
+            await configManager.getConfig();
+            const config2 = await configManager.getConfig();
+
+            expect(config2).toEqual(mockConfig);
+            expect(fs.readFile).toHaveBeenCalledTimes(1); // Should only read the file once
+        });
+
         it("should return empty object when file does not exist", async () => {
             (fs.readFile as jest.Mock).mockRejectedValue(new Error("File not found"));
 
