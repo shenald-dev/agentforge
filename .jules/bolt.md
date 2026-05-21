@@ -141,3 +141,10 @@ Heavy UI libraries imported statically at the root of a module will be evaluated
 
 Action:
 Replace static imports of UI libraries with localized dynamic imports inside the specific methods that use them. Read the version dynamically from package.json using readFileSync and JSON.parse.
+## 2026-05-20 — Dynamic import in ProjectGenerator
+
+Learning:
+Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks tests related to ESM modules. `handlebars` should be dynamically imported exactly where it is needed instead of statically imported at the file root.
+
+Action:
+Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
