@@ -32,9 +32,16 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LLMOptimizer = void 0;
+const openai_1 = require("@langchain/openai");
 const config_1 = require("../utils/config");
+const picocolors_1 = __importDefault(require("picocolors"));
+const p = __importStar(require("@clack/prompts"));
+const prompts_1 = require("@langchain/core/prompts");
 class LLMOptimizer {
     model = null;
     configManager;
@@ -45,8 +52,7 @@ class LLMOptimizer {
         const openRouterKey = await this.configManager.getApiKey();
         const openRouterBaseUrl = await this.configManager.getBaseUrl();
         if (openRouterKey) {
-            const { ChatOpenAI } = await Promise.resolve().then(() => __importStar(require("@langchain/openai")));
-            this.model = new ChatOpenAI({
+            this.model = new openai_1.ChatOpenAI({
                 modelName: "arcee-ai/trinity-large-preview:free",
                 temperature: 0.7,
                 openAIApiKey: openRouterKey,
@@ -60,10 +66,6 @@ class LLMOptimizer {
      * Executes an API call with exponential backoff and retries.
      */
     async withRetries(operation, maxRetries = 3) {
-        const [{ default: pc }, p] = await Promise.all([
-            Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("@clack/prompts")))
-        ]);
         let attempt = 0;
         while (attempt < maxRetries) {
             try {
@@ -71,7 +73,7 @@ class LLMOptimizer {
             }
             catch (error) {
                 attempt++;
-                p.log.warn(pc.yellow(`[LLM] API call failed. Attempt ${attempt}/${maxRetries}. Retrying...`));
+                p.log.warn(picocolors_1.default.yellow(`[LLM] API call failed. Attempt ${attempt}/${maxRetries}. Retrying...`));
                 if (attempt === maxRetries) {
                     throw error;
                 }
@@ -86,20 +88,15 @@ class LLMOptimizer {
      * Enhances a generated application's README using the user's idea string.
      */
     async enhanceReadme(idea, currentReadme) {
-        const [{ default: pc }, p] = await Promise.all([
-            Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("@clack/prompts")))
-        ]);
         await this.init();
         if (!this.model) {
-            p.log.warn(pc.gray(`[LLM] API key not found. Skipping README refinement.`));
+            p.log.warn(picocolors_1.default.gray(`[LLM] API key not found. Skipping README refinement.`));
             return currentReadme;
         }
         const spinner = p.spinner();
         spinner.start("Refining project documentation via LLM...");
         try {
-            const { PromptTemplate } = await Promise.resolve().then(() => __importStar(require("@langchain/core/prompts")));
-            const prompt = PromptTemplate.fromTemplate(`
+            const prompt = prompts_1.PromptTemplate.fromTemplate(`
 You are a Senior Vibe Coder. I have scaffolded a new web application based on the following idea:
 "{idea}"
 
@@ -125,11 +122,11 @@ Return ONLY the raw markdown content. No conversational text.
                     clearTimeout(timeoutId);
                 }
             });
-            spinner.stop(pc.green("✨ README enhanced via LLM!"));
+            spinner.stop(picocolors_1.default.green("✨ README enhanced via LLM!"));
             return String(response.content);
         }
         catch (err) {
-            spinner.stop(pc.yellow(`LLM enhancement failed: ${err instanceof Error ? err.message : String(err)}. Falling back to default.`));
+            spinner.stop(picocolors_1.default.yellow(`LLM enhancement failed: ${err instanceof Error ? err.message : String(err)}. Falling back to default.`));
             return currentReadme;
         }
     }

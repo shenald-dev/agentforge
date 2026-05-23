@@ -141,3 +141,10 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
+## 2024-05-23 — Static Imports in Lazy-Loaded Modules
+
+Learning:
+When a module is already dynamically lazy-loaded by the root entry point, localized dynamic imports within its methods provide no additional startup performance benefit, introduce unnecessary async complexity, and cause Jest ESM failures.
+
+Action:
+Statically import dependencies at the top level instead of using localized dynamic imports within methods for CLIController and LLMOptimizer.
