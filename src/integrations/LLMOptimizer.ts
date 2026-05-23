@@ -1,4 +1,6 @@
 import type { ChatOpenAI } from "@langchain/openai";
+import pc from "picocolors";
+import * as p from "@clack/prompts";
 import { ConfigManager } from "../utils/config";
 
 export class LLMOptimizer {
@@ -30,10 +32,6 @@ export class LLMOptimizer {
      * Executes an API call with exponential backoff and retries.
      */
     private async withRetries<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
-        const [{ default: pc }, p] = await Promise.all([
-            import("picocolors"),
-            import("@clack/prompts")
-        ]);
         let attempt = 0;
         while (attempt < maxRetries) {
             try {
@@ -58,11 +56,6 @@ export class LLMOptimizer {
      * Enhances a generated application's README using the user's idea string.
      */
     async enhanceReadme(idea: string, currentReadme: string): Promise<string> {
-        const [{ default: pc }, p] = await Promise.all([
-            import("picocolors"),
-            import("@clack/prompts")
-        ]);
-
         await this.init();
 
         if (!this.model) {

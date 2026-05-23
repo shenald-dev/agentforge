@@ -141,3 +141,11 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
+
+## 2025-05-23 — Revert unnecessary dynamic imports in dynamically loaded modules
+
+Learning:
+Lazy-loading dependencies (e.g., using `await import('@clack/prompts')`) inside a module that is already dynamically imported (like `CLIController.ts` or `LLMOptimizer.ts`, which are already lazy-loaded by `index.ts`) provides no additional startup performance benefit and only introduces unnecessary code complexity and causes jest test failures for ESM modules.
+
+Action:
+Refactored `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts` to statically import `picocolors` and `@clack/prompts` at the top level. Since these files are already dynamically imported only when their respective commands are executed, the heavy dependencies do not impact the root CLI's cold start times.
