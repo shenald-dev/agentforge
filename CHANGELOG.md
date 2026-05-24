@@ -1,3 +1,9 @@
+## [2.0.20] - 2026-05-24
+
+* **[Lifecycle]:** Assured codebase stability and optimized dynamic imports by caching the Handlebars module across recursive file loops. No dead code found to prune.
+* **[Dependencies]:** Safely bumped patch versions for `@langchain/core`, `@langchain/openai`.
+
+
 ## [2.0.19] - 2026-05-19
 
 * **[Lifecycle]:** Assured codebase stability and execution of tests. No dead code found to prune.

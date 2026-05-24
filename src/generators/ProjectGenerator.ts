@@ -9,6 +9,15 @@ export interface GenerateOptions {
 }
 
 export class ProjectGenerator {
+    private handlebarsModule: typeof import("handlebars") | null = null;
+
+    private async getHandlebars() {
+        if (!this.handlebarsModule) {
+            const { default: Handlebars } = await import("handlebars");
+            this.handlebarsModule = Handlebars as unknown as typeof import("handlebars");
+        }
+        return this.handlebarsModule;
+    }
 
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
@@ -47,7 +56,7 @@ export class ProjectGenerator {
                 return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
-                    const { default: Handlebars } = await import("handlebars");
+                    const Handlebars = await this.getHandlebars();
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = Handlebars.compile(content, { noEscape: true });
