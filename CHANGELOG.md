@@ -62,3 +62,6 @@
 ## [2.0.19] - 2026-05-16
 * **[Lifecycle]:** Assured codebase stability and pruned dead code (`build_demo.ts`).
 * **[Dependencies]:** Bumped `@clack/prompts` to `1.4.0` and `@langchain/core` to `1.1.46`.
+## [2.0.20] - 2026-05-21
+
+* **Lifecycle:** Assured and aligned codebase. Verified structural soundness of the handlebars dynamic import optimization. No dead code found to prune.
