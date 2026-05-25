@@ -1,3 +1,7 @@
+## [2.0.20] - 2026-05-25
+
+* **[Performance]:** Cached dynamic Handlebars imports inside ProjectGenerator.ts to avoid redundant module fetching during recursive file processing.
+
 ## [2.0.19] - 2026-05-19
 
 * **[Lifecycle]:** Assured codebase stability and execution of tests. No dead code found to prune.

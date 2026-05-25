@@ -141,3 +141,11 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
+
+## 2026-05-25 — Dynamic Import Caching
+
+Learning:
+Dynamic imports within loop operations (like recursively processing `.hbs` files) can create significant performance overhead if the module is fetched repeatedly.
+
+Action:
+Always cache dynamic imports at the instance or class level when they are expected to be invoked multiple times sequentially.
