@@ -1,3 +1,8 @@
+## [2.0.20] - 2026-05-26
+
+* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
+* **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
+
 ## [2.0.19] - 2026-05-19
 
 * **[Lifecycle]:** Assured codebase stability and execution of tests. No dead code found to prune.
@@ -62,7 +67,3 @@
 ## [2.0.19] - 2026-05-16
 * **[Lifecycle]:** Assured codebase stability and pruned dead code (`build_demo.ts`).
 * **[Dependencies]:** Bumped `@clack/prompts` to `1.4.0` and `@langchain/core` to `1.1.46`.
-
-
-## [2.0.20] - 2026-05-23
-* **[Lifecycle]:** Assured codebase stability after Handlebars optimization. Safely bumped `@langchain/core` to 1.1.48 and `@langchain/openai` to 1.4.7. Pruned no dead code as none was found.
