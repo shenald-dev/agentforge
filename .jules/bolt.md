@@ -141,6 +141,18 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
-2026-05-24 — Static vs Dynamic Imports for Testing
-Learning: When a module is already dynamically lazy-loaded by the root entry point, statically import its dependencies at the top level instead of using localized dynamic imports. Localized dynamic imports provide no additional startup performance benefit, introduce unnecessary async complexity, and cause Jest ESM failures.
-Action: Prefer static top-level imports for dependencies in modules that are already dynamically loaded to avoid Jest ESM compatibility issues.
+## 2026-05-24 — Static vs Dynamic Imports for Testing
+
+Learning:
+When a module is already dynamically lazy-loaded by the root entry point, statically import its dependencies at the top level instead of using localized dynamic imports. Localized dynamic imports provide no additional startup performance benefit, introduce unnecessary async complexity, and cause Jest ESM failures.
+
+Action:
+Prefer static top-level imports for dependencies in modules that are already dynamically loaded to avoid Jest ESM compatibility issues.
+
+## 2026-05-26 — Optimize dynamic module imports in loops
+
+Learning:
+Dynamically importing a module inside a recursive function (e.g., loading Handlebars per template file) repeatedly triggers Node.js module resolution, introducing unnecessary latency.
+
+Action:
+Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
