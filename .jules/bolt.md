@@ -141,3 +141,11 @@ Static imports of heavy libraries like `picocolors` and `handlebars` at the root
 
 Action:
 Always use localized dynamic imports for heavy libraries inside the specific methods that use them to preserve cold start performance. Use `fs.readFileSync` to dynamically extract version metadata from `package.json`.
+
+## 2026-05-26 — Optimize dynamic module imports in loops
+
+Learning:
+Dynamically importing a module inside a recursive function (e.g., loading Handlebars per template file) repeatedly triggers Node.js module resolution, introducing unnecessary latency.
+
+Action:
+Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
