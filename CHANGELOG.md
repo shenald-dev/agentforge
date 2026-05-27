@@ -1,3 +1,8 @@
+## [2.0.20] - 2026-05-26
+
+* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
+* **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
+
 ## [2.0.19] - 2026-05-19
 
 
