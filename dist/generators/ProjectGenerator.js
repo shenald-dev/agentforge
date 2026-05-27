@@ -38,13 +38,6 @@ const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 class ProjectGenerator {
     handlebarsModule = null;
-    async getHandlebars() {
-        if (!this.handlebarsModule) {
-            const { default: Handlebars } = await Promise.resolve().then(() => __importStar(require("handlebars")));
-            this.handlebarsModule = Handlebars;
-        }
-        return this.handlebarsModule;
-    }
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
@@ -76,10 +69,14 @@ class ProjectGenerator {
             }
             else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
-                    const Handlebars = await this.getHandlebars();
+                    if (!this.handlebarsModule) {
+                        const h = await Promise.resolve().then(() => __importStar(require("handlebars")));
+                        this.handlebarsModule = (h.default || h);
+                    }
+                    const hbs = this.handlebarsModule;
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
-                    const template = Handlebars.compile(content, { noEscape: true });
+                    const template = hbs.compile(content, { noEscape: true });
                     const rendered = template(context);
                     return fs.writeFile(normalizedDestPath, rendered, "utf-8");
                 }
