@@ -8,16 +8,12 @@ export interface GenerateOptions {
     outputPath: string;
 }
 
-export class ProjectGenerator {
-    private handlebarsModule: typeof import("handlebars") | null = null;
+import type * as Handlebars from "handlebars";
 
-    private async getHandlebars(): Promise<typeof import("handlebars")> {
-        if (!this.handlebarsModule) {
-            const imported = (await import("handlebars")) as unknown as { default: typeof import("handlebars") };
-            this.handlebarsModule = (imported.default || imported) as unknown as typeof import("handlebars");
-        }
-        return this.handlebarsModule;
-    }
+export class ProjectGenerator {
+    // Cache the Handlebars module instance to eliminate redundant dynamic import
+    // allocations and resolution overhead when processing multiple .hbs files concurrently.
+    private handlebarsModule: typeof Handlebars | null = null;
 
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
@@ -56,10 +52,14 @@ export class ProjectGenerator {
                 return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
-                    const Handlebars = await this.getHandlebars();
+                    if (!this.handlebarsModule) {
+                        const h: any = await import("handlebars");
+                        this.handlebarsModule = (h.default || h) as typeof Handlebars;
+                    }
+                    const hbs = this.handlebarsModule;
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
-                    const template = Handlebars.compile(content, { noEscape: true });
+                    const template = hbs.compile(content, { noEscape: true });
                     const rendered = template(context);
                     return fs.writeFile(normalizedDestPath, rendered, "utf-8");
                 } else {
