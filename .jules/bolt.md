@@ -142,6 +142,7 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
 
+<<<<<<< HEAD
 ## 2025-05-23 — Revert unnecessary dynamic imports in dynamically loaded modules
 
 Learning:
@@ -149,3 +150,12 @@ Lazy-loading dependencies (e.g., using `await import('@clack/prompts')`) inside 
 
 Action:
 Refactored `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts` to statically import `picocolors` and `@clack/prompts` at the top level. Since these files are already dynamically imported only when their respective commands are executed, the heavy dependencies do not impact the root CLI's cold start times.
+=======
+## 2026-05-26 — Optimize dynamic module imports in loops
+
+Learning:
+Dynamically importing a module inside a recursive function (e.g., loading Handlebars per template file) repeatedly triggers Node.js module resolution, introducing unnecessary latency.
+
+Action:
+Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
+>>>>>>> origin/master
