@@ -121,6 +121,7 @@ Observation / Pruned:
 Detected and removed `build_demo.ts` as unused codebase entropy. Evaluated recent path traversal and chunk buffering improvements.
 Alignment / Deferred:
 Updated minor versions of `@clack/prompts` and `@langchain/core`. No major version bumps were forced.
+
 ## 2026-05-21 — Assessment & Lifecycle
 
 Observation / Pruned:
@@ -128,3 +129,12 @@ Assessed codebase and verified structural soundness after previous handlebars im
 
 Alignment / Deferred:
 Deferred major upgrades. Safe minor/patch dependencies are already updated. Committing lifecycle release tag and logging the update.
+
+
+## 2026-05-26 — Assessment & Lifecycle
+
+Observation / Pruned:
+Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
+
+Alignment / Deferred:
+Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
