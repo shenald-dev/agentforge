@@ -67,3 +67,6 @@
 ## [2.0.19] - 2026-05-16
 * **[Lifecycle]:** Assured codebase stability and pruned dead code (`build_demo.ts`).
 * **[Dependencies]:** Bumped `@clack/prompts` to `1.4.0` and `@langchain/core` to `1.1.46`.
+
+## [2.0.21] - 2026-05-27
+* **[Lifecycle]:** Pruned orphaned artifacts and unused dev dependency (`@types/jest`).
