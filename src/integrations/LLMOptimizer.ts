@@ -1,4 +1,5 @@
 import type { ChatOpenAI } from "@langchain/openai";
+// Statically import heavy UI modules as LLMOptimizer is already dynamically lazy-loaded
 import pc from "picocolors";
 import * as p from "@clack/prompts";
 import { ConfigManager } from "../utils/config";

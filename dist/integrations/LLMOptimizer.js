@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LLMOptimizer = void 0;
+// Statically import heavy UI modules as LLMOptimizer is already dynamically lazy-loaded
 const picocolors_1 = __importDefault(require("picocolors"));
 const p = __importStar(require("@clack/prompts"));
 const config_1 = require("../utils/config");

@@ -38,6 +38,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CLIController = void 0;
 const TemplateManager_1 = require("../templates/TemplateManager");
+// Statically import heavy UI modules as CLIController is already dynamically lazy-loaded
 const picocolors_1 = __importDefault(require("picocolors"));
 const p = __importStar(require("@clack/prompts"));
 class CLIController {

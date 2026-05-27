@@ -1,4 +1,5 @@
 import { TemplateManager } from "../templates/TemplateManager";
+// Statically import heavy UI modules as CLIController is already dynamically lazy-loaded
 import pc from "picocolors";
 import * as p from "@clack/prompts";
 
