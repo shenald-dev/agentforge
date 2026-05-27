@@ -78,4 +78,31 @@ describe("ProjectGenerator", () => {
         const frontendExists = await fs.stat(frontendDir).then(() => true).catch(() => false);
         expect(frontendExists).toBe(true);
     });
+
+    it("should cache the handlebars module across multiple invocations", async () => {
+        const outputPath1 = path.join(tempDir, "test-project-1");
+        const outputPath2 = path.join(tempDir, "test-project-2");
+        const templatePath = path.resolve(__dirname, "../templates/saas");
+
+        await generator.generate({
+            projectName: "test-project-1",
+            idea: "First idea",
+            templatePath,
+            outputPath: outputPath1,
+        });
+
+        const cachedModule1 = (generator as any).handlebarsModule;
+        expect(cachedModule1).toBeDefined();
+        expect(cachedModule1).not.toBeNull();
+
+        await generator.generate({
+            projectName: "test-project-2",
+            idea: "Second idea",
+            templatePath,
+            outputPath: outputPath2,
+        });
+
+        const cachedModule2 = (generator as any).handlebarsModule;
+        expect(cachedModule2).toBe(cachedModule1);
+    });
 });
