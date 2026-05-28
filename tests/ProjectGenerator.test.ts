@@ -91,7 +91,7 @@ describe("ProjectGenerator", () => {
             outputPath: outputPath1,
         });
 
-        const cachedModule1 = (generator as any).handlebarsModule;
+        const cachedModule1 = (generator as any).handlebarsModulePromise;
         expect(cachedModule1).toBeDefined();
         expect(cachedModule1).not.toBeNull();
 
@@ -102,7 +102,7 @@ describe("ProjectGenerator", () => {
             outputPath: outputPath2,
         });
 
-        const cachedModule2 = (generator as any).handlebarsModule;
+        const cachedModule2 = (generator as any).handlebarsModulePromise;
         expect(cachedModule2).toBe(cachedModule1);
     });
 });
