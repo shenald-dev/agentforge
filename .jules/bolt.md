@@ -142,6 +142,7 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
 
+<<<<<<< HEAD
 ## 2026-05-25 — Dynamic Import Caching
 
 Learning:
@@ -149,3 +150,20 @@ Dynamic imports within loop operations (like recursively processing `.hbs` files
 
 Action:
 Always cache dynamic imports at the instance or class level when they are expected to be invoked multiple times sequentially.
+=======
+## 2026-05-26 — Optimize dynamic module imports in loops
+
+Learning:
+Dynamically importing a module inside a recursive function (e.g., loading Handlebars per template file) repeatedly triggers Node.js module resolution, introducing unnecessary latency.
+
+Action:
+Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
+
+## 2024-05-27 — Optimized concurrent dynamic imports
+
+Learning:
+When dynamically loading dependencies inside a concurrent `Promise.all` operation (like a recursive directory map), caching the resolved module object is too slow. The first few concurrent iterations bypass the initial null-check and trigger redundant, expensive import requests simultaneously.
+
+Action:
+Cache the Promise of the dynamic import instead of the resolved module so concurrent iterations await the exact same resolution task.
+>>>>>>> origin/master
