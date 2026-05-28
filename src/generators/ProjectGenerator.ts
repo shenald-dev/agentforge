@@ -24,13 +24,8 @@ export class ProjectGenerator {
      */
     async generate(options: GenerateOptions): Promise<void> {
         const { templatePath, outputPath } = options;
-
-        // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
-
         const normalizedBase = path.resolve(outputPath);
-
-        // 2. Recursively copy and parse concurrently
         await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options);
     }
 
@@ -60,8 +55,8 @@ export class ProjectGenerator {
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = Handlebars.compile(content, { noEscape: true });
-                    const rendered = template(context);
-                    return fs.writeFile(normalizedDestPath, rendered, "utf-8");
+                    const rendered = template(options);
+                    await fs.writeFile(normalizedDestPath, rendered, "utf-8");
                 } else {
                     // Standard copy (images, lockfiles, etc)
                     return fs.copyFile(srcPath, normalizedDestPath);
