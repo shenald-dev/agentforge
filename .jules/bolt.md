@@ -134,3 +134,26 @@ Static imports of heavy UI libraries like `@clack/prompts` at the root of CLI fi
 
 Action:
 Always use localized dynamic imports (`await import()`) for heavy UI libraries inside the specific methods that require them, rather than at the root level.
+## 2026-05-20 — Dynamic import in ProjectGenerator
+
+Learning:
+Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks tests related to ESM modules. `handlebars` should be dynamically imported exactly where it is needed instead of statically imported at the file root.
+
+Action:
+Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
+
+## 2026-05-26 — Optimize dynamic module imports in loops
+
+Learning:
+Dynamically importing a module inside a recursive function (e.g., loading Handlebars per template file) repeatedly triggers Node.js module resolution, introducing unnecessary latency.
+
+Action:
+Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
+
+## 2024-05-27 — Optimized concurrent dynamic imports
+
+Learning:
+When dynamically loading dependencies inside a concurrent `Promise.all` operation (like a recursive directory map), caching the resolved module object is too slow. The first few concurrent iterations bypass the initial null-check and trigger redundant, expensive import requests simultaneously.
+
+Action:
+Cache the Promise of the dynamic import instead of the resolved module so concurrent iterations await the exact same resolution task.
