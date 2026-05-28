@@ -8,7 +8,10 @@ export interface GenerateOptions {
     outputPath: string;
 }
 
+import type * as Handlebars from "handlebars";
+
 export class ProjectGenerator {
+    private handlebarsModulePromise: Promise<typeof Handlebars> | null = null;
 
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
@@ -47,10 +50,15 @@ export class ProjectGenerator {
                 return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
-                    const { default: Handlebars } = await import("handlebars");
+                    if (!this.handlebarsModulePromise) {
+                        this.handlebarsModulePromise = import("handlebars").then(
+                            (h: any) => (h.default || h) as typeof Handlebars
+                        );
+                    }
+                    const hbs = await this.handlebarsModulePromise;
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
-                    const template = Handlebars.compile(content, { noEscape: true });
+                    const template = hbs.compile(content, { noEscape: true });
                     const rendered = template(context);
                     return fs.writeFile(normalizedDestPath, rendered, "utf-8");
                 } else {

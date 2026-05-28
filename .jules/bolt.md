@@ -148,3 +148,20 @@ When a module is already dynamically lazy-loaded by the root entry point, locali
 
 Action:
 Statically import dependencies at the top level instead of using localized dynamic imports within methods for CLIController and LLMOptimizer.
+
+
+## 2026-05-26 — Optimize dynamic module imports in loops
+
+Learning:
+Dynamically importing a module inside a recursive function (e.g., loading Handlebars per template file) repeatedly triggers Node.js module resolution, introducing unnecessary latency.
+
+Action:
+Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
+
+## 2024-05-27 — Optimized concurrent dynamic imports
+
+Learning:
+When dynamically loading dependencies inside a concurrent `Promise.all` operation (like a recursive directory map), caching the resolved module object is too slow. The first few concurrent iterations bypass the initial null-check and trigger redundant, expensive import requests simultaneously.
+
+Action:
+Cache the Promise of the dynamic import instead of the resolved module so concurrent iterations await the exact same resolution task.
