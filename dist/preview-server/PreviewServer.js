@@ -41,9 +41,9 @@ class PreviewServer {
      * Spawns a docker-compose process in the target generated directory.
      */
     async start(projectPath) {
-        const [{ default: pc }, { default: ora }] = await Promise.all([
-            Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("ora")))
+        const [{ default: ora }, { default: pc }] = await Promise.all([
+            Promise.resolve().then(() => __importStar(require("ora"))),
+            Promise.resolve().then(() => __importStar(require("picocolors")))
         ]);
         const composePath = path.resolve(projectPath);
         console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));

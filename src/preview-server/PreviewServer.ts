@@ -7,9 +7,9 @@ export class PreviewServer {
      * Spawns a docker-compose process in the target generated directory.
      */
     async start(projectPath: string): Promise<void> {
-        const [{ default: pc }, { default: ora }] = await Promise.all([
-            import("picocolors"),
-            import("ora")
+        const [{ default: ora }, { default: pc }] = await Promise.all([
+            import("ora"),
+            import("picocolors")
         ]);
 
         const composePath = path.resolve(projectPath);
