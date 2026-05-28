@@ -45,18 +45,53 @@ class ProjectGenerator {
         const { templatePath, outputPath } = options;
         // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
-        const normalizedBase = path.resolve(outputPath);
-        // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options);
+        const normalizedBase = path.resolve(templatePath);
+        // 2. Read template directory entries
+        const entries = await fs.readdir(templatePath, { withFileTypes: true });
+        // 3. Process each entry concurrently
+        const operations = entries.map(async (entry) => {
+            const srcPath = path.join(templatePath, entry.name);
+            const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
+            const normalizedDestDir = path.resolve(outputPath);
+            const normalizedDestPath = path.join(normalizedDestDir, destName);
+            // Double check file-level traversal
+            const relativePath = path.relative(normalizedBase, normalizedDestPath);
+            if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
+                throw new Error(`Security Exception: Path traversal attempt blocked for file ${entry.name}`);
+            }
+            if (entry.isDirectory()) {
+                // Create target directory and recurse
+                await fs.mkdir(normalizedDestPath, { recursive: true });
+                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
+            }
+            else if (entry.isFile()) {
+                if (entry.name.endsWith(".hbs")) {
+                    if (!this.handlebarsModule) {
+                        const h = await Promise.resolve().then(() => __importStar(require("handlebars")));
+                        this.handlebarsModule = (h.default || h);
+                    }
+                    const hbs = this.handlebarsModule;
+                    // Read, compile Handlebars, and write
+                    const content = await fs.readFile(srcPath, "utf-8");
+                    const template = hbs.compile(content, { noEscape: true });
+                    const rendered = template(context);
+                    return fs.writeFile(normalizedDestPath, rendered, "utf-8");
+                }
+                else {
+                    // Standard copy (images, lockfiles, etc)
+                    return fs.copyFile(srcPath, normalizedDestPath);
+                }
+            }
+        });
+        // Await all file operations concurrently
+        await Promise.all(operations);
     }
-    async copyAndParseDir(sourceDir, normalizedDestDir, normalizedBase, context) {
+    async copyAndParseDir(sourceDir, destDir, normalizedBase, context) {
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
-        // Optimization: Process all file and directory entries concurrently
-        // instead of sequentially to significantly reduce I/O wait times.
         const operations = entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
             const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
-            const normalizedDestPath = path.join(normalizedDestDir, destName);
+            const normalizedDestPath = path.join(destDir, destName);
             // Double check file-level traversal
             const relativePath = path.relative(normalizedBase, normalizedDestPath);
             if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
