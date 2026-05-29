@@ -70,3 +70,7 @@
 ## [2.0.20] - 2026-05-21
 
 * **Lifecycle:** Assured and aligned codebase. Verified structural soundness of the handlebars dynamic import optimization. No dead code found to prune.
+
+
+## [2.0.21] - 2026-05-27
+* **[Lifecycle]:** Pruned orphaned artifacts and unused dev dependency (`@types/jest`).
