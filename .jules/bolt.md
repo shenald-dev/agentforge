@@ -142,6 +142,14 @@ Static imports of heavy libraries like `picocolors` and `handlebars` at the root
 Action:
 Always use localized dynamic imports for heavy libraries inside the specific methods that use them to preserve cold start performance. Use `fs.readFileSync` to dynamically extract version metadata from `package.json`.
 
+## 2026-05-20 — Dynamic import in ProjectGenerator
+
+Learning:
+Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks tests related to ESM modules. `handlebars` should be dynamically imported exactly where it is needed instead of statically imported at the file root.
+
+Action:
+Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
+
 ## 2026-05-26 — Optimize dynamic module imports in loops
 
 Learning:
@@ -157,3 +165,11 @@ When dynamically loading dependencies inside a concurrent `Promise.all` operatio
 
 Action:
 Cache the Promise of the dynamic import instead of the resolved module so concurrent iterations await the exact same resolution task.
+
+## 2026-05-28 — Group sequential dynamic imports
+
+Learning:
+Sequential dynamic imports (e.g., `await import(...)` followed by another `await import(...)`) cause a waterfall effect, degrading cold start performance of CLI commands.
+
+Action:
+Group multiple dynamic imports together using `await Promise.all(...)` to execute module resolution and loading concurrently, minimizing overall execution time.

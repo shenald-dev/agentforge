@@ -6,7 +6,6 @@ import { readFileSync } from "fs";
 
 const program = new Command();
 
-const pkgVersion = JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version;
 
 program
     .name("agentforge")
@@ -20,11 +19,10 @@ program
     .command("auth")
     .description("Set your OpenRouter API key for LLM enchantments securely.")
     .action(async () => {
-        const [{ default: pc }, p] = await Promise.all([
-            import("picocolors"),
-            import("@clack/prompts")
+        const [[{ default: pc }, p], { ConfigManager }] = await Promise.all([
+            Promise.all([import("picocolors"), import("@clack/prompts")]),
+            import("../utils/config")
         ]);
-        const { ConfigManager } = await import("../utils/config");
         const configManager = new ConfigManager();
         
         p.intro(pc.bgCyan(pc.black(" AgentForge Configuration ")));
@@ -57,13 +55,12 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-        const [{ default: pc }, p] = await Promise.all([
-            import("picocolors"),
-            import("@clack/prompts")
+        const [[{ default: pc }, p], { CLIController }, { ProjectGenerator }, { TemplateManager }] = await Promise.all([
+            Promise.all([import("picocolors"), import("@clack/prompts")]),
+            import("./CLIController"),
+            import("../generators/ProjectGenerator"),
+            import("../templates/TemplateManager")
         ]);
-        const { CLIController } = await import("./CLIController");
-        const { ProjectGenerator } = await import("../generators/ProjectGenerator");
-        const { TemplateManager } = await import("../templates/TemplateManager");
 
         const cli = new CLIController();
         const generator = new ProjectGenerator();
@@ -88,9 +85,11 @@ program
 
             // ── Optional LLM Enhancement ──
             if (options.llm !== false) {
-                const { LLMOptimizer } = await import("../integrations/LLMOptimizer");
+                const [{ LLMOptimizer }, fs] = await Promise.all([
+                    import("../integrations/LLMOptimizer"),
+                    import("fs/promises")
+                ]);
                 const optimizer = new LLMOptimizer();
-                const fs = await import("fs/promises");
                 const readmePath = path.join(outputPath, "README.md");
                 try {
                     const currentReadme = await fs.readFile(readmePath, "utf-8");
@@ -147,8 +146,10 @@ program
     .command("list")
     .description("List all available project templates.")
     .action(async () => {
-        const { default: pc } = await import("picocolors");
-        const { TemplateManager } = await import("../templates/TemplateManager");
+        const [{ default: pc }, { TemplateManager }] = await Promise.all([
+            import("picocolors"),
+            import("../templates/TemplateManager")
+        ]);
         const templateManager = new TemplateManager();
         try {
             const templates = await templateManager.listTemplates();
@@ -174,8 +175,10 @@ program
     .command("preview <targetPath>")
     .description("Spin up the generated application locally using Docker Compose.")
     .action(async (targetPath) => {
-        const { default: pc } = await import("picocolors");
-        const { PreviewServer } = await import("../preview-server/PreviewServer");
+        const [{ default: pc }, { PreviewServer }] = await Promise.all([
+            import("picocolors"),
+            import("../preview-server/PreviewServer")
+        ]);
         const preview = new PreviewServer();
         try {
             await preview.start(targetPath);
