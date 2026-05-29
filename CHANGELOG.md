@@ -1,73 +1,98 @@
-## [2.0.21] - 2026-05-28
+We are given a merge conflict in CHANGELOG.md between base (master) and head (perf/cache-handlebars-import-999252633380125373).
+ The ancestor is the common base.
 
-* **[Performance]:** Caches the dynamic import of the `handlebars` module in `ProjectGenerator.ts` across multiple file processing invocations. This prevents redundant Promise allocations and module resolution overhead when scaffolding templates concurrently, significantly improving cold start render efficiency.
+ We are to perform a 3-way merge and output the resolved file.
 
-## [2.0.20] - 2026-05-26
+ Steps:
+ 1. We have the ancestor, base, and head versions (though truncated in the description, we have the diffs and the changes described).
+ 2. The conflict is at the top of the file (lines 1-70 in base and 1-74 in head) because the diff shows changes at the very beginning.
 
-* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
-* **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
+ From the context:
 
-## [2.0.19] - 2026-05-19
+ Base (master) changes (from ancestor):
+   - Changed the version header from [2.0.19] to [2.0.20] and updated the changelog entry for 2.0.20.
+   - Then it also added a new section for [2.0.19] (which was already present in the ancestor? but note: the ancestor had [2.0.19] at the top) and then reordered some sections.
 
-* **[Lifecycle]:** Assured codebase stability and execution of tests. No dead code found to prune.
-* **[Dependencies]:** Safely bumped minor/patch versions for dependencies.
+ However, note the provided base version (truncated) starts with:
+   ## [2.0.20] - 2026-05-26
+   * [Lifecycle]: ... 
+   * [Dependencies]: ...
 
+   ## [2.0.19] - 2026-05-19
+   * ... 
 
-## [2.0.18] - 2026-05-06
+ Head (perf/cache-handlebars-import-...) changes:
+   - Changed the version header from [2.0.19] to [2.0.21] and added a new entry for 2.0.21 (with performance improvement).
+   - Then it also added a new section for [2.0.20] (which is the same as the base's [2.0.20] but note: the base already had [2.0.20] as the top) and then the rest.
 
-* **[Lifecycle]:** Assured codebase stability and execution of newly added tests.
+ The Git Diff (Head changes vs base) shows:
+   @@ -1,3 +1,12 @@
+   +## [2.0.21] - 2026-05-28
+   +
+   +* **[Performance]:** Caches the dynamic import of the `handlebars` module in `ProjectGenerator.ts` across multiple file processing invocations. This prevents redundant Promise allocations and module resolution overhead when scaffolding templates concurrently, significantly improving cold start render efficiency.
+   +
+   +## [2.0.20] - 2026-05-26
+   +
+   +* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
+   +* **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
+   +
+    ## [2.0.19] - 2026-05-19
+   
+    * **[Lifecycle]:** Assured codebase stability and execution of tests. No dead code found to prune.
 
-* **[Dependencies]:** Safely bumped `@langchain/core` to 1.1.45 and `@types/node` to 20.19.40.
+ This diff indicates that the head branch has added two new version sections at the top: [2.0.21] and [2.0.20] (with the same content as the base's [2.0.20] section) and then the base's [2.0.19] section follows.
 
+ However, note that the base branch already had [2.0.20] as the top. So the conflict is that:
 
-## [2.0.1] - 2026-03-29
-* **Lifecycle:** Pruned dead code (`LLMUtils`) and its corresponding unit tests.
-* **Fix:** Added missing `.eslintrc.js` to restore linting step.
-* **Docs:** Updated `warden.md` ledger.
+   - The base branch changed the top from [2.0.19] (in ancestor) to [2.0.20] and then kept [2.0.19] below.
+   - The head branch changed the top from [2.0.19] (in ancestor) to [2.0.21] and then added [2.0.20] (which is the same as the base's [2.0.20]) and then the [2.0.19] section.
 
-## [2.0.2] - 2026-04-07
-* **Optimization/QA:** Verified recent CLI optimization for lazy-loading dependencies. No dead code found to prune.
+ Therefore, to resolve:
 
-## [2.0.3] - 2026-04-09
-* **Lifecycle:** Fixed TypeScript compilation errors (`TS7006`, `TS2322`) related to `@clack/prompts` introduced during refactoring of dynamic imports to static. Restored failing tests and verified the build pipeline.
+   We want to keep:
+     - The head's new [2.0.21] section (because it's a new feature in the PR)
+     - The base's [2.0.20] section (which is also present in the head's added section, so we can take one copy)
+     - Then the [2.0.19] section and the rest of the changelog.
 
-## [2.0.4] - 2026-04-16
-* **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai, handlebars, prettier, ts-jest).
-* **Optimization/QA:** Verified recent reliability improvement (AbortController timeout to LLM invoke calls) that didn't break tests.
-* **Docs:** Updated `warden.md` ledger.
+ But note: the base branch also made changes to the [2.0.19] section and below? Actually, looking at the context:
 
-## [2.0.6] - 2026-04-18
-* **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai).
-
-## [2.0.7] - 2026-04-26
-* **Optimization/QA:** Verified recent CLI optimization for lazy-loading heavy UI dependencies. No dead code found to prune.
-* **Lifecycle:** Upgraded minor/patch dependencies safely (@langchain/core, @langchain/openai, @types/node).
-* **Docs:** Updated `warden.md` ledger.
-
-## [2.0.8] - 2024-05-18
-
-* **[Lifecycle]:** Assured codebase stability after previous optimizations. Pruned unused dependencies `@types/inquirer` from package manifests. Updated `@langchain/core` to `1.1.41` and `@types/node` to `20.19.39` safely.
-
-## [2.0.10] - 2026-04-27
-* **[Lifecycle]:** Assured codebase stability. Safely updated `@langchain/core` to `1.1.42` and `@langchain/openai` to `1.4.5`. No dead code found.
-
-## [2.0.11] - 2026-04-28
-* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous additions (path traversal security tests in `ProjectGenerator.test.ts`). No dead code found to prune.
-* **[Fix]:** Ensured tests are complete and build is stable.
-* **[Docs]:** Updated `CHANGELOG.md` and `.jules/warden.md` ledger.
-
-* **[Dependencies]:** Bumped @clack/prompts from 1.2.0 to 1.3.0.
-
-## [2.0.14] - 2026-05-01
-* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous path resolution optimization. No dead code found to prune.
-* **[Dependencies]:** Deferred major upgrades.
-
-
-## [2.0.16] - 2026-05-03
-* **[Performance]:** Optimized generated path validation checks and Docker compose stdout parsing heuristics.
-* **[Lifecycle]:** Bumped `@langchain/core` to `1.1.44` for security and stability.
-* **Lifecycle:** Assured repository stability, verified test execution, and confirmed no dead code or safe dependency updates were required.
-
-## [2.0.19] - 2026-05-16
-* **[Lifecycle]:** Assured codebase stability and pruned dead code (`build_demo.ts`).
-* **[Dependencies]:** Bumped `@clack/prompts` to `1.4.0` and `@langchain/core` to `1.1.46`.
+   Base (master) changes (from the "What Changed" section for base):
+        - ## [2.0.19] - 2026-05-19
+          + ## [2.0.20] - 2026-05-26
+            
+          - * **[Lifecycle]:** Assured codebase stability and execution of tests. No dead code found to prune.
+          + * **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
+          + * **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
+          
+          - 
+          + ## [2.0.19] - 2026-05-19
+          - ## [2.0.18] - 2026-05-06
+          + 
+          - 
+          + * **[Lifecycle]:** Assured codebase stability and execution of tests. No dead code found to prune.
+          - * **[Lifecycle]:** Assured codebase stability and execution of newly added tests.
+          + * **[Dependencies]:** Safely bumped minor/patch versions for dependencies.
+          
+          - * **[Dependencies]:** Safely bumped `@langchain/core` to 1.1.45 and `@types/node` to 20.19.40.
+          + 
+          - 
+          + ## [2.0.18] - 2026-05-06
+            
+          - ## [2.0.1] - 2026-03-29
+          + * **[Lifecycle]:** Assured codebase stability and execution of newly added tests.
+          - * **Lifecycle:** Pruned dead code (`LLMUtils`) and its corresponding unit tests.
+          + 
+          - * **Fix:** Added missing `.eslintrc.js` to restore linting step.
+          + * **[Dependencies]:** Safely bumped `@langchain/core` to 1.1.45 and `@types/node` to 20.19.40.
+          - * **Docs:** Updated `warden.md` ledger.
+          + 
+            
+          - ## [2.0.2] - 2026-04-07
+          + ## [2.0.1] - 2026-03-29
+          - * **Optimization/QA:** Verified recent CLI optimization for lazy-loading dependencies. No dead code found to prune.
+          + * **Lifecycle:** Pruned dead code (`LLMUtils`) and its corresponding unit tests.
+          - 
+          + * **Fix:** Added missing `.eslintrc.js` to restore linting step.
+          - ## [2.0.3] - 2026-04-09
+          + * **Docs:** Updated `warden.md` ledger.
+          - * **Lifecycle:** Fixed TypeScript compilation errors (`TS7006`, `TS2322`) related to `@clack/prompts` introduced during refactoring of dynamic imports
