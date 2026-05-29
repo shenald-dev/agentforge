@@ -57,11 +57,10 @@ program
     .command("auth")
     .description("Set your OpenRouter API key for LLM enchantments securely.")
     .action(async () => {
-    const [{ default: pc }, p] = await Promise.all([
-        Promise.resolve().then(() => __importStar(require("picocolors"))),
-        Promise.resolve().then(() => __importStar(require("@clack/prompts")))
+    const [[{ default: pc }, p], { ConfigManager }] = await Promise.all([
+        Promise.all([Promise.resolve().then(() => __importStar(require("picocolors"))), Promise.resolve().then(() => __importStar(require("@clack/prompts")))]),
+        Promise.resolve().then(() => __importStar(require("../utils/config")))
     ]);
-    const { ConfigManager } = await Promise.resolve().then(() => __importStar(require("../utils/config")));
     const configManager = new ConfigManager();
     p.intro(pc.bgCyan(pc.black(" AgentForge Configuration ")));
     const apiKey = await p.password({
@@ -89,13 +88,12 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-    const [{ default: pc }, p] = await Promise.all([
-        Promise.resolve().then(() => __importStar(require("picocolors"))),
-        Promise.resolve().then(() => __importStar(require("@clack/prompts")))
+    const [[{ default: pc }, p], { CLIController }, { ProjectGenerator }, { TemplateManager }] = await Promise.all([
+        Promise.all([Promise.resolve().then(() => __importStar(require("picocolors"))), Promise.resolve().then(() => __importStar(require("@clack/prompts")))]),
+        Promise.resolve().then(() => __importStar(require("./CLIController"))),
+        Promise.resolve().then(() => __importStar(require("../generators/ProjectGenerator"))),
+        Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")))
     ]);
-    const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
-    const { ProjectGenerator } = await Promise.resolve().then(() => __importStar(require("../generators/ProjectGenerator")));
-    const { TemplateManager } = await Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")));
     const cli = new CLIController();
     const generator = new ProjectGenerator();
     const templateManager = new TemplateManager();
@@ -114,9 +112,11 @@ program
         s.stop(pc.green(`✨ Project scaffolded successfully!`));
         // ── Optional LLM Enhancement ──
         if (options.llm !== false) {
-            const { LLMOptimizer } = await Promise.resolve().then(() => __importStar(require("../integrations/LLMOptimizer")));
+            const [{ LLMOptimizer }, fs] = await Promise.all([
+                Promise.resolve().then(() => __importStar(require("../integrations/LLMOptimizer"))),
+                Promise.resolve().then(() => __importStar(require("fs/promises")))
+            ]);
             const optimizer = new LLMOptimizer();
-            const fs = await Promise.resolve().then(() => __importStar(require("fs/promises")));
             const readmePath = path.join(outputPath, "README.md");
             try {
                 const currentReadme = await fs.readFile(readmePath, "utf-8");
@@ -172,8 +172,10 @@ program
     .command("list")
     .description("List all available project templates.")
     .action(async () => {
-    const { default: pc } = await Promise.resolve().then(() => __importStar(require("picocolors")));
-    const { TemplateManager } = await Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")));
+    const [{ default: pc }, { TemplateManager }] = await Promise.all([
+        Promise.resolve().then(() => __importStar(require("picocolors"))),
+        Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")))
+    ]);
     const templateManager = new TemplateManager();
     try {
         const templates = await templateManager.listTemplates();
@@ -199,8 +201,10 @@ program
     .command("preview <targetPath>")
     .description("Spin up the generated application locally using Docker Compose.")
     .action(async (targetPath) => {
-    const { default: pc } = await Promise.resolve().then(() => __importStar(require("picocolors")));
-    const { PreviewServer } = await Promise.resolve().then(() => __importStar(require("../preview-server/PreviewServer")));
+    const [{ default: pc }, { PreviewServer }] = await Promise.all([
+        Promise.resolve().then(() => __importStar(require("picocolors"))),
+        Promise.resolve().then(() => __importStar(require("../preview-server/PreviewServer")))
+    ]);
     const preview = new PreviewServer();
     try {
         await preview.start(targetPath);
