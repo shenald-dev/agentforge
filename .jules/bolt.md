@@ -171,3 +171,13 @@ When dynamically loading dependencies inside a concurrent `Promise.all` operatio
 
 Action:
 Cache the Promise of the dynamic import instead of the resolved module so concurrent iterations await the exact same resolution task.
+
+
+
+## 2026-05-28 — Group sequential dynamic imports
+
+Learning:
+Sequential dynamic imports (e.g., `await import(...)` followed by another `await import(...)`) cause a waterfall effect, degrading cold start performance of CLI commands.
+
+Action:
+Group multiple dynamic imports together using `await Promise.all(...)` to execute module resolution and loading concurrently, minimizing overall execution time.
