@@ -74,3 +74,8 @@
 
 ## [2.0.21] - 2026-05-27
 * **[Lifecycle]:** Pruned orphaned artifacts and unused dev dependency (`@types/jest`).
+
+## [2.0.22] - 2026-05-30
+
+* **[Lifecycle]:** Assessed codebase and verified structural soundness. Fixed `jest` missing types. Pruned nothing as there is no dead code.
+* **[Dependencies]:** Safely bumped minor/patch versions for `@clack/prompts` and `ts-jest`.

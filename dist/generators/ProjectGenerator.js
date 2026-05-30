@@ -55,11 +55,15 @@ class ProjectGenerator {
         // instead of sequentially to significantly reduce I/O wait times.
         const operations = entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
-            const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
+            const destName = entry.name.endsWith(".hbs")
+                ? entry.name.slice(0, -4)
+                : entry.name;
             const normalizedDestPath = path.join(normalizedDestDir, destName);
             // Double check file-level traversal
             const relativePath = path.relative(normalizedBase, normalizedDestPath);
-            if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
+            if (relativePath === ".." ||
+                relativePath.startsWith(".." + path.sep) ||
+                path.isAbsolute(relativePath)) {
                 throw new Error(`Security Exception: Path traversal attempt blocked for file ${entry.name}`);
             }
             if (entry.isDirectory()) {

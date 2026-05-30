@@ -52,7 +52,7 @@ class LLMOptimizer {
                 openAIApiKey: openRouterKey,
                 configuration: {
                     baseURL: openRouterBaseUrl || "https://openrouter.ai/api/v1",
-                }
+                },
             });
         }
     }
@@ -62,7 +62,7 @@ class LLMOptimizer {
     async withRetries(operation, maxRetries = 3) {
         const [{ default: pc }, p] = await Promise.all([
             Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("@clack/prompts")))
+            Promise.resolve().then(() => __importStar(require("@clack/prompts"))),
         ]);
         let attempt = 0;
         while (attempt < maxRetries) {
@@ -77,7 +77,7 @@ class LLMOptimizer {
                 }
                 // Exponential backoff: 1s, 2s, 4s
                 const delayMs = Math.pow(2, attempt - 1) * 1000;
-                await new Promise(resolve => setTimeout(resolve, delayMs));
+                await new Promise((resolve) => setTimeout(resolve, delayMs));
             }
         }
         throw new Error("Max retries exceeded.");
@@ -88,7 +88,7 @@ class LLMOptimizer {
     async enhanceReadme(idea, currentReadme) {
         const [{ default: pc }, p] = await Promise.all([
             Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("@clack/prompts")))
+            Promise.resolve().then(() => __importStar(require("@clack/prompts"))),
         ]);
         await this.init();
         if (!this.model) {
@@ -118,7 +118,7 @@ Return ONLY the raw markdown content. No conversational text.
                 try {
                     return await chain.invoke({
                         idea: idea,
-                        currentReadme: currentReadme
+                        currentReadme: currentReadme,
                     }, { signal: controller.signal });
                 }
                 finally {
