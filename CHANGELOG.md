@@ -1,5 +1,28 @@
+## [2.0.20] - 2026-05-24
+
+* **[Lifecycle]:** Assured codebase stability and optimized dynamic imports by caching the Handlebars module across recursive file loops. No dead code found to prune.
+* **[Dependencies]:** Safely bumped patch versions for `@langchain/core`, `@langchain/openai`.
+
 ## [2.0.20] - 2026-05-26
 
+* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
+* **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
+
+## [2.0.19] - 2026-05-19
+
+
+
+* **[Lifecycle]:** Assured codebase stability and verified tests pass. No dead code found to prune.
+
+## [2.0.21] - 2026-05-28
+
+* **[Performance]:** Caches the dynamic import of the `handlebars` module in `ProjectGenerator.ts` across multiple file processing invocations. This prevents redundant Promise allocations and module resolution overhead when scaffolding templates concurrently, significantly improving cold start render efficiency.
+
+## [2.0.20] - 2026-05-26
+
+## [2.0.20] - 2026-05-26
+
+* **[Performance]:** Cached dynamic Handlebars imports inside ProjectGenerator.ts to avoid redundant module fetching during recursive file processing.
 * **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
 * **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
 
@@ -67,6 +90,7 @@
 ## [2.0.19] - 2026-05-13
 * **Lifecycle:** Assured the codebase stability following project generator template updates.
 * **Dependencies:** Bumped minor and patch versions safely for `@clack/prompts`, `@langchain/core`, and `@types/node`.
+* **Lifecycle:** Verified code stability, bumped safe dependencies, and synced documentation.
 ## [2.0.19] - 2026-05-16
 * **[Lifecycle]:** Assured codebase stability and pruned dead code (`build_demo.ts`).
 * **[Dependencies]:** Bumped `@clack/prompts` to `1.4.0` and `@langchain/core` to `1.1.46`.
@@ -77,3 +101,8 @@
 
 ## [2.0.21] - 2026-05-27
 * **[Lifecycle]:** Pruned orphaned artifacts and unused dev dependency (`@types/jest`).
+
+## [2.0.22] - 2026-05-30
+
+* **[Lifecycle]:** Assessed codebase and verified structural soundness. Fixed `jest` missing types. Pruned nothing as there is no dead code.
+* **[Dependencies]:** Safely bumped minor/patch versions for `@clack/prompts` and `ts-jest`.

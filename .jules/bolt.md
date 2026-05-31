@@ -134,6 +134,33 @@ Static imports of heavy UI libraries like `@clack/prompts` at the root of CLI fi
 
 Action:
 Always use localized dynamic imports (`await import()`) for heavy UI libraries inside the specific methods that require them, rather than at the root level.
+## 2024-05-15 — Buffer Truncation and Data Loss
+Learning: When buffering stream chunks and bounding memory with `slice()`, applying the truncation *before* checking `.includes()` can cause intermittent test failures if the target string is split across the truncation boundary.
+Action: Always perform the substring check before slicing the buffer in stream `data` event handlers.
+## 2024-05-15 — Dynamic Imports and Version Tracking
+
+Learning:
+Static imports of heavy libraries like `picocolors` and `handlebars` at the root of dynamically loaded modules negate performance benefits. Hardcoded version strings in CLI entrypoints lead to version mismatches with `package.json`.
+
+Action:
+Always use localized dynamic imports for heavy libraries inside the specific methods that use them to preserve cold start performance. Use `fs.readFileSync` to dynamically extract version metadata from `package.json`.
+
+
+## 2024-05-16 — CLI Cold Start & Version Sync
+
+Learning:
+Static imports of UI libraries like picocolors in dynamically imported modules still negatively impact cold start performance. Hardcoded version strings cause CLI version divergence.
+
+Action:
+Replace static UI library imports with localized dynamic imports inside specific methods, and read package.json version dynamically using fs.readFileSync to ensure accurate version reporting.
+
+## 2024-05-18 — Optimizing CLI Cold Start and Dynamic Version Loading
+
+Learning:
+Heavy UI libraries imported statically at the root of a module will be evaluated upon load even if the module itself is imported dynamically. Hardcoded package versions get out of sync with package.json.
+
+Action:
+Replace static imports of UI libraries with localized dynamic imports inside the specific methods that use them. Read the version dynamically from package.json using readFileSync and JSON.parse.
 ## 2026-05-20 — Dynamic import in ProjectGenerator
 
 Learning:
@@ -141,6 +168,29 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
+
+## 2025-05-23 — Revert unnecessary dynamic imports in dynamically loaded modules
+
+Learning:
+Lazy-loading dependencies (e.g., using `await import('@clack/prompts')`) inside a module that is already dynamically imported (like `CLIController.ts` or `LLMOptimizer.ts`, which are already lazy-loaded by `index.ts`) provides no additional startup performance benefit and only introduces unnecessary code complexity and causes jest test failures for ESM modules.
+
+Action:
+Refactored `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts` to statically import `picocolors` and `@clack/prompts` at the top level. Since these files are already dynamically imported only when their respective commands are executed, the heavy dependencies do not impact the root CLI's cold start times.
+## 2024-05-23 — Static Imports in Lazy-Loaded Modules
+
+Learning:
+When a module is already dynamically lazy-loaded by the root entry point, localized dynamic imports within its methods provide no additional startup performance benefit, introduce unnecessary async complexity, and cause Jest ESM failures.
+
+Action:
+Statically import dependencies at the top level instead of using localized dynamic imports within methods for CLIController and LLMOptimizer.
+
+## 2026-05-24 — Static vs Dynamic Imports for Testing
+
+Learning:
+When a module is already dynamically lazy-loaded by the root entry point, statically import its dependencies at the top level instead of using localized dynamic imports. Localized dynamic imports provide no additional startup performance benefit, introduce unnecessary async complexity, and cause Jest ESM failures.
+
+Action:
+Prefer static top-level imports for dependencies in modules that are already dynamically loaded to avoid Jest ESM compatibility issues.
 
 ## 2026-05-26 — Optimize dynamic module imports in loops
 
@@ -151,6 +201,11 @@ Action:
 Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
 
 ## 2024-05-27 — Optimized concurrent dynamic imports
+
+
+## 2024-05-27 — Optimized concurrent dynamic imports
+
+## 2026-05-27 — Optimized concurrent dynamic imports
 
 Learning:
 When dynamically loading dependencies inside a concurrent `Promise.all` operation (like a recursive directory map), caching the resolved module object is too slow. The first few concurrent iterations bypass the initial null-check and trigger redundant, expensive import requests simultaneously.
@@ -165,3 +220,6 @@ Sequential dynamic imports (e.g., `await import(...)` followed by another `await
 
 Action:
 Group multiple dynamic imports together using `await Promise.all(...)` to execute module resolution and loading concurrently, minimizing overall execution time.
+## 2024-05-27 — Promise Caching for Concurrent Imports
+Learning: Concurrent execution loops bypass null-checks on dynamically imported modules, triggering redundant import requests.
+Action: Always cache the Promise of a dynamic import (e.g., `this.modulePromise = import(...)`) instead of the resolved module when lazy-loading inside concurrent operations.
