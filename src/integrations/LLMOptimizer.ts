@@ -58,12 +58,10 @@ export class LLMOptimizer {
      * Enhances a generated application's README using the user's idea string.
      */
     async enhanceReadme(idea: string, currentReadme: string): Promise<string> {
-        const [{ default: pc }, p] = await Promise.all([
-            import("picocolors"),
-            import("@clack/prompts")
+        const [[{ default: pc }, p]] = await Promise.all([
+            Promise.all([import("picocolors"), import("@clack/prompts")]),
+            this.init()
         ]);
-
-        await this.init();
 
         if (!this.model) {
             p.log.warn(pc.gray(`[LLM] API key not found. Skipping README refinement.`));
