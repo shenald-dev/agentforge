@@ -1,8 +1,8 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { ConfigManager } from "../utils/config";
+import type { ChatOpenAI } from "@langchain/openai";
+// Statically import heavy UI modules as LLMOptimizer is already dynamically lazy-loaded
 import pc from "picocolors";
 import * as p from "@clack/prompts";
-import { PromptTemplate } from "@langchain/core/prompts";
+import { ConfigManager } from "../utils/config";
 
 export class LLMOptimizer {
     private model: ChatOpenAI | null = null;
@@ -17,6 +17,7 @@ export class LLMOptimizer {
         const openRouterBaseUrl = await this.configManager.getBaseUrl();
 
         if (openRouterKey) {
+            const { ChatOpenAI } = await import("@langchain/openai");
             this.model = new ChatOpenAI({
                 modelName: "arcee-ai/trinity-large-preview:free",
                 temperature: 0.7,
@@ -67,6 +68,7 @@ export class LLMOptimizer {
         spinner.start("Refining project documentation via LLM...");
 
         try {
+            const { PromptTemplate } = await import("@langchain/core/prompts");
             const prompt = PromptTemplate.fromTemplate(`
 You are a Senior Vibe Coder. I have scaffolded a new web application based on the following idea:
 "{idea}"

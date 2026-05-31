@@ -37,11 +37,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LLMOptimizer = void 0;
-const openai_1 = require("@langchain/openai");
-const config_1 = require("../utils/config");
+// Statically import heavy UI modules as LLMOptimizer is already dynamically lazy-loaded
 const picocolors_1 = __importDefault(require("picocolors"));
 const p = __importStar(require("@clack/prompts"));
-const prompts_1 = require("@langchain/core/prompts");
+const config_1 = require("../utils/config");
 class LLMOptimizer {
     model = null;
     configManager;
@@ -52,7 +51,8 @@ class LLMOptimizer {
         const openRouterKey = await this.configManager.getApiKey();
         const openRouterBaseUrl = await this.configManager.getBaseUrl();
         if (openRouterKey) {
-            this.model = new openai_1.ChatOpenAI({
+            const { ChatOpenAI } = await Promise.resolve().then(() => __importStar(require("@langchain/openai")));
+            this.model = new ChatOpenAI({
                 modelName: "arcee-ai/trinity-large-preview:free",
                 temperature: 0.7,
                 openAIApiKey: openRouterKey,
@@ -96,7 +96,8 @@ class LLMOptimizer {
         const spinner = p.spinner();
         spinner.start("Refining project documentation via LLM...");
         try {
-            const prompt = prompts_1.PromptTemplate.fromTemplate(`
+            const { PromptTemplate } = await Promise.resolve().then(() => __importStar(require("@langchain/core/prompts")));
+            const prompt = PromptTemplate.fromTemplate(`
 You are a Senior Vibe Coder. I have scaffolded a new web application based on the following idea:
 "{idea}"
 
