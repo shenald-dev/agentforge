@@ -10,7 +10,7 @@ export interface AgentForgeConfig {
 export class ConfigManager {
     private readonly configDir: string;
     private readonly configPath: string;
-    private cachedConfig: AgentForgeConfig | null = null;
+    public static cachedConfig: AgentForgeConfig | null = null;
 
     constructor() {
         this.configDir = path.join(os.homedir(), ".agentforge");
@@ -21,16 +21,16 @@ export class ConfigManager {
      * Retrieves the current configuration.
      */
     async getConfig(): Promise<AgentForgeConfig> {
-        if (this.cachedConfig) {
-            return this.cachedConfig;
+        if (ConfigManager.cachedConfig) {
+            return ConfigManager.cachedConfig;
         }
         try {
             const data = await fs.readFile(this.configPath, "utf-8");
-            this.cachedConfig = JSON.parse(data);
-            return this.cachedConfig as AgentForgeConfig;
+            ConfigManager.cachedConfig = JSON.parse(data);
+            return ConfigManager.cachedConfig as AgentForgeConfig;
         } catch {
-            this.cachedConfig = {};
-            return this.cachedConfig;
+            ConfigManager.cachedConfig = {};
+            return ConfigManager.cachedConfig;
         }
     }
 
@@ -48,7 +48,7 @@ export class ConfigManager {
             mode: 0o600 // Secure permissions: read/write for owner only
         });
 
-        this.cachedConfig = merged;
+        ConfigManager.cachedConfig = merged;
     }
 
     /**
