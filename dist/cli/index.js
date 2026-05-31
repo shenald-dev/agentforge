@@ -39,7 +39,7 @@ const path = __importStar(require("path"));
 const child_process_1 = require("child_process");
 const fs_1 = require("fs");
 const program = new commander_1.Command();
-const pkgVersion = JSON.parse((0, fs_1.readFileSync)(path.join(__dirname, '../../package.json'), 'utf8')).version;
+const pkgVersion = JSON.parse((0, fs_1.readFileSync)(path.join(__dirname, "../../package.json"), "utf8")).version;
 program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
@@ -53,7 +53,7 @@ program
     .action(async () => {
     const [[{ default: pc }, p], { ConfigManager }] = await Promise.all([
         Promise.all([Promise.resolve().then(() => __importStar(require("picocolors"))), Promise.resolve().then(() => __importStar(require("@clack/prompts")))]),
-        Promise.resolve().then(() => __importStar(require("../utils/config")))
+        Promise.resolve().then(() => __importStar(require("../utils/config"))),
     ]);
     const configManager = new ConfigManager();
     p.intro(pc.bgCyan(pc.black(" AgentForge Configuration ")));
@@ -62,7 +62,7 @@ program
         validate: (value) => {
             if (!value)
                 return "API key cannot be empty.";
-        }
+        },
     });
     if (p.isCancel(apiKey)) {
         p.cancel("Operation cancelled.");
@@ -82,11 +82,11 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-    const [[{ default: pc }, p], { CLIController }, { ProjectGenerator }, { TemplateManager }] = await Promise.all([
+    const [[{ default: pc }, p], { CLIController }, { ProjectGenerator }, { TemplateManager },] = await Promise.all([
         Promise.all([Promise.resolve().then(() => __importStar(require("picocolors"))), Promise.resolve().then(() => __importStar(require("@clack/prompts")))]),
         Promise.resolve().then(() => __importStar(require("./CLIController"))),
         Promise.resolve().then(() => __importStar(require("../generators/ProjectGenerator"))),
-        Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")))
+        Promise.resolve().then(() => __importStar(require("../templates/TemplateManager"))),
     ]);
     const cli = new CLIController();
     const generator = new ProjectGenerator();
@@ -101,14 +101,14 @@ program
             projectName: answers.projectName,
             idea: answers.idea,
             templatePath: templatePath,
-            outputPath: outputPath
+            outputPath: outputPath,
         });
         s.stop(pc.green(`✨ Project scaffolded successfully!`));
         // ── Optional LLM Enhancement ──
         if (options.llm !== false) {
             const [{ LLMOptimizer }, fs] = await Promise.all([
                 Promise.resolve().then(() => __importStar(require("../integrations/LLMOptimizer"))),
-                Promise.resolve().then(() => __importStar(require("fs/promises")))
+                Promise.resolve().then(() => __importStar(require("fs/promises"))),
             ]);
             const optimizer = new LLMOptimizer();
             const readmePath = path.join(outputPath, "README.md");
@@ -168,7 +168,7 @@ program
     .action(async () => {
     const [{ default: pc }, { TemplateManager }] = await Promise.all([
         Promise.resolve().then(() => __importStar(require("picocolors"))),
-        Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")))
+        Promise.resolve().then(() => __importStar(require("../templates/TemplateManager"))),
     ]);
     const templateManager = new TemplateManager();
     try {
@@ -176,9 +176,9 @@ program
         console.log(pc.cyan(`\n✨ Available Templates:\n`));
         templates.forEach((t) => {
             const icons = {
-                "saas": "🏢",
+                saas: "🏢",
                 "landing-api": "🚀",
-                "realtime": "💬",
+                realtime: "💬",
             };
             console.log(pc.white(`  ${icons[t] || "📦"}  ${pc.bold(t)}`));
         });
@@ -197,7 +197,7 @@ program
     .action(async (targetPath) => {
     const [{ default: pc }, { PreviewServer }] = await Promise.all([
         Promise.resolve().then(() => __importStar(require("picocolors"))),
-        Promise.resolve().then(() => __importStar(require("../preview-server/PreviewServer")))
+        Promise.resolve().then(() => __importStar(require("../preview-server/PreviewServer"))),
     ]);
     const preview = new PreviewServer();
     try {

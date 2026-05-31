@@ -1,5 +1,6 @@
 ## [2.0.20] - 2026-05-26
 
+* **[Performance]:** Cached dynamic Handlebars imports inside ProjectGenerator.ts to avoid redundant module fetching during recursive file processing.
 * **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
 * **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
 
@@ -74,3 +75,8 @@
 
 ## [2.0.21] - 2026-05-27
 * **[Lifecycle]:** Pruned orphaned artifacts and unused dev dependency (`@types/jest`).
+
+## [2.0.22] - 2026-05-30
+
+* **[Lifecycle]:** Assessed codebase and verified structural soundness. Fixed `jest` missing types. Pruned nothing as there is no dead code.
+* **[Dependencies]:** Safely bumped minor/patch versions for `@clack/prompts` and `ts-jest`.
