@@ -37,9 +37,6 @@ exports.ProjectGenerator = void 0;
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 class ProjectGenerator {
-    // Cache the Handlebars module promise to eliminate redundant dynamic import
-    // allocations and resolution overhead when processing multiple .hbs files concurrently.
-    // The module is stateless so it is safe to cache across invocations.
     handlebarsModulePromise = null;
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.

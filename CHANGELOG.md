@@ -1,3 +1,12 @@
+## [2.0.20] - 2026-05-24
+
+* **[Lifecycle]:** Assured codebase stability and optimized dynamic imports by caching the Handlebars module across recursive file loops. No dead code found to prune.
+* **[Dependencies]:** Safely bumped patch versions for `@langchain/core`, `@langchain/openai`.
+
+## [2.0.20] - 2026-05-26
+
+* **[Lifecycle]:** Assessed codebase and verified structural soundness after previous handlebars dynamic import optimization. No dead code found to prune.
+* **[Dependencies]:** Safely bumped minor/patch versions for `@langchain/core` (1.1.47 -> 1.1.48) and `@langchain/openai` (1.4.6 -> 1.4.7).
 ## [2.0.21] - 2026-05-28
 
 * **[Performance]:** Caches the dynamic import of the `handlebars` module in `ProjectGenerator.ts` across multiple file processing invocations. This prevents redundant Promise allocations and module resolution overhead when scaffolding templates concurrently, significantly improving cold start render efficiency.

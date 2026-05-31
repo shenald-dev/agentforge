@@ -11,9 +11,6 @@ export interface GenerateOptions {
 import type * as Handlebars from "handlebars";
 
 export class ProjectGenerator {
-    // Cache the Handlebars module promise to eliminate redundant dynamic import
-    // allocations and resolution overhead when processing multiple .hbs files concurrently.
-    // The module is stateless so it is safe to cache across invocations.
     private handlebarsModulePromise: Promise<typeof Handlebars> | null = null;
 
     /**
