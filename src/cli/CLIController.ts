@@ -1,4 +1,7 @@
 import { TemplateManager } from "../templates/TemplateManager";
+// Statically import heavy UI modules as CLIController is already dynamically lazy-loaded
+import pc from "picocolors";
+import * as p from "@clack/prompts";
 
 export class CLIController {
     private templateManager: TemplateManager;
@@ -11,11 +14,6 @@ export class CLIController {
      * Guides the user through an interactive setup process for generation.
      */
     async promptCreationDetails(defaultIdea: string) {
-        const [{ default: pc }, p] = await Promise.all([
-            import("picocolors"),
-            import("@clack/prompts")
-        ]);
-
         console.clear();
         p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
 

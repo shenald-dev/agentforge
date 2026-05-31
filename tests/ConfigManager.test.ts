@@ -15,6 +15,7 @@ describe("ConfigManager", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (os.homedir as jest.Mock).mockReturnValue(mockHomedir);
+        ConfigManager.cachedConfig = null;
         configManager = new ConfigManager();
     });
 
