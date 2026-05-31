@@ -32,9 +32,14 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CLIController = void 0;
 const TemplateManager_1 = require("../templates/TemplateManager");
+const picocolors_1 = __importDefault(require("picocolors"));
+const p = __importStar(require("@clack/prompts"));
 class CLIController {
     templateManager;
     constructor() {
@@ -44,12 +49,8 @@ class CLIController {
      * Guides the user through an interactive setup process for generation.
      */
     async promptCreationDetails(defaultIdea) {
-        const [{ default: pc }, p] = await Promise.all([
-            Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("@clack/prompts"))),
-        ]);
         console.clear();
-        p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
+        p.intro(`${picocolors_1.default.bgCyan(picocolors_1.default.black(" ✨ AgentForge Interactive Scaffolding "))}`);
         const templates = await this.templateManager.listTemplates();
         const project = await p.group({
             projectName: () => p.text({
@@ -61,7 +62,7 @@ class CLIController {
                         return "Please enter a name.";
                     if (!/^[a-z0-9-]+$/.test(value))
                         return "Project name may only include lowercase letters, numbers, and dashes.";
-                },
+                }
             }),
             idea: () => p.text({
                 message: "Describe your idea in one sentence:",
@@ -70,13 +71,13 @@ class CLIController {
             }),
             template: () => p.select({
                 message: "Which scaffold template best fits your architecture?",
-                options: templates.map((t) => ({ value: t, label: t })),
-            }),
+                options: templates.map(t => ({ value: t, label: t })),
+            })
         }, {
             onCancel: () => {
                 p.cancel("Operation cancelled.");
                 process.exit(0);
-            },
+            }
         });
         return project;
     }

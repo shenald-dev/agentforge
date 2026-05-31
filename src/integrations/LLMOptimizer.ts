@@ -1,5 +1,7 @@
 import type { ChatOpenAI } from "@langchain/openai";
 import { ConfigManager } from "../utils/config";
+import pc from "picocolors";
+import * as p from "@clack/prompts";
 
 export class LLMOptimizer {
     private model: ChatOpenAI | null = null;
@@ -30,10 +32,6 @@ export class LLMOptimizer {
      * Executes an API call with exponential backoff and retries.
      */
     private async withRetries<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
-        const [{ default: pc }, p] = await Promise.all([
-            import("picocolors"),
-            import("@clack/prompts")
-        ]);
         let attempt = 0;
         while (attempt < maxRetries) {
             try {
@@ -58,10 +56,7 @@ export class LLMOptimizer {
      * Enhances a generated application's README using the user's idea string.
      */
     async enhanceReadme(idea: string, currentReadme: string): Promise<string> {
-        const [[{ default: pc }, p]] = await Promise.all([
-            Promise.all([import("picocolors"), import("@clack/prompts")]),
-            this.init()
-        ]);
+        await this.init();
 
         if (!this.model) {
             p.log.warn(pc.gray(`[LLM] API key not found. Skipping README refinement.`));
