@@ -71,7 +71,7 @@ class ConfigManager {
         await fs.mkdir(this.configDir, { recursive: true, mode: 0o700 });
         await fs.writeFile(this.configPath, JSON.stringify(merged, null, 2), {
             encoding: "utf-8",
-            mode: 0o600 // Secure permissions: read/write for owner only
+            mode: 0o600, // Secure permissions: read/write for owner only
         });
         ConfigManager.cachedConfig = merged;
     }
