@@ -37,19 +37,19 @@ exports.ProjectGenerator = void 0;
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 class ProjectGenerator {
+    handlebarsModulePromise = null;
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
     async generate(options) {
         const { templatePath, outputPath } = options;
-        const { default: Handlebars } = await Promise.resolve().then(() => __importStar(require("handlebars")));
         // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
         const normalizedBase = path.resolve(outputPath);
         // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options, Handlebars);
+        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options);
     }
-    async copyAndParseDir(sourceDir, normalizedDestDir, normalizedBase, context, Handlebars) {
+    async copyAndParseDir(sourceDir, normalizedDestDir, normalizedBase, context) {
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
         // Optimization: Process all file and directory entries concurrently
         // instead of sequentially to significantly reduce I/O wait times.
@@ -65,13 +65,17 @@ class ProjectGenerator {
             if (entry.isDirectory()) {
                 // Create target directory and recurse
                 await fs.mkdir(normalizedDestPath, { recursive: true });
-                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context, Handlebars);
+                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
             }
             else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
+                    if (!this.handlebarsModulePromise) {
+                        this.handlebarsModulePromise = Promise.resolve().then(() => __importStar(require("handlebars"))).then((h) => (h.default || h));
+                    }
+                    const hbs = await this.handlebarsModulePromise;
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
-                    const template = Handlebars.compile(content, { noEscape: true });
+                    const template = hbs.compile(content, { noEscape: true });
                     const rendered = template(context);
                     return fs.writeFile(normalizedDestPath, rendered, "utf-8");
                 }

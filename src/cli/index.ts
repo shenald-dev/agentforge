@@ -6,7 +6,12 @@ import { readFileSync } from "fs";
 
 const program = new Command();
 
-const pkgVersion = JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version;
+let pkgVersion = "3.0.0";
+try {
+    pkgVersion = JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version;
+} catch (error) {
+    // Fallback to static version if reading fails
+}
 
 program
     .name("agentforge")
