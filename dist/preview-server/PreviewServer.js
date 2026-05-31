@@ -49,9 +49,11 @@ class PreviewServer {
         console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
         const spinner = ora("Building and starting Docker containers...").start();
         return new Promise((resolve, reject) => {
-            const composeProcess = (0, child_process_1.spawn)("docker-compose", ["up", "--build"], {
+            const composeCmd = process.platform === "win32" ? "docker-compose.exe" : "docker-compose";
+            const composeProcess = (0, child_process_1.spawn)(composeCmd, ["up", "--build"], {
                 cwd: composePath,
                 stdio: "pipe", // Capture output to avoid overwhelming the console, but still monitor
+                shell: false,
             });
             let isReady = false;
             let outputBuffer = "";
@@ -87,7 +89,7 @@ class PreviewServer {
             // Handle graceful shutdown
             process.on('SIGINT', () => {
                 console.log(pc.magenta("\nGracefully shutting down preview containers..."));
-                const shutdownProcess = (0, child_process_1.spawn)("docker-compose", ["down"], { cwd: composePath, stdio: "inherit" });
+                const shutdownProcess = (0, child_process_1.spawn)(composeCmd, ["down"], { cwd: composePath, stdio: "inherit", shell: false });
                 shutdownProcess.on('error', (err) => {
                     console.error(pc.red(`\nFailed to gracefully shutdown containers: ${err instanceof Error ? err.message : String(err)}`));
                     process.exit(1);

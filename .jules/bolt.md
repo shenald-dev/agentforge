@@ -134,6 +134,9 @@ Static imports of heavy UI libraries like `@clack/prompts` at the root of CLI fi
 
 Action:
 Always use localized dynamic imports (`await import()`) for heavy UI libraries inside the specific methods that require them, rather than at the root level.
+## 2024-05-15 — Buffer Truncation and Data Loss
+Learning: When buffering stream chunks and bounding memory with `slice()`, applying the truncation *before* checking `.includes()` can cause intermittent test failures if the target string is split across the truncation boundary.
+Action: Always perform the substring check before slicing the buffer in stream `data` event handlers.
 ## 2024-05-15 — Dynamic Imports and Version Tracking
 
 Learning:

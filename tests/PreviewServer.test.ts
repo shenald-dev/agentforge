@@ -49,7 +49,7 @@ describe("PreviewServer", () => {
             new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 100)),
         ]);
 
-        expect(mockSpawn).toHaveBeenCalledWith("docker-compose", ["up", "--build"], {
+        expect(mockSpawn).toHaveBeenCalledWith(process.platform === "win32" ? "docker-compose.exe" : "docker-compose", ["up", "--build"], {
             cwd: path.resolve(testPath),
             stdio: "pipe",
             shell: false,

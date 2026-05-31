@@ -6,11 +6,12 @@ import { readFileSync } from "fs";
 
 const program = new Command();
 
+const pkgVersion = JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version;
 
 program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
-    .version(JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version);
+    .version(pkgVersion);
 
 // ─────────────────────────────────────
 // agentforge auth
