@@ -134,6 +134,14 @@ Static imports of heavy UI libraries like `@clack/prompts` at the root of CLI fi
 
 Action:
 Always use localized dynamic imports (`await import()`) for heavy UI libraries inside the specific methods that require them, rather than at the root level.
+## 2024-05-15 — Dynamic Imports and Version Tracking
+
+Learning:
+Static imports of heavy libraries like `picocolors` and `handlebars` at the root of dynamically loaded modules negate performance benefits. Hardcoded version strings in CLI entrypoints lead to version mismatches with `package.json`.
+
+Action:
+Always use localized dynamic imports for heavy libraries inside the specific methods that use them to preserve cold start performance. Use `fs.readFileSync` to dynamically extract version metadata from `package.json`.
+
 
 ## 2024-05-16 — CLI Cold Start & Version Sync
 
