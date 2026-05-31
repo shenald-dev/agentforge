@@ -43,7 +43,7 @@ class PreviewServer {
     async start(projectPath) {
         const [{ default: ora }, { default: pc }] = await Promise.all([
             Promise.resolve().then(() => __importStar(require("ora"))),
-            Promise.resolve().then(() => __importStar(require("picocolors"))),
+            Promise.resolve().then(() => __importStar(require("picocolors")))
         ]);
         const composePath = path.resolve(projectPath);
         console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
@@ -52,6 +52,7 @@ class PreviewServer {
             const composeProcess = (0, child_process_1.spawn)("docker-compose", ["up", "--build"], {
                 cwd: composePath,
                 stdio: "pipe", // Capture output to avoid overwhelming the console, but still monitor
+                shell: false,
             });
             let isReady = false;
             let outputBuffer = "";
@@ -60,8 +61,7 @@ class PreviewServer {
                     return;
                 outputBuffer += data.toString();
                 // Simple health heuristic: waiting for the backend or frontend to bind
-                if (outputBuffer.includes("Application startup complete") ||
-                    outputBuffer.includes("ready started server on")) {
+                if (outputBuffer.includes("Application startup complete") || outputBuffer.includes("ready started server on")) {
                     isReady = true;
                     spinner.succeed(pc.green("✨ Preview environment is live!"));
                     console.log(pc.yellow("   Frontend: http://localhost:3000"));
@@ -86,17 +86,14 @@ class PreviewServer {
                 }
             });
             // Handle graceful shutdown
-            process.on("SIGINT", () => {
+            process.on('SIGINT', () => {
                 console.log(pc.magenta("\nGracefully shutting down preview containers..."));
-                const shutdownProcess = (0, child_process_1.spawn)("docker-compose", ["down"], {
-                    cwd: composePath,
-                    stdio: "inherit",
-                });
-                shutdownProcess.on("error", (err) => {
+                const shutdownProcess = (0, child_process_1.spawn)("docker-compose", ["down"], { cwd: composePath, stdio: "inherit", shell: false });
+                shutdownProcess.on('error', (err) => {
                     console.error(pc.red(`\nFailed to gracefully shutdown containers: ${err instanceof Error ? err.message : String(err)}`));
                     process.exit(1);
                 });
-                shutdownProcess.on("close", () => {
+                shutdownProcess.on('close', () => {
                     process.exit(0);
                 });
             });
