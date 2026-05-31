@@ -46,8 +46,12 @@ class TemplateManager {
     }
     async listTemplates() {
         try {
-            const dirents = await fs.readdir(this.templatesDir, { withFileTypes: true });
-            return dirents.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
+            const dirents = await fs.readdir(this.templatesDir, {
+                withFileTypes: true,
+            });
+            return dirents
+                .filter((dirent) => dirent.isDirectory())
+                .map((dirent) => dirent.name);
         }
         catch (err) {
             throw new Error(`Failed to read templates directory: ${err instanceof Error ? err.message : String(err)}`);
@@ -57,7 +61,9 @@ class TemplateManager {
         const templatePath = path.resolve(this.templatesDir, templateName);
         // Prevent path traversal
         const relativePath = path.relative(this.templatesDir, templatePath);
-        if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
+        if (relativePath === ".." ||
+            relativePath.startsWith(".." + path.sep) ||
+            path.isAbsolute(relativePath)) {
             throw new Error(`Security Exception: Path traversal attempt blocked for template '${templateName}'`);
         }
         try {
