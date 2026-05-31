@@ -52,6 +52,7 @@ describe("PreviewServer", () => {
         expect(mockSpawn).toHaveBeenCalledWith("docker-compose", ["up", "--build"], {
             cwd: path.resolve(testPath),
             stdio: "pipe",
+            shell: false,
         });
 
         expect(mockStdoutOn).toHaveBeenCalledWith("data", expect.any(Function));

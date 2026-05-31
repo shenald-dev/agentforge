@@ -149,6 +149,29 @@ Importing `handlebars` globally in `src/generators/ProjectGenerator.ts` breaks t
 Action:
 Ensure heavy modules or modules with compatibility issues (like `handlebars`) are dynamically imported in their specific use cases (e.g., inside the Handlebars compile block) rather than at the root of the file.
 
+## 2025-05-23 — Revert unnecessary dynamic imports in dynamically loaded modules
+
+Learning:
+Lazy-loading dependencies (e.g., using `await import('@clack/prompts')`) inside a module that is already dynamically imported (like `CLIController.ts` or `LLMOptimizer.ts`, which are already lazy-loaded by `index.ts`) provides no additional startup performance benefit and only introduces unnecessary code complexity and causes jest test failures for ESM modules.
+
+Action:
+Refactored `src/cli/CLIController.ts` and `src/integrations/LLMOptimizer.ts` to statically import `picocolors` and `@clack/prompts` at the top level. Since these files are already dynamically imported only when their respective commands are executed, the heavy dependencies do not impact the root CLI's cold start times.
+## 2024-05-23 — Static Imports in Lazy-Loaded Modules
+
+Learning:
+When a module is already dynamically lazy-loaded by the root entry point, localized dynamic imports within its methods provide no additional startup performance benefit, introduce unnecessary async complexity, and cause Jest ESM failures.
+
+Action:
+Statically import dependencies at the top level instead of using localized dynamic imports within methods for CLIController and LLMOptimizer.
+
+## 2026-05-24 — Static vs Dynamic Imports for Testing
+
+Learning:
+When a module is already dynamically lazy-loaded by the root entry point, statically import its dependencies at the top level instead of using localized dynamic imports. Localized dynamic imports provide no additional startup performance benefit, introduce unnecessary async complexity, and cause Jest ESM failures.
+
+Action:
+Prefer static top-level imports for dependencies in modules that are already dynamically loaded to avoid Jest ESM compatibility issues.
+
 ## 2026-05-26 — Optimize dynamic module imports in loops
 
 Learning:
@@ -158,6 +181,11 @@ Action:
 Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
 
 ## 2024-05-27 — Optimized concurrent dynamic imports
+
+
+## 2024-05-27 — Optimized concurrent dynamic imports
+
+## 2026-05-27 — Optimized concurrent dynamic imports
 
 Learning:
 When dynamically loading dependencies inside a concurrent `Promise.all` operation (like a recursive directory map), caching the resolved module object is too slow. The first few concurrent iterations bypass the initial null-check and trigger redundant, expensive import requests simultaneously.
@@ -172,3 +200,6 @@ Sequential dynamic imports (e.g., `await import(...)` followed by another `await
 
 Action:
 Group multiple dynamic imports together using `await Promise.all(...)` to execute module resolution and loading concurrently, minimizing overall execution time.
+## 2024-05-27 — Promise Caching for Concurrent Imports
+Learning: Concurrent execution loops bypass null-checks on dynamically imported modules, triggering redundant import requests.
+Action: Always cache the Promise of a dynamic import (e.g., `this.modulePromise = import(...)`) instead of the resolved module when lazy-loading inside concurrent operations.
