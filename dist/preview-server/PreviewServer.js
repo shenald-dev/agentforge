@@ -41,18 +41,10 @@ class PreviewServer {
      * Spawns a docker-compose process in the target generated directory.
      */
     async start(projectPath) {
-        let ora, pc;
-        try {
-            const [{ default: _ora }, { default: _pc }] = await Promise.all([
-                Promise.resolve().then(() => __importStar(require("ora"))),
-                Promise.resolve().then(() => __importStar(require("picocolors")))
-            ]);
-            ora = _ora;
-            pc = _pc;
-        }
-        catch (error) {
-            throw new Error(`Failed to load necessary CLI UI libraries: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        const [{ default: ora }, { default: pc }] = await Promise.all([
+            Promise.resolve().then(() => __importStar(require("ora"))),
+            Promise.resolve().then(() => __importStar(require("picocolors")))
+        ]);
         const composePath = path.resolve(projectPath);
         console.log(pc.cyan(`\n🚀 Initializing Preview Server at ${composePath}`));
         const spinner = ora("Building and starting Docker containers...").start();
