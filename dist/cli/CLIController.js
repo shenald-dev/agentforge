@@ -46,7 +46,7 @@ class CLIController {
     async promptCreationDetails(defaultIdea) {
         const [{ default: pc }, p] = await Promise.all([
             Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("@clack/prompts")))
+            Promise.resolve().then(() => __importStar(require("@clack/prompts"))),
         ]);
         console.clear();
         p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
@@ -61,7 +61,7 @@ class CLIController {
                         return "Please enter a name.";
                     if (!/^[a-z0-9-]+$/.test(value))
                         return "Project name may only include lowercase letters, numbers, and dashes.";
-                }
+                },
             }),
             idea: () => p.text({
                 message: "Describe your idea in one sentence:",
@@ -70,13 +70,13 @@ class CLIController {
             }),
             template: () => p.select({
                 message: "Which scaffold template best fits your architecture?",
-                options: templates.map(t => ({ value: t, label: t })),
-            })
+                options: templates.map((t) => ({ value: t, label: t })),
+            }),
         }, {
             onCancel: () => {
                 p.cancel("Operation cancelled.");
                 process.exit(0);
-            }
+            },
         });
         return project;
     }
