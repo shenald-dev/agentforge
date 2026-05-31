@@ -11,7 +11,10 @@ export interface GenerateOptions {
 import type * as Handlebars from "handlebars";
 
 export class ProjectGenerator {
-    private handlebarsPromise: Promise<typeof Handlebars> | null = null;
+    // Cache the Handlebars module promise to eliminate redundant dynamic import
+    // allocations and resolution overhead when processing multiple .hbs files concurrently.
+    // The module is stateless so it is safe to cache across invocations.
+    private handlebarsModulePromise: Promise<typeof Handlebars> | null = null;
 
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
@@ -50,10 +53,12 @@ export class ProjectGenerator {
                 return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
             } else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
-                    if (!this.handlebarsPromise) {
-                        this.handlebarsPromise = import("handlebars").then((h: any) => (h.default || h) as typeof Handlebars);
+                    if (!this.handlebarsModulePromise) {
+                        this.handlebarsModulePromise = import("handlebars").then(
+                            (h: any) => (h.default || h) as typeof Handlebars
+                        );
                     }
-                    const hbs = await this.handlebarsPromise;
+                    const hbs = await this.handlebarsModulePromise;
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = hbs.compile(content, { noEscape: true });

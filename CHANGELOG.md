@@ -1,3 +1,9 @@
+## [2.0.21] - 2026-05-28
+
+* **[Performance]:** Caches the dynamic import of the `handlebars` module in `ProjectGenerator.ts` across multiple file processing invocations. This prevents redundant Promise allocations and module resolution overhead when scaffolding templates concurrently, significantly improving cold start render efficiency.
+
+## [2.0.20] - 2026-05-26
+
 ## [2.0.20] - 2026-05-26
 
 * **[Performance]:** Cached dynamic Handlebars imports inside ProjectGenerator.ts to avoid redundant module fetching during recursive file processing.

@@ -37,7 +37,10 @@ exports.ProjectGenerator = void 0;
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 class ProjectGenerator {
-    handlebarsPromise = null;
+    // Cache the Handlebars module promise to eliminate redundant dynamic import
+    // allocations and resolution overhead when processing multiple .hbs files concurrently.
+    // The module is stateless so it is safe to cache across invocations.
+    handlebarsModulePromise = null;
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
@@ -69,10 +72,10 @@ class ProjectGenerator {
             }
             else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
-                    if (!this.handlebarsPromise) {
-                        this.handlebarsPromise = Promise.resolve().then(() => __importStar(require("handlebars"))).then((h) => (h.default || h));
+                    if (!this.handlebarsModulePromise) {
+                        this.handlebarsModulePromise = Promise.resolve().then(() => __importStar(require("handlebars"))).then((h) => (h.default || h));
                     }
-                    const hbs = await this.handlebarsPromise;
+                    const hbs = await this.handlebarsModulePromise;
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = hbs.compile(content, { noEscape: true });
