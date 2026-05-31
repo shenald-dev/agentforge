@@ -37,7 +37,7 @@ exports.ProjectGenerator = void 0;
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 class ProjectGenerator {
-    handlebarsModulePromise = null;
+    handlebarsPromise = null;
     /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
@@ -55,15 +55,11 @@ class ProjectGenerator {
         // instead of sequentially to significantly reduce I/O wait times.
         const operations = entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
-            const destName = entry.name.endsWith(".hbs")
-                ? entry.name.slice(0, -4)
-                : entry.name;
+            const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
             const normalizedDestPath = path.join(normalizedDestDir, destName);
             // Double check file-level traversal
             const relativePath = path.relative(normalizedBase, normalizedDestPath);
-            if (relativePath === ".." ||
-                relativePath.startsWith(".." + path.sep) ||
-                path.isAbsolute(relativePath)) {
+            if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
                 throw new Error(`Security Exception: Path traversal attempt blocked for file ${entry.name}`);
             }
             if (entry.isDirectory()) {
@@ -73,10 +69,10 @@ class ProjectGenerator {
             }
             else if (entry.isFile()) {
                 if (entry.name.endsWith(".hbs")) {
-                    if (!this.handlebarsModulePromise) {
-                        this.handlebarsModulePromise = Promise.resolve().then(() => __importStar(require("handlebars"))).then((h) => (h.default || h));
+                    if (!this.handlebarsPromise) {
+                        this.handlebarsPromise = Promise.resolve().then(() => __importStar(require("handlebars"))).then((h) => (h.default || h));
                     }
-                    const hbs = await this.handlebarsModulePromise;
+                    const hbs = await this.handlebarsPromise;
                     // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = hbs.compile(content, { noEscape: true });

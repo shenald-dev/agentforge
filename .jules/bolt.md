@@ -150,6 +150,8 @@ Dynamically importing a module inside a recursive function (e.g., loading Handle
 Action:
 Cache the resolved module instance at the class level when it needs to be dynamically loaded in loops or recursive operations (e.g., `this.handlebarsModule = (await import('handlebars')).default`).
 
+## 2024-05-27 — Optimized concurrent dynamic imports
+
 ## 2026-05-27 — Optimized concurrent dynamic imports
 
 Learning:
@@ -165,3 +167,6 @@ Sequential dynamic imports (e.g., `await import(...)` followed by another `await
 
 Action:
 Group multiple dynamic imports together using `await Promise.all(...)` to execute module resolution and loading concurrently, minimizing overall execution time.
+## 2024-05-27 — Promise Caching for Concurrent Imports
+Learning: Concurrent execution loops bypass null-checks on dynamically imported modules, triggering redundant import requests.
+Action: Always cache the Promise of a dynamic import (e.g., `this.modulePromise = import(...)`) instead of the resolved module when lazy-loading inside concurrent operations.
