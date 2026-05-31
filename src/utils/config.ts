@@ -3,73 +3,73 @@ import * as path from "path";
 import * as os from "os";
 
 export interface AgentForgeConfig {
-    OPENROUTER_API_KEY?: string;
-    OPENROUTER_BASE_URL?: string;
+  OPENROUTER_API_KEY?: string;
+  OPENROUTER_BASE_URL?: string;
 }
 
 export class ConfigManager {
-    private readonly configDir: string;
-    private readonly configPath: string;
-    private cachedConfig: AgentForgeConfig | null = null;
+  private readonly configDir: string;
+  private readonly configPath: string;
+  private cachedConfig: AgentForgeConfig | null = null;
 
-    constructor() {
-        this.configDir = path.join(os.homedir(), ".agentforge");
-        this.configPath = path.join(this.configDir, "config.json");
+  constructor() {
+    this.configDir = path.join(os.homedir(), ".agentforge");
+    this.configPath = path.join(this.configDir, "config.json");
+  }
+
+  /**
+   * Retrieves the current configuration.
+   */
+  async getConfig(): Promise<AgentForgeConfig> {
+    if (this.cachedConfig) {
+      return this.cachedConfig;
     }
-
-    /**
-     * Retrieves the current configuration.
-     */
-    async getConfig(): Promise<AgentForgeConfig> {
-        if (this.cachedConfig) {
-            return this.cachedConfig;
-        }
-        try {
-            const data = await fs.readFile(this.configPath, "utf-8");
-            this.cachedConfig = JSON.parse(data);
-            return this.cachedConfig as AgentForgeConfig;
-        } catch {
-            this.cachedConfig = {};
-            return this.cachedConfig;
-        }
+    try {
+      const data = await fs.readFile(this.configPath, "utf-8");
+      this.cachedConfig = JSON.parse(data);
+      return this.cachedConfig as AgentForgeConfig;
+    } catch {
+      this.cachedConfig = {};
+      return this.cachedConfig;
     }
+  }
 
-    /**
-     * Saves configuration securely with restricted file permissions (600).
-     */
-    async setConfig(newConfig: Partial<AgentForgeConfig>): Promise<void> {
-        const current = await this.getConfig();
-        const merged = { ...current, ...newConfig };
+  /**
+   * Saves configuration securely with restricted file permissions (600).
+   */
+  async setConfig(newConfig: Partial<AgentForgeConfig>): Promise<void> {
+    const current = await this.getConfig();
+    const merged = { ...current, ...newConfig };
 
-        await fs.mkdir(this.configDir, { recursive: true, mode: 0o700 });
+    await fs.mkdir(this.configDir, { recursive: true, mode: 0o700 });
 
-        await fs.writeFile(this.configPath, JSON.stringify(merged, null, 2), {
-            encoding: "utf-8",
-            mode: 0o600 // Secure permissions: read/write for owner only
-        });
+    await fs.writeFile(this.configPath, JSON.stringify(merged, null, 2), {
+      encoding: "utf-8",
+      mode: 0o600, // Secure permissions: read/write for owner only
+    });
 
-        this.cachedConfig = merged;
+    this.cachedConfig = merged;
+  }
+
+  /**
+   * Gets the API key, falling back to process.env if available (for CI/CD or legacy).
+   */
+  async getApiKey(): Promise<string | undefined> {
+    if (process.env.OPENROUTER_API_KEY) {
+      return process.env.OPENROUTER_API_KEY;
     }
+    const config = await this.getConfig();
+    return config.OPENROUTER_API_KEY;
+  }
 
-    /**
-     * Gets the API key, falling back to process.env if available (for CI/CD or legacy).
-     */
-    async getApiKey(): Promise<string | undefined> {
-        if (process.env.OPENROUTER_API_KEY) {
-            return process.env.OPENROUTER_API_KEY;
-        }
-        const config = await this.getConfig();
-        return config.OPENROUTER_API_KEY;
+  /**
+   * Gets the custom Base URL for OpenRouter, falling back to process.env, or undefined.
+   */
+  async getBaseUrl(): Promise<string | undefined> {
+    if (process.env.OPENROUTER_BASE_URL) {
+      return process.env.OPENROUTER_BASE_URL;
     }
-
-    /**
-     * Gets the custom Base URL for OpenRouter, falling back to process.env, or undefined.
-     */
-    async getBaseUrl(): Promise<string | undefined> {
-        if (process.env.OPENROUTER_BASE_URL) {
-            return process.env.OPENROUTER_BASE_URL;
-        }
-        const config = await this.getConfig();
-        return config.OPENROUTER_BASE_URL;
-    }
+    const config = await this.getConfig();
+    return config.OPENROUTER_BASE_URL;
+  }
 }

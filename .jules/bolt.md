@@ -159,6 +159,8 @@ Cache the resolved module instance at the class level when it needs to be dynami
 
 ## 2024-05-27 — Optimized concurrent dynamic imports
 
+## 2026-05-27 — Optimized concurrent dynamic imports
+
 Learning:
 When dynamically loading dependencies inside a concurrent `Promise.all` operation (like a recursive directory map), caching the resolved module object is too slow. The first few concurrent iterations bypass the initial null-check and trigger redundant, expensive import requests simultaneously.
 
@@ -172,3 +174,6 @@ Sequential dynamic imports (e.g., `await import(...)` followed by another `await
 
 Action:
 Group multiple dynamic imports together using `await Promise.all(...)` to execute module resolution and loading concurrently, minimizing overall execution time.
+## 2024-05-27 — Promise Caching for Concurrent Imports
+Learning: Concurrent execution loops bypass null-checks on dynamically imported modules, triggering redundant import requests.
+Action: Always cache the Promise of a dynamic import (e.g., `this.modulePromise = import(...)`) instead of the resolved module when lazy-loading inside concurrent operations.
