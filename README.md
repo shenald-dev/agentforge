@@ -14,11 +14,25 @@
   [![Vibe](https://badgen.net/badge/vibe/coding/magenta)](https://github.com/shenald-dev)
   [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://docker.com)
   [![OpenRouter](https://badgen.net/badge/AI/Enabled/cyan)](https://openrouter.ai)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
   
   <br />
 
   <a href="https://frontend-sooty-xi-69.vercel.app"><b>Check out a live generated Next.js App Demo</b></a>
 </div>
+
+---
+
+## 📑 Table of Contents
+- [🌊 Flow State Initiated](#-flow-state-initiated)
+- [🚀 Enterprise Features](#-enterprise-features)
+- [🏗️ System Architecture](#️-system-architecture)
+- [🛠️ Installation & Setup](#️-installation--setup)
+- [💻 Comprehensive Usage](#-comprehensive-usage)
+- [🧩 The Templates](#-the-templates)
+- [⌨️ Advanced LLM Integration](#️-advanced-llm-integration)
+- [⚠️ Troubleshooting & FAQ](#️-troubleshooting--faq)
+- [🤝 Contributing](#-contributing)
 
 ---
 
@@ -28,30 +42,60 @@
 
 Simply provide a short natural language idea, and AgentForge will instantly scaffold a complete web application—complete with strict TypeScript frontends, high-performance backends, full CI/CD deployment pipelines, and optional LLM-refined documentation.
 
-## 🚀 Core Features
+---
+
+## 🚀 Enterprise Features
 
 - **⚡ Instant Scaffolding**: Generate premium, production-ready `SaaS`, `Landing+API`, or `Realtime` project templates instantly.
 - **🐳 Zero-Config Previews**: The built-in `agentforge preview .` command cleanly manages background `docker-compose` orchestration locally.
-- **🧠 Optional LLM Vibe Pass**: If an `OPENROUTER_API_KEY` is present, AgentForge automatically refines the generated project docs and internal configuration using powerful free models (e.g., `arcee-ai/trinity-large-preview:free`) to strictly match your unique idea.
+- **🧠 Optional LLM Vibe Pass**: If an `OPENROUTER_API_KEY` is present, AgentForge automatically refines the generated project docs and internal configuration using powerful free models to strictly match your unique idea.
 - **🛡️ Clean Architecture**: Emitting only modern, strict-typed boilerplate (`Next.js 14`, `FastAPI`, `Zod`, `Socket.io`, `Express`).
 - **🌐 Vercel-Ready**: Native `vercel.json` edge routing injected automatically to prevent 404 deployment drops.
+- **🔄 CI/CD Automated**: Ships with pre-configured GitHub Action pipelines for testing and deployment.
+
+---
+
+## 🏗️ System Architecture
+
+AgentForge uses a dynamic, modular **Template Manager** hooked into **Handlebars** compilation and AI generation.
+
+```mermaid
+graph TD
+    A[Natural Language CLI Input] --> B[Commander Engine]
+    B --> C{LLM Interceptor}
+    C -->|API Key Found| D[OpenRouter / LangChain]
+    C -->|No Key| E[Static Template Engine]
+    D --> E
+    E --> F[Handlebars Compiler]
+    F --> G[Code Generator]
+    G --> H[Frontend Next.js]
+    G --> I[Backend FastAPI]
+    G --> J[Docker/CI Infrastructure]
+```
+
+1. **The CLI Orchestrator**: `Commander` traps the user input and extracts the natural language intent.
+2. **The Generator Core**: The system recursively parses the selected embedded template directory (`/templates`).
+3. **Token Injection**: Variables like `{{projectName}}` and `{{author}}` are dynamically injected into file names and file contents.
+4. **Vercel Overrides**: A `vercel.json` file is enforced instructing edge platforms on how to natively route.
 
 ---
 
 ## 🛠️ Installation & Setup
 
 ### 1. Install Globally (Recommended)
+The fastest way to get started is to install AgentForge globally on your machine:
 ```bash
 npm install -g agentforge
 ```
 
 ### 2. Run via NPX
-If you prefer not to install globally, you can execute it dynamically:
+If you prefer not to install globally, you can execute it dynamically without permanently altering your system:
 ```bash
 npx agentforge create "My awesome idea"
 ```
 
 ### 3. Build from Source
+For contributors and advanced users:
 ```bash
 git clone https://github.com/shenald-dev/agentforge.git
 cd agentforge
@@ -62,7 +106,7 @@ npm link
 
 ---
 
-## 💻 Usage Guide
+## 💻 Comprehensive Usage
 
 ### Scaffold a New App
 ```bash
@@ -105,22 +149,11 @@ AgentForge ships with three distinct boilerplate engines designed for different 
 
 ---
 
-## 🏗️ Architecture Deep Dive
-
-AgentForge uses a dynamic, modular **Template Manager** hooked into **Handlebars** compilation. 
-
-1. **The CLI Orchestrator**: `Commander` traps the user input and extracts the natural language intent.
-2. **The Generator Core**: The system recursively parses the selected embedded template directory (`/templates`).
-3. **Token Injection**: Variables like `{{projectName}}` and `{{author}}` are dynamically injected into file names and file contents (e.g. `package.json.hbs`, `main.py.hbs`).
-4. **Vercel Overrides**: A `vercel.json` file is enforced instructing edge platforms on how to natively route the output Next.js applications safely without user intervention.
-
----
-
-## ⌨️ Advanced LLM Integration & Tweaks
+## ⌨️ Advanced LLM Integration
 
 AgentForge includes an optional **AI Enhancement Pass**. It uses `Langchain` under the hood to ingest your text and manipulate the Handlebars parsing logic in real-time to generate a custom `README.md` perfectly matching your prompt's intent.
 
-To enable this, we use the **OpenRouter API**, allowing us to tap into hundreds of models (including completely free tiers).
+To enable this, we use the **OpenRouter API**, allowing us to tap into hundreds of models.
 
 ### 1. Setup the Environment Variable
 Export your OpenRouter key:
@@ -136,19 +169,19 @@ export OPENROUTER_API_KEY="sk-or-v1-..."
 ```bash
 agentforge create "A minimalistic deep-work pomodoro timer focusing on flow state"
 ```
-AgentForge natively detects the API key, bridges into the `LLMOptimizer` singleton, and connects to the `arcee-ai/trinity-large-preview:free` model. The resulting project documentation will be specifically rewritten as a Pomodoro application instead of generic boilerplate.
+AgentForge natively detects the API key, bridges into the `LLMOptimizer` singleton, and intelligently rewrites the documentation specifically for a Pomodoro application instead of a generic boilerplate.
 
 ---
 
 ## ⚠️ Troubleshooting & FAQ
 
-**Q: My Vercel deployment is returning a 404 NOT FOUND error?**
-**A:** This usually happens if the project wasn't detected as Next.js. AgentForge handles this automatically now, but ensure the `vercel.json` file generated in the `frontend` folder explicitly states `"framework": "nextjs"`.
+**Q: My Vercel deployment is returning a 404 NOT FOUND error?**  
+**A:** This usually happens if the project wasn't detected as Next.js. Ensure the `vercel.json` file generated in the `frontend` folder explicitly states `"framework": "nextjs"`.
 
-**Q: Docker compose is failing to bind ports?**
+**Q: Docker compose is failing to bind ports?**  
 **A:** Ensure you don't have other services running locally on `3000` or `8000`. You can edit the `docker-compose.yml` natively mapped ports to bypass this.
 
-**Q: The CLI crashes missing Handlebars files?**
+**Q: The CLI crashes missing Handlebars files?**  
 **A:** Ensure you are running `npm run build` if building from source. The `dist` directory must contain the compiled JavaScript and the copied `templates` directory.
 
 ---
