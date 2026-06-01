@@ -236,3 +236,11 @@ Group multiple dynamic imports together using `await Promise.all(...)` to execut
 ## 2024-05-27 — Promise Caching for Concurrent Imports
 Learning: Concurrent execution loops bypass null-checks on dynamically imported modules, triggering redundant import requests.
 Action: Always cache the Promise of a dynamic import (e.g., `this.modulePromise = import(...)`) instead of the resolved module when lazy-loading inside concurrent operations.
+
+## 2024-05-31 — Cross-Platform Executable Resolution
+
+Learning:
+When using `child_process.spawn`, Node.js automatically resolves `.exe` extensions on Windows. Manually appending `.exe` for standard executables like `docker-compose` based on `process.platform` is redundant and clutters the codebase.
+
+Action:
+Removed manual `.exe` resolution for `docker-compose` in `PreviewServer.ts`, relying on Node's native cross-platform executable resolution.
