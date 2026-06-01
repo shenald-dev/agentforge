@@ -1,7 +1,6 @@
 <div align="center">
-  <img src="./docs/architecture.svg" alt="AgentForge Architecture" width="100%">
+  <img src="assets/logo.png" alt="AgentForge Logo" width="250" />
   
-  <br />
   <br />
 
   <h1>✨ AgentForge</h1>
