@@ -16,18 +16,15 @@
   "warden": {
     "qa_status": "verified",
     "dead_code_removed_lines": 0,
-    "dependencies_bumped": [
-      "eslint: 8.x.x -> 8.x.y",
-      "@types/node: 20.x.x -> 20.x.y"
-    ],
-    "security_critical": 0,
-    "security_high": 0,
+    "dependencies_bumped": [],
+    "security_critical": 1,
+    "security_high": 1,
     "security_medium": 0,
-    "security_low": 0,
+    "security_low": 1,
     "docs_updated": [
-      "CHANGELOG.md"
+      ".jules/warden.md"
     ],
-    "release_version": "2.0.24",
+    "release_version": null,
     "blockers": []
   }
 }
