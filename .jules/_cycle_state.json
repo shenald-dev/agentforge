@@ -11,5 +11,19 @@
     "vulnerabilities_high": 0,
     "branches_deleted": 0,
     "blockers": []
+  },
+  "warden": {
+    "qa_status": "amended",
+    "dead_code_removed_lines": 0,
+    "dependencies_bumped": [],
+    "security_critical": 0,
+    "security_high": 0,
+    "security_medium": 0,
+    "security_low": 0,
+    "docs_updated": [
+      "src/cli/CLIController.ts"
+    ],
+    "release_version": "2.0.23",
+    "blockers": []
   }
 }
