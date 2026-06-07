@@ -68,3 +68,14 @@ Docs Updated: .jules/warden.md
 Release: none
 
 AI Summary: Repository is in a healthy state with passing CI and no uncommitted changes. Potentially unused files were audited and confirmed as false positives (active src/ files, configs, and dist/ build artifacts). No new release is warranted at this time.
+
+## 2026-06-07 — WARDEN Run
+
+QA Status: verified
+Dead Code Removed: 0 lines
+Dependencies Bumped: 0
+Security: Critical=0, High=0
+Docs Updated: README.md
+Release: 2.0.25
+
+AI Summary: Repository health is good with CI fixed. The 'potentially unused files' list contained false positives (core src/ files, dist/ build artifacts, and standard config files), which were safely ignored to prevent catastrophic deletion. QA and documentation sync recommended for the recent Windows docker-compose fix, followed by a patch release (v2.0.25).
