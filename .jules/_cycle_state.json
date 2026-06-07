@@ -11,31 +11,5 @@
     "vulnerabilities_high": 0,
     "branches_deleted": 0,
     "blockers": []
-  },
-  "warden": {
-    "qa_status": "amended",
-    "dead_code_removed_lines": 0,
-    "dependencies_bumped": [],
-    "security_critical": 0,
-    "security_high": 0,
-    "security_medium": 0,
-    "security_low": 0,
-    "docs_updated": [
-      "src/cli/CLIController.ts"
-    ],
-    "release_version": "2.0.23",
-    "blockers": []
-  },
-  "forge": {
-    "improvement_type": "bug_fix",
-    "improvement_title": "Fix Windows docker-compose command to use .exe extension",
-    "files_modified": [
-      "src/preview-server/PreviewServer.ts"
-    ],
-    "tests_passed": true,
-    "build_passed": true,
-    "lint_passed": true,
-    "shippable": true,
-    "blockers": []
   }
 }
