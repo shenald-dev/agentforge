@@ -25,5 +25,17 @@
     ],
     "release_version": "2.0.23",
     "blockers": []
+  },
+  "forge": {
+    "improvement_type": "bug_fix",
+    "improvement_title": "Fix Windows docker-compose command to use .exe extension",
+    "files_modified": [
+      "src/preview-server/PreviewServer.ts"
+    ],
+    "tests_passed": true,
+    "build_passed": true,
+    "lint_passed": true,
+    "shippable": true,
+    "blockers": []
   }
 }
