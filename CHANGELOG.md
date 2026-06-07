@@ -1,5 +1,19 @@
 ## [2.0.20] - 2026-05-24
 
+## [2.0.23] - 2026-06-07
+
+- 45f9566d chore(sentinel): update monitoring log
+- 6b9be8a8 chore(forge): update journal
+- 2b31ae01 chore(warden): update ledger
+- 06e3f6bf chore(release): v2.0.22
+- d74a2296 chore(sentinel): update monitoring log
+- 665bee6f chore(sentinel): update monitoring log
+- e33e10aa chore(sentinel): update monitoring log
+- 48200a58 Overhaul README with enterprise documentation
+- a48eb1f1 Update README with awesome new logo and formatting
+- f39be6b6 Merge pull request #126 from shenald-dev/jules-16184375959133770752-200c9efc
+
+
 ## [2.0.22] - 2026-06-07
 
 - d74a2296 chore(sentinel): update monitoring log
