@@ -1,5 +1,19 @@
 ## [2.0.20] - 2026-05-24
 
+## [2.0.22] - 2026-06-07
+
+- d74a2296 chore(sentinel): update monitoring log
+- 665bee6f chore(sentinel): update monitoring log
+- e33e10aa chore(sentinel): update monitoring log
+- 48200a58 Overhaul README with enterprise documentation
+- a48eb1f1 Update README with awesome new logo and formatting
+- f39be6b6 Merge pull request #126 from shenald-dev/jules-16184375959133770752-200c9efc
+- 1a1c6b89 chore: simplify cross-platform process spawning and bump minor dependencies
+- ea1de508 Merge pull request #96 from shenald-dev/fix/cli-dynamic-version-17135241211656416369
+- d7ff59a3 Auto-resolve conflicts unconditionally
+- 966b0b44 Merge pull request #98 from shenald-dev/chore/lifecycle-v2-0-19-15986607001509263768
+
+
 * **[Lifecycle]:** Assured codebase stability and optimized dynamic imports by caching the Handlebars module across recursive file loops. No dead code found to prune.
 * **[Dependencies]:** Safely bumped patch versions for `@langchain/core`, `@langchain/openai`.
 
