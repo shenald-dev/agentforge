@@ -26,5 +26,20 @@
     ],
     "release_version": "2.0.22",
     "blockers": []
+  },
+  "forge": {
+    "improvement_type": "reliability",
+    "improvement_title": "Fix PreviewServer reliability bugs: promise hang, SIGINT leak, and Windows compatibility",
+    "files_modified": [
+      "src/preview-server/PreviewServer.ts",
+      "tests/PreviewServer.test.ts"
+    ],
+    "tests_passed": false,
+    "build_passed": true,
+    "lint_passed": true,
+    "shippable": false,
+    "blockers": [
+      "Tests failed after improvement, changes reverted"
+    ]
   }
 }
