@@ -21,10 +21,8 @@
     "security_high": 0,
     "security_medium": 0,
     "security_low": 0,
-    "docs_updated": [
-      "README.md"
-    ],
-    "release_version": "2.0.25",
+    "docs_updated": [],
+    "release_version": null,
     "blockers": []
   }
 }
