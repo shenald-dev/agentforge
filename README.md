@@ -1,3 +1,4 @@
+# README.md
 <div align="center">
   <img src="assets/logo.png" alt="AgentForge Logo" width="250" />
   
@@ -58,142 +59,91 @@ Simply provide a short natural language idea, and AgentForge will instantly scaf
 ## 🏗️ System Architecture
 
 AgentForge uses a dynamic, modular **Template Manager** hooked into **Handlebars** compilation and AI generation.
-
-```mermaid
-graph TD
-    A[Natural Language CLI Input] --> B[Commander Engine]
-    B --> C{LLM Interceptor}
-    C -->|API Key Found| D[OpenRouter / LangChain]
-    C -->|No Key| E[Static Template Engine]
-    D --> E
-    E --> F[Handlebars Compiler]
-    F --> G[Code Generator]
-    G --> H[Frontend Next.js]
-    G --> I[Backend FastAPI]
-    G --> J[Docker/CI Infrastructure]
-```
-
-1. **The CLI Orchestrator**: `Commander` traps the user input and extracts the natural language intent.
-2. **The Generator Core**: The system recursively parses the selected embedded template directory (`/templates`).
-3. **Token Injection**: Variables like `{{projectName}}` and `{{author}}` are dynamically injected into file names and file contents.
-4. **Vercel Overrides**: A `vercel.json` file is enforced instructing edge platforms on how to natively route.
-
 ---
 
 ## 🛠️ Installation & Setup
 
-### 1. Install Globally (Recommended)
-The fastest way to get started is to install AgentForge globally on your machine:
-```bash
-npm install -g agentforge
-```
+### Prerequisites
 
-### 2. Run via NPX
-If you prefer not to install globally, you can execute it dynamically without permanently altering your system:
-```bash
-npx agentforge create "My awesome idea"
-```
+Before you begin, ensure you have the following installed on your system:
 
-### 3. Build from Source
-For contributors and advanced users:
-```bash
-git clone https://github.com/shenald-dev/agentforge.git
-cd agentforge
-npm install
-npm run build
-npm link
-```
+- **Node.js** (v18 or higher)
+- **Docker** and **Docker Compose**
+  - **⚠️ Windows Requirement**: Windows users must explicitly install `docker-compose.exe` and ensure it is available in their system's `PATH`. The `agentforge preview` command relies on the `docker-compose` binary to orchestrate local containers. If you are using Docker Desktop for Windows, `docker-compose.exe` is typically included, but you must verify it is accessible via your terminal by running `docker-compose --version`.
+- **Git**
 
+### Install AgentForge
+
+You can install AgentForge globally via npm:
+Or run it directly using `npx`:
 ---
 
 ## 💻 Comprehensive Usage
 
-### Scaffold a New App
-```bash
-agentforge create "A high conversion real estate landing page"
-```
-*The interactive CLI will guide you through picking a template and generating the boilerplate.*
+### 1. Scaffold a New Project
 
-### Spin up the Local Containers
-Navigate to your new project and let AgentForge orchestrate the isolated Docker environment:
-```bash
-cd my-new-app
-agentforge preview .
-```
-- **Frontend Container** mapped to `http://localhost:3000`
-- **Backend API/Socket Container** mapped to `http://localhost:8000`
+Run the CLI and follow the interactive prompts:
+You will be asked to provide:
+- A natural language description of your app idea.
+- The project name.
+- The template type (`SaaS`, `Landing+API`, or `Realtime`).
+
+### 2. Local Development & Preview
+
+Once your project is scaffolded, navigate into the project directory:
+To start the local development environment with all services (frontend, backend, database) running in containers:
+This command automatically handles the `docker-compose` orchestration, building the images and spinning up the containers in detached mode.
+
+### 3. Production Deployment
+
+AgentForge generates Vercel-ready configurations and GitHub Actions workflows out of the box. Simply push your code to GitHub, and the CI/CD pipeline will handle testing and deployment.
 
 ---
 
 ## 🧩 The Templates
 
-AgentForge ships with three distinct boilerplate engines designed for different product architectures.
+AgentForge currently supports three premium templates:
 
-### 1. The `saas` Template
-**Best for:** Complex web applications requiring user state, database interactions, and heavy backend processing.
-- **Frontend**: Next.js 14 App Router, React 18, Tailwind CSS, Lucide Icons.
-- **Backend**: Python FastAPI, strictly typed Pydantic models, uvicorn high-performance server.
-- **Infrastructure**: Isolated multi-container `docker-compose.yml`.
-
-### 2. The `landing-api` Template
-**Best for:** Marketing sites, micro-startups, and lightweight API wrappers.
-- **Frontend**: Next.js 14 App Router optimized for static/edge delivery.
-- **Backend**: Lightweight Node.js Express server + CORS middleware via TypeScript.
-- **Infrastructure**: Multi-container docker stack.
-
-### 3. The `realtime` Template
-**Best for:** Chat apps, live-dashboards, multiplayer games.
-- **Frontend**: Next.js 14 connected natively to Socket.io client instances.
-- **Backend**: Node.js WebSocket engine using `socket.io`.
-- **Infrastructure**: Dockerized WS pass-through architecture.
+1. **SaaS**: Complete with authentication, Stripe integration, and a dashboard.
+2. **Landing+API**: A high-converting landing page paired with a robust REST API backend.
+3. **Realtime**: Features Socket.io for live updates, perfect for chat apps or collaborative tools.
 
 ---
 
 ## ⌨️ Advanced LLM Integration
 
-AgentForge includes an optional **AI Enhancement Pass**. It uses `Langchain` under the hood to ingest your text and manipulate the Handlebars parsing logic in real-time to generate a custom `README.md` perfectly matching your prompt's intent.
-
-To enable this, we use the **OpenRouter API**, allowing us to tap into hundreds of models.
-
-### 1. Setup the Environment Variable
-Export your OpenRouter key:
-```bash
-# Windows (PowerShell)
-$env:OPENROUTER_API_KEY="sk-or-v1-..."
-
-# Linux / MacOS
-export OPENROUTER_API_KEY="sk-or-v1-..."
-```
-
-### 2. Run the Generation
-```bash
-agentforge create "A minimalistic deep-work pomodoro timer focusing on flow state"
-```
-AgentForge natively detects the API key, bridges into the `LLMOptimizer` singleton, and intelligently rewrites the documentation specifically for a Pomodoro application instead of a generic boilerplate.
+To enable the optional LLM Vibe Pass, set your OpenRouter API key in your environment variables:
+When this key is detected, AgentForge will automatically use powerful free models to refine your generated project documentation, README files, and internal configurations to strictly match your unique idea.
 
 ---
 
 ## ⚠️ Troubleshooting & FAQ
 
-**Q: My Vercel deployment is returning a 404 NOT FOUND error?**  
-**A:** This usually happens if the project wasn't detected as Next.js. Ensure the `vercel.json` file generated in the `frontend` folder explicitly states `"framework": "nextjs"`.
+### `docker-compose: command not found` on Windows
 
-**Q: Docker compose is failing to bind ports?**  
-**A:** Ensure you don't have other services running locally on `3000` or `8000`. You can edit the `docker-compose.yml` natively mapped ports to bypass this.
+If you encounter this error when running `agentforge preview`, it means `docker-compose.exe` is not in your system's `PATH`. 
+- Ensure Docker Desktop is installed and running.
+- Verify the installation by running `docker-compose --version` in your terminal.
+- If missing, you may need to manually add the Docker Desktop installation directory (e.g., `C:\Program Files\Docker\Docker\resources\bin`) to your Windows Environment Variables `PATH`.
 
-**Q: The CLI crashes missing Handlebars files?**  
-**A:** Ensure you are running `npm run build` if building from source. The `dist` directory must contain the compiled JavaScript and the copied `templates` directory.
+### Port Conflicts
+
+If ports 3000 (Frontend) or 8000 (Backend) are already in use, the `docker-compose` setup will fail. Stop any local services using these ports or modify the `docker-compose.yml` file in your generated project to map to different ports.
 
 ---
 
 ## 🤝 Contributing
 
-Want to add a brilliant new Template to the Forge? Let's flow!
-Check out the [CONTRIBUTING.md](./CONTRIBUTING.md) guide.
+Contributions are welcome! Please feel free to submit a Pull Request or open an Issue on GitHub.
 
-- 🐛 **Found a bug?** Open an issue to let us know.
-- ✨ **Have a feature idea?** We are open to PRs! Just make sure to run `npm run test` and `npm run lint`.
-- 🎨 **Documentation tweaks?** Always welcome!
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
 
 ---
-> *Built by a Vibe Coder. Forget the config, just build.*
+
+<div align="center">
+  <p>Built with ❤️ by <a href="https://github.com/shenald-dev">shenald-dev</a></p>
+</div>
