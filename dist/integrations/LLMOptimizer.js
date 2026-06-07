@@ -104,7 +104,7 @@ You are a Senior Vibe Coder. I have scaffolded a new web application based on th
 Here is the current base README for the project:
 {currentReadme}
 
-Please enhance this README to be more engaging, professional, and descriptive based on the idea.
+Please enhance this README to be more engaging, professional, and descriptive based on the idea. 
 Maintain the existing setup instructions but improve the introduction, features, and vibe.
 Return ONLY the raw markdown content. No conversational text.
           `);

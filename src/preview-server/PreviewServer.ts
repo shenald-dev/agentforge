@@ -18,7 +18,7 @@ export class PreviewServer {
         const spinner = ora("Building and starting Docker containers...").start();
 
         return new Promise((resolve, reject) => {
-            const composeCmd = "docker-compose";
+            const composeCmd = process.platform === "win32" ? "docker-compose.exe" : "docker-compose";
             const composeProcess = spawn(composeCmd, ["up", "--build"], {
                 cwd: composePath,
                 stdio: "pipe", // Capture output to avoid overwhelming the console, but still monitor
