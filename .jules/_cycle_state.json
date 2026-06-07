@@ -9,37 +9,7 @@
     "issues_closed": 0,
     "vulnerabilities_critical": 0,
     "vulnerabilities_high": 0,
-    "branches_deleted": 21,
+    "branches_deleted": 0,
     "blockers": []
-  },
-  "warden": {
-    "qa_status": "amended",
-    "dead_code_removed_lines": 1024,
-    "dependencies_bumped": [],
-    "security_critical": 0,
-    "security_high": 0,
-    "security_medium": 0,
-    "security_low": 0,
-    "docs_updated": [
-      ".jules/warden.md",
-      "README.md"
-    ],
-    "release_version": "2.0.22",
-    "blockers": []
-  },
-  "forge": {
-    "improvement_type": "reliability",
-    "improvement_title": "Fix PreviewServer reliability bugs: promise hang, SIGINT leak, and Windows compatibility",
-    "files_modified": [
-      "src/preview-server/PreviewServer.ts",
-      "tests/PreviewServer.test.ts"
-    ],
-    "tests_passed": false,
-    "build_passed": true,
-    "lint_passed": true,
-    "shippable": false,
-    "blockers": [
-      "Tests failed after improvement, changes reverted"
-    ]
   }
 }
