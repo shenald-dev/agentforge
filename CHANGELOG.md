@@ -1,5 +1,19 @@
 ## [2.0.20] - 2026-05-24
 
+## [2.0.24] - 2026-06-07
+
+- 070f7677 chore(sentinel): update monitoring log
+- 9ea20d9c chore(forge): update journal
+- 0a4f6194 improvement: Fix Windows docker-compose command to use .exe extension
+- f477a75c chore(warden): update ledger
+- 40282d14 chore(release): v2.0.23
+- 45f9566d chore(sentinel): update monitoring log
+- 6b9be8a8 chore(forge): update journal
+- 2b31ae01 chore(warden): update ledger
+- 06e3f6bf chore(release): v2.0.22
+- d74a2296 chore(sentinel): update monitoring log
+
+
 ## [2.0.23] - 2026-06-07
 
 - 45f9566d chore(sentinel): update monitoring log
