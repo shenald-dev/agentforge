@@ -41,6 +41,12 @@
       "classification": "deployment_failure",
       "workflow": "Publish to npm",
       "timestamp": "2026-06-08T01:17:43.343887+00:00"
+    },
+    {
+      "run_id": 27082792396,
+      "classification": "deployment_failure",
+      "workflow": "Publish to npm",
+      "timestamp": "2026-06-08T04:39:54.475201+00:00"
     }
   ],
   "flaky_workflows": {}
