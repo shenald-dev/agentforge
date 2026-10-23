@@ -34,6 +34,11 @@ export class CLIController {
                     message: "Describe your idea in one sentence:",
                     placeholder: defaultIdea || "A stunning new web app.",
                     defaultValue: defaultIdea || "A stunning new web app.",
+                    validate: (value?: string) => {
+                        if (!value || value.trim().length === 0) return "Please enter an idea.";
+                        if (value.length > 200) return "Idea is too long (maximum 200 characters).";
+                        if (!/^[a-zA-Z0-9\s.,!?'-]+$/.test(value)) return "Idea may only include letters, numbers, spaces, and basic punctuation.";
+                    }
                 }),
                 template: () => p.select({
                     message: "Which scaffold template best fits your architecture?",
