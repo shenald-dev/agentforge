@@ -85,4 +85,30 @@ describe("PreviewServer", () => {
             ])
         ).rejects.toThrow("Spawn Failed");
     });
+
+    it("should reject when docker-compose exits with a non-zero code", async () => {
+        const mockOn = jest.fn((event, callback) => {
+            if (event === "close") {
+                // Simulate process exiting with code 1
+                setTimeout(() => callback(1), 10);
+            }
+        });
+        const mockResume = jest.fn();
+        const mockStdoutOn = jest.fn();
+
+        mockSpawn.mockReturnValue({
+            stdout: { on: mockStdoutOn },
+            stderr: { resume: mockResume },
+            on: mockOn,
+        });
+
+        const previewServer = new PreviewServer();
+
+        await expect(
+            Promise.race([
+                previewServer.start("./test-dir"),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 100))
+            ])
+        ).rejects.toThrow("Docker compose failed");
+    });
 });
