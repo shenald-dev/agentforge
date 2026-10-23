@@ -14,10 +14,31 @@ export class ProjectGenerator {
     private handlebarsModulePromise: Promise<typeof Handlebars> | null = null;
 
     /**
+     * Sanitizes input strings to prevent code injection when rendering templates with noEscape: true.
+     */
+    private sanitize(input: string): string {
+        if (!input) return input;
+        return input
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#x27;")
+            .replace(/\//g, "&#x2F;");
+    }
+
+    /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
     async generate(options: GenerateOptions): Promise<void> {
         const { templatePath, outputPath } = options;
+
+        // Sanitize context variables to prevent template injection vulnerabilities
+        const sanitizedContext: GenerateOptions = {
+            ...options,
+            projectName: this.sanitize(options.projectName),
+            idea: this.sanitize(options.idea),
+        };
 
         // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
@@ -25,7 +46,7 @@ export class ProjectGenerator {
         const normalizedBase = path.resolve(outputPath);
 
         // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options);
+        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, sanitizedContext);
     }
 
     private async copyAndParseDir(sourceDir: string, normalizedDestDir: string, normalizedBase: string, context: GenerateOptions): Promise<void> {
