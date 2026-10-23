@@ -1,10 +1,21 @@
 import { TemplateManager } from "../src/templates/TemplateManager";
+import * as fs from "fs/promises";
+
+jest.mock("fs/promises", () => {
+    return {
+        __esModule: true,
+        ...jest.requireActual("fs/promises"),
+        stat: jest.fn(),
+    };
+});
 
 describe("TemplateManager", () => {
     let manager: TemplateManager;
 
     beforeEach(() => {
         manager = new TemplateManager();
+        const actualStat = jest.requireActual("fs/promises").stat;
+        (fs.stat as jest.Mock).mockImplementation(actualStat);
     });
 
     it("should list available templates", async () => {
@@ -28,6 +39,19 @@ describe("TemplateManager", () => {
         await expect(manager.getTemplatePath("nonexistent-template")).rejects.toThrow(
             "Template 'nonexistent-template' does not exist."
         );
+    });
+
+    it("should throw if the template is not a directory", async () => {
+        const actualStat = jest.requireActual("fs/promises").stat;
+        (fs.stat as jest.Mock).mockResolvedValueOnce({
+            isDirectory: () => false,
+        } as any);
+
+        await expect(manager.getTemplatePath("saas")).rejects.toThrow(
+            "Template 'saas' does not exist."
+        );
+
+        (fs.stat as jest.Mock).mockImplementation(actualStat);
     });
 
     it("should block path traversal attempts", async () => {
