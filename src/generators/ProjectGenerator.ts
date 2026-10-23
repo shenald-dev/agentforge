@@ -52,7 +52,7 @@ export class ProjectGenerator {
                 if (entry.name.endsWith(".hbs")) {
                     if (!this.handlebarsModulePromise) {
                         this.handlebarsModulePromise = import("handlebars").then(
-                            (h: any) => (h.default || h) as typeof Handlebars
+                            (h) => (h.default || h) as typeof Handlebars
                         );
                     }
                     const hbs = await this.handlebarsModulePromise;
