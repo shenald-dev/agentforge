@@ -31,7 +31,17 @@ describe("ConfigManager", () => {
         });
 
         it("should return empty object when file does not exist", async () => {
-            (fs.readFile as jest.Mock).mockRejectedValue(new Error("File not found"));
+            const error = new Error("File not found") as any;
+            error.code = "ENOENT";
+            (fs.readFile as jest.Mock).mockRejectedValue(error);
+
+            const config = await configManager.getConfig();
+
+            expect(config).toEqual({});
+        });
+
+        it("should return empty object when config file contains invalid JSON", async () => {
+            (fs.readFile as jest.Mock).mockResolvedValue("invalid json {");
 
             const config = await configManager.getConfig();
 
@@ -41,7 +51,9 @@ describe("ConfigManager", () => {
 
     describe("setConfig", () => {
         it("should create directory and write file with correct permissions", async () => {
-            (fs.readFile as jest.Mock).mockRejectedValue(new Error("File not found"));
+            const error = new Error("File not found") as any;
+            error.code = "ENOENT";
+            (fs.readFile as jest.Mock).mockRejectedValue(error);
             (fs.mkdir as jest.Mock).mockResolvedValue(undefined);
             (fs.writeFile as jest.Mock).mockResolvedValue(undefined);
 
@@ -77,7 +89,9 @@ describe("ConfigManager", () => {
         });
 
         it("should not fail silently if mkdir fails (after fix)", async () => {
-            (fs.readFile as jest.Mock).mockRejectedValue(new Error("File not found"));
+            const error = new Error("File not found") as any;
+            error.code = "ENOENT";
+            (fs.readFile as jest.Mock).mockRejectedValue(error);
             const mkdirError = new Error("Permission denied");
             (fs.mkdir as jest.Mock).mockRejectedValue(mkdirError);
 
@@ -115,7 +129,9 @@ describe("ConfigManager", () => {
 
         it("should return undefined if not in env or config", async () => {
             delete process.env.OPENROUTER_BASE_URL;
-            (fs.readFile as jest.Mock).mockRejectedValue(new Error("File not found"));
+            const error = new Error("File not found") as any;
+            error.code = "ENOENT";
+            (fs.readFile as jest.Mock).mockRejectedValue(error);
 
             const baseUrl = await configManager.getBaseUrl();
             expect(baseUrl).toBeUndefined();
@@ -151,7 +167,9 @@ describe("ConfigManager", () => {
 
         it("should return undefined if not in env or config", async () => {
             delete process.env.OPENROUTER_API_KEY;
-            (fs.readFile as jest.Mock).mockRejectedValue(new Error("File not found"));
+            const error = new Error("File not found") as any;
+            error.code = "ENOENT";
+            (fs.readFile as jest.Mock).mockRejectedValue(error);
 
             const apiKey = await configManager.getApiKey();
             expect(apiKey).toBeUndefined();

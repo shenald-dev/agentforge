@@ -39,15 +39,35 @@ const path = __importStar(require("path"));
 class ProjectGenerator {
     handlebarsModulePromise = null;
     /**
+     * Sanitizes input strings to prevent code injection when rendering templates with noEscape: true.
+     */
+    sanitize(input) {
+        if (!input)
+            return input;
+        return input
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#x27;")
+            .replace(/\//g, "&#x2F;");
+    }
+    /**
      * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
     async generate(options) {
         const { templatePath, outputPath } = options;
+        // Sanitize context variables to prevent template injection vulnerabilities
+        const sanitizedContext = {
+            ...options,
+            projectName: this.sanitize(options.projectName),
+            idea: this.sanitize(options.idea),
+        };
         // 1. Create target output directory
         await fs.mkdir(outputPath, { recursive: true });
         const normalizedBase = path.resolve(outputPath);
         // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, options);
+        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, sanitizedContext);
     }
     async copyAndParseDir(sourceDir, normalizedDestDir, normalizedBase, context) {
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });

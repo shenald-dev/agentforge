@@ -57,7 +57,10 @@ class ConfigManager {
             ConfigManager.cachedConfig = JSON.parse(data);
             return ConfigManager.cachedConfig;
         }
-        catch {
+        catch (error) {
+            if (error.code !== "ENOENT") {
+                console.warn(`Failed to load config: ${error.message}`);
+            }
             ConfigManager.cachedConfig = {};
             return ConfigManager.cachedConfig;
         }
