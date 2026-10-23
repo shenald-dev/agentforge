@@ -1,13 +1,19 @@
 import { TemplateManager } from "../templates/TemplateManager";
+import { ProjectGenerator } from "../generators/ProjectGenerator";
+import * as path from "path";
+import { spawn } from "child_process";
+import fs from "fs/promises";
 // Statically import heavy UI modules as CLIController is already dynamically lazy-loaded
 import pc from "picocolors";
 import * as p from "@clack/prompts";
 
 export class CLIController {
     private templateManager: TemplateManager;
+    private generator: ProjectGenerator;
 
     constructor() {
         this.templateManager = new TemplateManager();
+        this.generator = new ProjectGenerator();
     }
 
     /**
@@ -49,5 +55,81 @@ export class CLIController {
         );
 
         return project;
+    }
+
+    /**
+     * Handles the creation command.
+     */
+    async handleCreateCommand(idea: string, options: any) {
+        try {
+            const answers = await this.promptCreationDetails(idea);
+            const templatePath = await this.templateManager.getTemplatePath(answers.template);
+            const outputPath = path.resolve(process.cwd(), answers.projectName);
+
+            const s = p.spinner();
+            s.start(`Forging project '${answers.projectName}'...`);
+
+            await this.generator.generate({
+                projectName: answers.projectName,
+                idea: answers.idea,
+                templatePath: templatePath,
+                outputPath: outputPath
+            });
+
+            s.stop(pc.green(`✨ Project scaffolded successfully!`));
+
+            // ── Optional LLM Enhancement ──
+            if (options.llm !== false) {
+                const [{ LLMOptimizer }] = await Promise.all([
+                    import("../integrations/LLMOptimizer")
+                ]);
+                const optimizer = new LLMOptimizer();
+                const readmePath = path.join(outputPath, "README.md");
+                try {
+                    const currentReadme = await fs.readFile(readmePath, "utf-8");
+                    const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
+                    await fs.writeFile(readmePath, enhancedReadme, "utf-8");
+                } catch {
+                    // Silently skip if README doesn't exist
+                }
+            } else {
+                p.log.warn(pc.gray(`⏭  LLM enhancement skipped (--no-llm flag)`));
+            }
+
+            // ── Post-generation npm install ──
+            const installSpinner = p.spinner();
+            installSpinner.start("Installing dependencies in generated project...");
+            await new Promise<void>((resolve) => {
+                const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+                const install = spawn(npmCmd, ["install"], {
+                    cwd: outputPath,
+                    stdio: "ignore",
+                    shell: false,
+                });
+                install.on("close", (code) => {
+                    if (code === 0) {
+                        installSpinner.stop(pc.green("Dependencies installed!"));
+                        resolve();
+                    } else {
+                        installSpinner.stop(pc.yellow("npm install returned non-zero. You may need to install dependencies manually."));
+                        resolve(); // Don't block on install failure
+                    }
+                });
+                install.on("error", () => {
+                    installSpinner.stop(pc.yellow("Could not run npm install automatically."));
+                    resolve();
+                });
+            });
+
+            p.outro(pc.cyan(`🎉 Successfully crafted ${pc.bold(answers.projectName)} using the ${pc.bold(answers.template)} template!`));
+
+            p.log.message(pc.white(`Next steps:`));
+            p.log.step(pc.cyan(`$ cd ${answers.projectName}`));
+            p.log.step(pc.cyan(`$ agentforge preview .`));
+
+        } catch (err: unknown) {
+            p.cancel(pc.red(`\n✖ Generation failed: ${err instanceof Error ? err.message : String(err)}`));
+            process.exit(1);
+        }
     }
 }

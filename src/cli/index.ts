@@ -56,88 +56,9 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-        const [[{ default: pc }, p], { CLIController }, { ProjectGenerator }, { TemplateManager }] = await Promise.all([
-            Promise.all([import("picocolors"), import("@clack/prompts")]),
-            import("./CLIController"),
-            import("../generators/ProjectGenerator"),
-            import("../templates/TemplateManager")
-        ]);
-
+        const { CLIController } = await import("./CLIController");
         const cli = new CLIController();
-        const generator = new ProjectGenerator();
-        const templateManager = new TemplateManager();
-
-        try {
-            const answers = await cli.promptCreationDetails(idea);
-            const templatePath = await templateManager.getTemplatePath(answers.template);
-            const outputPath = path.resolve(process.cwd(), answers.projectName);
-
-            const s = p.spinner();
-            s.start(`Forging project '${answers.projectName}'...`);
-
-            await generator.generate({
-                projectName: answers.projectName,
-                idea: answers.idea,
-                templatePath: templatePath,
-                outputPath: outputPath
-            });
-
-            s.stop(pc.green(`✨ Project scaffolded successfully!`));
-
-            // ── Optional LLM Enhancement ──
-            if (options.llm !== false) {
-                const [{ LLMOptimizer }, fs] = await Promise.all([
-                    import("../integrations/LLMOptimizer"),
-                    import("fs/promises")
-                ]);
-                const optimizer = new LLMOptimizer();
-                const readmePath = path.join(outputPath, "README.md");
-                try {
-                    const currentReadme = await fs.readFile(readmePath, "utf-8");
-                    const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
-                    await fs.writeFile(readmePath, enhancedReadme, "utf-8");
-                } catch {
-                    // Silently skip if README doesn't exist
-                }
-            } else {
-                p.log.warn(pc.gray(`⏭  LLM enhancement skipped (--no-llm flag)`));
-            }
-
-            // ── Post-generation npm install ──
-            const installSpinner = p.spinner();
-            installSpinner.start("Installing dependencies in generated project...");
-            await new Promise<void>((resolve) => {
-                const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
-                const install = spawn(npmCmd, ["install"], {
-                    cwd: outputPath,
-                    stdio: "ignore",
-                    shell: false,
-                });
-                install.on("close", (code) => {
-                    if (code === 0) {
-                        installSpinner.stop(pc.green("Dependencies installed!"));
-                        resolve();
-                    } else {
-                        installSpinner.stop(pc.yellow("npm install returned non-zero. You may need to install dependencies manually."));
-                        resolve(); // Don't block on install failure
-                    }
-                });
-                install.on("error", () => {
-                    installSpinner.stop(pc.yellow("Could not run npm install automatically."));
-                    resolve();
-                });
-            });
-
-            p.outro(pc.cyan(`🎉 Successfully crafted ${pc.bold(answers.projectName)} using the ${pc.bold(answers.template)} template!`));
-            
-            p.log.message(pc.white(`Next steps:`));
-            p.log.step(pc.cyan(`$ cd ${answers.projectName}`));
-            p.log.step(pc.cyan(`$ agentforge preview .`));
-
-        } catch (err: unknown) {
-            p.cancel(pc.red(`\n✖ Generation failed: ${err instanceof Error ? err.message : String(err)}`));
-            process.exit(1);
-        }
+        await cli.handleCreateCommand(idea, options);
     });
 
 // ─────────────────────────────────────
