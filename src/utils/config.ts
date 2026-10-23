@@ -28,7 +28,10 @@ export class ConfigManager {
             const data = await fs.readFile(this.configPath, "utf-8");
             ConfigManager.cachedConfig = JSON.parse(data);
             return ConfigManager.cachedConfig as AgentForgeConfig;
-        } catch {
+        } catch (error: any) {
+            if (error.code !== "ENOENT") {
+                console.warn(`Failed to load config: ${error.message}`);
+            }
             ConfigManager.cachedConfig = {};
             return ConfigManager.cachedConfig;
         }
