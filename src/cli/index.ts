@@ -2,11 +2,11 @@
 import { Command } from "commander";
 import * as path from "path";
 import { spawn } from "child_process";
-import { readFileSync } from "fs";
 
 const program = new Command();
 
-const pkgVersion = JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pkgVersion = require('../../package.json').version;
 
 program
     .name("agentforge")
