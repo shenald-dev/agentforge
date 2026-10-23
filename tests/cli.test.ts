@@ -1,13 +1,16 @@
 import { CLIController } from "../src/cli/CLIController";
 
 // Capture the validate function locally
-let capturedValidate: any;
+let capturedProjectNameValidate: any;
+let capturedIdeaValidate: any;
 
 // Mock @clack/prompts to avoid interactive prompts during testing
 jest.mock("@clack/prompts", () => ({
     text: jest.fn().mockImplementation(async (opts: any) => {
         if (opts.message.includes("name")) {
-            capturedValidate = opts.validate;
+            capturedProjectNameValidate = opts.validate;
+        } else if (opts.message.includes("idea")) {
+            capturedIdeaValidate = opts.validate;
         }
         return "test-app";
     }),
@@ -44,19 +47,44 @@ describe("CLIController", () => {
         const cli = new CLIController();
         
         await cli.promptCreationDetails("test idea");
-        expect(capturedValidate).toBeDefined();
+        expect(capturedProjectNameValidate).toBeDefined();
 
         // Valid cases
-        expect(capturedValidate("my-vibe-app")).toBeUndefined();
-        expect(capturedValidate("valid-name-123")).toBeUndefined();
-        expect(capturedValidate("app")).toBeUndefined();
+        expect(capturedProjectNameValidate("my-vibe-app")).toBeUndefined();
+        expect(capturedProjectNameValidate("valid-name-123")).toBeUndefined();
+        expect(capturedProjectNameValidate("app")).toBeUndefined();
 
         // Invalid cases
         const errorMsg = "Project name may only include lowercase letters, numbers, and dashes.";
-        expect(capturedValidate("InvalidName")).toBe(errorMsg);
-        expect(capturedValidate("invalid_name")).toBe(errorMsg);
-        expect(capturedValidate("invalid name")).toBe(errorMsg);
-        expect(capturedValidate("invalid.name")).toBe(errorMsg);
-        expect(capturedValidate("invalid@name")).toBe(errorMsg);
+        expect(capturedProjectNameValidate("InvalidName")).toBe(errorMsg);
+        expect(capturedProjectNameValidate("invalid_name")).toBe(errorMsg);
+        expect(capturedProjectNameValidate("invalid name")).toBe(errorMsg);
+        expect(capturedProjectNameValidate("invalid.name")).toBe(errorMsg);
+        expect(capturedProjectNameValidate("invalid@name")).toBe(errorMsg);
+    });
+
+    it("should validate the idea correctly to prevent injections", async () => {
+        const cli = new CLIController();
+
+        await cli.promptCreationDetails("test idea");
+        expect(capturedIdeaValidate).toBeDefined();
+
+        // Valid cases
+        expect(capturedIdeaValidate("A stunning new web app.")).toBeUndefined();
+        expect(capturedIdeaValidate("Simple app with basic features")).toBeUndefined();
+        expect(capturedIdeaValidate("App!@#$%^&*()_+=")).toBeUndefined(); // Some symbols allowed
+
+        // Invalid cases (empty)
+        expect(capturedIdeaValidate("")).toBe("Please enter an idea.");
+        expect(capturedIdeaValidate("   ")).toBe("Please enter an idea.");
+        expect(capturedIdeaValidate(undefined)).toBe("Please enter an idea.");
+
+        // Invalid cases (injection chars)
+        const errorMsg = "Idea contains invalid characters. Please avoid using <, >, {, }, \", or \\.";
+        expect(capturedIdeaValidate("An idea with <script>")).toBe(errorMsg);
+        expect(capturedIdeaValidate("An idea with <html>")).toBe(errorMsg);
+        expect(capturedIdeaValidate("An idea with {x: 1}")).toBe(errorMsg);
+        expect(capturedIdeaValidate("An idea with \"quotes\"")).toBe(errorMsg);
+        expect(capturedIdeaValidate("An idea with \\slash")).toBe(errorMsg);
     });
 });

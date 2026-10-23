@@ -34,6 +34,13 @@ export class CLIController {
                     message: "Describe your idea in one sentence:",
                     placeholder: defaultIdea || "A stunning new web app.",
                     defaultValue: defaultIdea || "A stunning new web app.",
+                    validate: (value?: string) => {
+                        if (!value || value.trim().length === 0) return "Please enter an idea.";
+                        // Prevent template/JSX injection by blocking harmful characters
+                        if (/[<>{}"\\]/.test(value)) {
+                            return "Idea contains invalid characters. Please avoid using <, >, {, }, \", or \\.";
+                        }
+                    }
                 }),
                 template: () => p.select({
                     message: "Which scaffold template best fits your architecture?",
