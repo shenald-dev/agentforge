@@ -94,8 +94,12 @@ export class CLIController {
                     const currentReadme = await fs.readFile(readmePath, "utf-8");
                     const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
                     await fs.writeFile(readmePath, enhancedReadme, "utf-8");
-                } catch {
-                    // Silently skip if README doesn't exist
+                } catch (err: any) {
+                    if (err.code === "ENOENT") {
+                        p.log.warn(pc.yellow(`⚠️  README.md not found in generated project, skipping enhancement.`));
+                    } else {
+                        p.log.warn(pc.yellow(`⚠️  Failed to enhance README: ${err instanceof Error ? err.message : String(err)}`));
+                    }
                 }
             } else {
                 p.log.warn(pc.gray(`⏭  LLM enhancement skipped (--no-llm flag)`));

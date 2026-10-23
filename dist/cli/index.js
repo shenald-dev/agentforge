@@ -35,11 +35,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
-const path = __importStar(require("path"));
-const child_process_1 = require("child_process");
-const fs_1 = require("fs");
 const program = new commander_1.Command();
-const pkgVersion = JSON.parse((0, fs_1.readFileSync)(path.join(__dirname, '../../package.json'), 'utf8')).version;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pkgVersion = require('../../package.json').version;
 program
     .name("agentforge")
     .description("✨ Autonomous Full-Stack App Builder CLI")
@@ -82,82 +80,9 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-    const [[{ default: pc }, p], { CLIController }, { ProjectGenerator }, { TemplateManager }] = await Promise.all([
-        Promise.all([Promise.resolve().then(() => __importStar(require("picocolors"))), Promise.resolve().then(() => __importStar(require("@clack/prompts")))]),
-        Promise.resolve().then(() => __importStar(require("./CLIController"))),
-        Promise.resolve().then(() => __importStar(require("../generators/ProjectGenerator"))),
-        Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")))
-    ]);
+    const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
     const cli = new CLIController();
-    const generator = new ProjectGenerator();
-    const templateManager = new TemplateManager();
-    try {
-        const answers = await cli.promptCreationDetails(idea);
-        const templatePath = await templateManager.getTemplatePath(answers.template);
-        const outputPath = path.resolve(process.cwd(), answers.projectName);
-        const s = p.spinner();
-        s.start(`Forging project '${answers.projectName}'...`);
-        await generator.generate({
-            projectName: answers.projectName,
-            idea: answers.idea,
-            templatePath: templatePath,
-            outputPath: outputPath
-        });
-        s.stop(pc.green(`✨ Project scaffolded successfully!`));
-        // ── Optional LLM Enhancement ──
-        if (options.llm !== false) {
-            const [{ LLMOptimizer }, fs] = await Promise.all([
-                Promise.resolve().then(() => __importStar(require("../integrations/LLMOptimizer"))),
-                Promise.resolve().then(() => __importStar(require("fs/promises")))
-            ]);
-            const optimizer = new LLMOptimizer();
-            const readmePath = path.join(outputPath, "README.md");
-            try {
-                const currentReadme = await fs.readFile(readmePath, "utf-8");
-                const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
-                await fs.writeFile(readmePath, enhancedReadme, "utf-8");
-            }
-            catch {
-                // Silently skip if README doesn't exist
-            }
-        }
-        else {
-            p.log.warn(pc.gray(`⏭  LLM enhancement skipped (--no-llm flag)`));
-        }
-        // ── Post-generation npm install ──
-        const installSpinner = p.spinner();
-        installSpinner.start("Installing dependencies in generated project...");
-        await new Promise((resolve) => {
-            const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
-            const install = (0, child_process_1.spawn)(npmCmd, ["install"], {
-                cwd: outputPath,
-                stdio: "ignore",
-                shell: false,
-            });
-            install.on("close", (code) => {
-                if (code === 0) {
-                    installSpinner.stop(pc.green("Dependencies installed!"));
-                    resolve();
-                }
-                else {
-                    installSpinner.stop(pc.yellow("npm install returned non-zero. You may need to install dependencies manually."));
-                    resolve(); // Don't block on install failure
-                }
-            });
-            install.on("error", () => {
-                installSpinner.stop(pc.yellow("Could not run npm install automatically."));
-                resolve();
-            });
-        });
-        p.outro(pc.cyan(`🎉 Successfully crafted ${pc.bold(answers.projectName)} using the ${pc.bold(answers.template)} template!`));
-        p.log.message(pc.white(`Next steps:`));
-        p.log.step(pc.cyan(`$ cd ${answers.projectName}`));
-        p.log.step(pc.cyan(`$ agentforge preview .`));
-    }
-    catch (err) {
-        p.cancel(pc.red(`\n✖ Generation failed: ${err instanceof Error ? err.message : String(err)}`));
-        process.exit(1);
-    }
+    await cli.handleCreateCommand(idea, options);
 });
 // ─────────────────────────────────────
 // agentforge list

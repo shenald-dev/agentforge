@@ -49,9 +49,11 @@ class TemplateManager {
             const dirents = await fs.readdir(this.templatesDir, {
                 withFileTypes: true,
             });
-            return dirents
-                .filter((dirent) => dirent.isDirectory())
-                .map((dirent) => dirent.name);
+            return dirents.reduce((acc, dirent) => {
+                if (dirent.isDirectory())
+                    acc.push(dirent.name);
+                return acc;
+            }, []);
         }
         catch (err) {
             throw new Error(`Failed to read templates directory: ${err instanceof Error ? err.message : String(err)}`);
