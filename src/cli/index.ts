@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import * as path from "path";
-import { spawn } from "child_process";
 
 const program = new Command();
 

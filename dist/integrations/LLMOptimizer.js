@@ -58,7 +58,7 @@ class LLMOptimizer {
                 openAIApiKey: openRouterKey,
                 configuration: {
                     baseURL: openRouterBaseUrl || "https://openrouter.ai/api/v1",
-                }
+                },
             });
         }
     }
@@ -79,7 +79,7 @@ class LLMOptimizer {
                 }
                 // Exponential backoff: 1s, 2s, 4s
                 const delayMs = Math.pow(2, attempt - 1) * 1000;
-                await new Promise(resolve => setTimeout(resolve, delayMs));
+                await new Promise((resolve) => setTimeout(resolve, delayMs));
             }
         }
         throw new Error("Max retries exceeded.");
@@ -96,18 +96,23 @@ class LLMOptimizer {
         const spinner = p.spinner();
         spinner.start("Refining project documentation via LLM...");
         try {
-            const { PromptTemplate } = await Promise.resolve().then(() => __importStar(require("@langchain/core/prompts")));
-            const prompt = PromptTemplate.fromTemplate(`
-You are a Senior Vibe Coder. I have scaffolded a new web application based on the following idea:
+            const { ChatPromptTemplate } = await Promise.resolve().then(() => __importStar(require("@langchain/core/prompts")));
+            const prompt = ChatPromptTemplate.fromMessages([
+                [
+                    "system",
+                    `You are a Senior Vibe Coder. Please enhance this README to be more engaging, professional, and descriptive based on the idea.
+Maintain the existing setup instructions but improve the introduction, features, and vibe.
+Return ONLY the raw markdown content. No conversational text.`,
+                ],
+                [
+                    "user",
+                    `I have scaffolded a new web application based on the following idea:
 "{idea}"
 
 Here is the current base README for the project:
-{currentReadme}
-
-Please enhance this README to be more engaging, professional, and descriptive based on the idea. 
-Maintain the existing setup instructions but improve the introduction, features, and vibe.
-Return ONLY the raw markdown content. No conversational text.
-          `);
+{currentReadme}`,
+                ],
+            ]);
             const chain = prompt.pipe(this.model);
             // Execute with retries
             const response = await this.withRetries(async () => {
@@ -116,7 +121,7 @@ Return ONLY the raw markdown content. No conversational text.
                 try {
                     return await chain.invoke({
                         idea: idea,
-                        currentReadme: currentReadme
+                        currentReadme: currentReadme,
                     }, { signal: controller.signal });
                 }
                 finally {

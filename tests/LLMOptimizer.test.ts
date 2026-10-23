@@ -1,6 +1,6 @@
 import { LLMOptimizer } from "../src/integrations/LLMOptimizer";
 import { ConfigManager } from "../src/utils/config";
-import { PromptTemplate } from "@langchain/core/prompts";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 
 // Mock the ConfigManager
 jest.mock("../src/utils/config");
@@ -38,10 +38,10 @@ describe("LLMOptimizer", () => {
         // Mock getApiKey to return a fake key to bypass the early exit check
         (ConfigManager.prototype.getApiKey as jest.Mock).mockResolvedValue("fake_key");
 
-        // Mock PromptTemplate to return a throwing pipe
+        // Mock ChatPromptTemplate to return a throwing pipe
         const mockInvoke = jest.fn().mockRejectedValue(new Error("Simulated LLM Failure"));
         const mockPipe = jest.fn().mockReturnValue({ invoke: mockInvoke });
-        jest.spyOn(PromptTemplate, "fromTemplate").mockReturnValue({ pipe: mockPipe } as any);
+        jest.spyOn(ChatPromptTemplate, "fromMessages").mockReturnValue({ pipe: mockPipe } as any);
 
         const optimizer = new LLMOptimizer();
         const originalReadme = "# My App\n\nA simple app.";
@@ -50,6 +50,22 @@ describe("LLMOptimizer", () => {
         const result = await optimizer.enhanceReadme("test idea", originalReadme);
         
         expect(result).toBe(originalReadme);
+        expect(ConfigManager.prototype.getApiKey).toHaveBeenCalledTimes(1);
+    }, 10000);
+
+    it("should return the enhanced README if LLM enhancement succeeds", async () => {
+        (ConfigManager.prototype.getApiKey as jest.Mock).mockResolvedValue("fake_key");
+
+        const mockInvoke = jest.fn().mockResolvedValue({ content: "# Enhanced README\n\nVibe coded." });
+        const mockPipe = jest.fn().mockReturnValue({ invoke: mockInvoke });
+        jest.spyOn(ChatPromptTemplate, "fromMessages").mockReturnValue({ pipe: mockPipe } as any);
+
+        const optimizer = new LLMOptimizer();
+        const originalReadme = "# My App\n\nA simple app.";
+
+        const result = await optimizer.enhanceReadme("test idea", originalReadme);
+
+        expect(result).toBe("# Enhanced README\n\nVibe coded.");
         expect(ConfigManager.prototype.getApiKey).toHaveBeenCalledTimes(1);
     });
 });
