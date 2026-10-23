@@ -12,7 +12,8 @@
     "build": "tsc",
     "test": "jest",
     "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "audit:all": "node scripts/audit-all-repos.js"
   },
   "keywords": [
     "cli",
