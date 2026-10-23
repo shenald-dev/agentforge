@@ -37,6 +37,14 @@ describe("ConfigManager", () => {
 
             expect(config).toEqual({});
         });
+
+        it("should return empty object when config file contains invalid JSON", async () => {
+            (fs.readFile as jest.Mock).mockResolvedValue("invalid json {");
+
+            const config = await configManager.getConfig();
+
+            expect(config).toEqual({});
+        });
     });
 
     describe("setConfig", () => {
