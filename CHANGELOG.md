@@ -1,5 +1,29 @@
 ## [2.0.20] - 2026-05-24
 
+## [2.0.26] - 2026-10-24
+
+### 🔒 Security
+- **LLM Prompt Injection**: Separated system directives from untrusted user inputs (`idea`, `currentReadme`) using `ChatPromptTemplate.fromMessages` in `LLMOptimizer` (#131).
+- **Template Code Injection**: Sanitized context variables (`projectName`, `idea`) in `ProjectGenerator` when compiling Handlebars templates with `noEscape: true` (#132).
+- **CLI Input Validation**: Added strict alphanumeric whitelist validation and a 200-character upper bound for the `idea` prompt in `CLIController` (#141).
+
+### ⚡ Performance
+- **TemplateManager**: Optimized `listTemplates` directory traversal by replacing `.filter().map()` array chaining with a single-pass `.reduce()` (#130).
+- **CLI Startup**: Replaced synchronous `readFileSync` and `JSON.parse` of `package.json` with cached `require()` (#136).
+
+### 🧹 Code Health & Refactoring
+- **CLI Modularization**: Extracted application scaffolding action logic from `src/cli/index.ts` into `CLIController.handleCreateCommand` (#129).
+- **Error Visibility**: Replaced silent catch block during README enhancement with structured warning logs (#137).
+- **Config Error Handling**: Explicitly catch and warn on permission and JSON parsing errors while safely ignoring `ENOENT` (#134).
+- **Type Safety**: Removed unsafe explicit `any` cast from Handlebars dynamic import in `ProjectGenerator` (#138).
+
+### 🧪 Testing
+- Added unit tests for `TemplateManager` non-directory handling (#139).
+- Added unit test coverage for `ConfigManager` invalid JSON parsing fallback (#135).
+- Added unit test coverage for `PreviewServer` non-zero process exit codes (#133).
+- Added unit tests for XSS and template injection prevention (#132).
+- Added mock coverage for `ChatPromptTemplate` in `LLMOptimizer` tests to prevent unmocked network timeouts.
+
 ## [2.0.25] - 2026-06-07
 
 - 29fb1e9b chore(sentinel): update monitoring log
