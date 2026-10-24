@@ -19,7 +19,8 @@ function run(command) {
 function checkRepoHealth({ autoMergeGreen = false } = {}) {
   console.log('🔍 [Multi-Repo Sentinel] Discovering all repositories for authenticated user...\n');
 
-  const rawRepos = run('gh repo list --limit 100 --json name,isPrivate,url');
+  const owner = process.env.GITHUB_REPOSITORY_OWNER || 'shenald-dev';
+  const rawRepos = run(`gh repo list ${owner} --limit 100 --json name,isPrivate,url`);
   if (!rawRepos) {
     console.error('❌ Failed to fetch repositories via GitHub CLI (`gh`). Ensure you are authenticated with `gh auth login`.');
     return { error: 'Not authenticated with gh' };

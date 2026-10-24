@@ -25,7 +25,7 @@ jobs:
 
       - name: Run Unified Autonomous Sentinel
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PORTFOLIO_GH_TOKEN || secrets.GITHUB_TOKEN }}
           JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
         run: |
           npm run sentinel
