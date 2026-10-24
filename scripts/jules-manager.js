@@ -3,9 +3,9 @@
  * 
  * Manages Google Labs Jules coding sessions:
  * - Scans all sessions and monitors lifecycle states.
- * - Answers sessions awaiting user input with authoritative engineering guidance.
+ * - Answers sessions awaiting user input with authoritative, LLM-grounded engineering guidance (via Gemini).
  * - Evaluates and approves or refines proposed plans.
- * - Verifies completed sessions and archives/deletes them once PRs are merged.
+ * - Verifies completed sessions and archives/deletes them once PRs are merged or resolved.
  */
 
 const https = require('https');
@@ -14,7 +14,6 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 function loadEnv() {
-  if (process.env.JULES_API_KEY) return;
   const envPath = path.resolve(__dirname, '../.env');
   if (fs.existsSync(envPath)) {
     const lines = fs.readFileSync(envPath, 'utf8').split('\n');
@@ -25,16 +24,20 @@ function loadEnv() {
         let val = (match[2] || '').trim();
         if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
         if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
-        process.env[key] = val;
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
       }
     }
   }
 }
 
 class JulesManager {
-  constructor(apiKey) {
+  constructor(apiKey, geminiApiKey) {
     loadEnv();
     this.apiKey = apiKey || process.env.JULES_API_KEY;
+    this.geminiApiKey = geminiApiKey || process.env.GEMINI_API_KEY;
+
     if (!this.apiKey) {
       throw new Error('JULES_API_KEY is not set. Please set it in .env or environment variables.');
     }
@@ -73,6 +76,48 @@ class JulesManager {
 
       req.on('error', reject);
       if (postData) req.write(postData);
+      req.end();
+    });
+  }
+
+  async askGemini(prompt, systemInstruction = '') {
+    if (!this.geminiApiKey) return null;
+    return new Promise((resolve) => {
+      const payload = JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.2
+        }
+      });
+
+      const req = https.request({
+        hostname: 'generativelanguage.googleapis.com',
+        path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${this.geminiApiKey}`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        },
+        timeout: 10000
+      }, res => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data);
+            const answer = json.candidates?.[0]?.content?.parts?.[0]?.text;
+            resolve(answer ? answer.trim() : null);
+          } catch {
+            resolve(null);
+          }
+        });
+      });
+
+      req.on('error', () => resolve(null));
+      req.on('timeout', () => { req.destroy(); resolve(null); });
+      req.write(payload);
       req.end();
     });
   }
@@ -130,48 +175,77 @@ class JulesManager {
     }
   }
 
-  generateFeedbackResponse(session, lastAgentMessage) {
+  async generateFeedbackResponse(session, lastAgentMessage) {
     const repo = (session.sourceContext?.source || '').replace('sources/github/', '');
-    const text = (lastAgentMessage || '').toLowerCase();
+    const title = session.title || '';
+    const text = (lastAgentMessage || '').trim();
 
-    // 1. If agent asks permission to open PR
-    if (text.includes('open the pr') || text.includes('open a pr') || text.includes('ready to wrap') || text.includes('may i open')) {
+    // 1. If agent asks permission to open PR, immediate green-light
+    const lower = text.toLowerCase();
+    if (lower.includes('open the pr') || lower.includes('open a pr') || lower.includes('ready to wrap') || lower.includes('may i open')) {
       return 'Yes, absolutely! Please proceed and open the pull request now targeting master. Ensure all CI checks and tests pass.';
     }
 
-    // 2. Repo-specific resolution rules based on our latest master branch state
-    if (repo === 'shenald-dev/echo') {
-      if (text.includes('watcher.py') || text.includes('deleted') || text.includes('missing') || text.includes('watchdog')) {
-        return 'Please rebase against latest `master`. On `master`, `src/echo/watcher.py` has been fully restored with proper UTF-8 stdout encoding, and all 23/23 tests pass cleanly. Please install the package in editable mode (`pip install -e .`) so `watchdog` and `src/echo` are in your PYTHONPATH, verify tests pass, and proceed with opening the PR.';
+    // 2. Try LLM-grounded guidance via Gemini
+    if (this.geminiApiKey) {
+      try {
+        const systemInstruction = `You are the Lead Developer, Repo Owner, and Chief Architect ("vibe coder") of the shenald-dev portfolio.
+You are directing Jules, an autonomous AI coding agent operating inside the repository '${repo}'.
+Your role is to give Jules clear, concise, authoritative engineering directives (2-4 sentences max).
+Direct Jules on how to resolve the issue, follow best practices, ensure all tests pass, and rebase on latest master/main before opening a clean PR.`;
+
+        const userPrompt = `Repository: ${repo}
+Task Title: ${title}
+Jules's Question/Update:
+"""
+${text}
+"""
+
+Provide your engineering directive to Jules:`;
+
+        const dynamicResponse = await this.askGemini(userPrompt, systemInstruction);
+        if (dynamicResponse && dynamicResponse.length > 20) {
+          console.log(`  🧠 Generated LLM-grounded engineering guidance via Gemini 2.5 Flash.`);
+          return dynamicResponse;
+        }
+      } catch (err) {
+        console.warn(`  ⚠️ Gemini dynamic answer failed (${err.message}), falling back to curated rules.`);
       }
-      if (text.includes('optimization') || text.includes('_is_ignored_impl') || text.includes('on_any_event') || text.includes('speedup')) {
-        return 'The optimization plan is approved. Rebase against latest `master` to build on top of the clean, restored `src/echo/watcher.py`. Apply your micro-optimizations in `_is_ignored_impl` and `on_any_event`, verify all 23 tests pass with `pytest`, update `.jules/bolt.md`, and open the PR.';
+    }
+
+    // 3. Curated repository fallback rules
+    if (repo === 'shenald-dev/echo') {
+      if (lower.includes('watcher.py') || lower.includes('deleted') || lower.includes('missing') || lower.includes('watchdog')) {
+        return 'Please rebase against latest `main`. On `main`, `src/echo/watcher.py` has been fully restored with proper UTF-8 stdout encoding, and all 23/23 tests pass cleanly. Please install the package in editable mode (`pip install -e .`) so `watchdog` and `src/echo` are in your PYTHONPATH, verify tests pass, and proceed with opening the PR.';
+      }
+      if (lower.includes('optimization') || lower.includes('_is_ignored_impl') || lower.includes('on_any_event') || lower.includes('speedup')) {
+        return 'The optimization plan is approved. Rebase against latest `main` to build on top of the clean, restored `src/echo/watcher.py`. Apply your micro-optimizations in `_is_ignored_impl` and `on_any_event`, verify all 23 tests pass with `pytest`, update `.jules/bolt.md`, and open the PR.';
       }
     }
 
     if (repo === 'shenald-dev/codedna') {
-      if (text.includes('cache_manager') || text.includes('uv.lock') || text.includes('missing package') || text.includes('rich') || text.includes('gitpython') || text.includes('syntax error')) {
+      if (lower.includes('cache_manager') || lower.includes('uv.lock') || lower.includes('missing package') || lower.includes('rich') || lower.includes('gitpython') || lower.includes('syntax error')) {
         return 'Please rebase against latest `master`. On `master`, all these regressions have been resolved: `cache_manager.py` was restored, missing dependencies (`GitPython`, `rich`, `networkx`, `click`) were declared in `pyproject.toml`, syntax artifacts in `language_detector.py` were removed, and all 91 tests are passing. Rebase on `master`, confirm tests pass, and proceed with your run.';
       }
-      if (text.includes('test_external_dependency_filtering') || text.includes('dependency_mapper') || text.includes('standard librar')) {
+      if (lower.includes('test_external_dependency_filtering') || lower.includes('dependency_mapper') || lower.includes('standard librar')) {
         return 'Please rebase against latest `master` where the test suite is 100% green. For standard library filtering in `DependencyMapper`, check imported module names against `sys.stdlib_module_names` (or standard Python lib names) and exclude them from graph edges. Run `pytest` and proceed to create the PR.';
       }
     }
 
     if (repo === 'shenald-dev/catalyst') {
-      if (text.includes('engine.py') || text.includes('execute') || text.includes('run_node') || text.includes('revert')) {
+      if (lower.includes('engine.py') || lower.includes('execute') || lower.includes('run_node') || lower.includes('revert')) {
         return 'Approved. Please restore `src/catalyst/domain/engine.py` to its last known good state that preserves `execute()` and `_run_node()` (you may also retain `run()` as an alias pointing to `execute()` for backward/forward compatibility). Verify that all tests pass, log the resolution in `.jules/warden.md`, and open the PR.';
       }
     }
 
     if (repo === 'shenald-dev/autoresearch-agent') {
-      if (text.includes('index.ts') || text.includes('progress callback') || text.includes('clipromise') || text.includes('process.exit')) {
+      if (lower.includes('index.ts') || lower.includes('progress callback') || lower.includes('clipromise') || lower.includes('process.exit')) {
         return 'Please rebase against latest `master`. On `master`, this has been resolved: `src/index.ts` passes the callback `(msg) => s.step(msg)` / `(msg) => s.message(msg)` to `engine.run()`, `cliPromise = program.parseAsync()` is exported for async testing, and all 52 tests are passing. Rebase on `master`, run `npm test`, and proceed to open the PR.';
       }
     }
 
     if (repo === 'shenald-dev/agentforge') {
-      if (text.includes('handlebars') || text.includes('audit fix') || text.includes('depcheck')) {
+      if (lower.includes('handlebars') || lower.includes('audit fix') || lower.includes('depcheck')) {
         return 'Approved. All security updates and dependency cleanups look good. Please ensure `npm test` and `npm run build` pass, update documentation in `.jules/warden.md` and `CHANGELOG.md`, and open the PR targeting master.';
       }
     }
@@ -217,13 +291,11 @@ class JulesManager {
         if (prs.length > 0) {
           const allMerged = prs.every(pr => this.isPrMerged(pr.url));
           if (allMerged) {
-            console.log(`  ✓ All associated PRs (${prs.map(p => p.url).join(', ')}) are MERGED.`);
+            console.log(`  ✓ All associated PRs (${prs.map(p => p.url).join(', ')}) are MERGED or CLOSED.`);
             canArchive = true;
-          } else {
-            console.log(`  ℹ Some PRs are still open or pending: ${prs.map(p => p.url).join(', ')}`);
           }
         } else {
-          console.log(`  ✓ Session marked COMPLETED without open PRs. Safe to archive.`);
+          // No PRs associated, safe to archive completed session
           canArchive = true;
         }
 
@@ -273,7 +345,7 @@ class JulesManager {
         console.log(`  💬 Jules question: "${agentQuestion.slice(0, 120).replace(/\n/g, ' ')}..."`);
 
         if (autoReply) {
-          const responseText = this.generateFeedbackResponse(session, agentQuestion);
+          const responseText = await this.generateFeedbackResponse(session, agentQuestion);
           console.log(`  ✍️ Sending engineering response: "${responseText.slice(0, 100)}..."`);
           try {
             const sendRes = await this.sendMessage(sessionId, responseText);

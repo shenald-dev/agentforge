@@ -5,12 +5,12 @@
  * 
  * End-to-end autonomous controller that:
  * 1. Audits all GitHub repositories across the portfolio (PRs, issues, CI pipeline checks).
- * 2. Merges clean, passing pull requests automatically.
+ * 2. Merges clean, passing pull requests automatically and self-heals conflicts.
  * 3. Scans and manages Google Labs Jules sessions:
- *    - Answers sessions awaiting developer input.
+ *    - Answers sessions awaiting developer input using LLM-grounded guidance (Gemini).
  *    - Evaluates and approves/adjusts planned changes.
  *    - Monitors active runs.
- *    - Archives completed sessions whose PRs are merged.
+ *    - Archives completed sessions whose PRs are merged or closed.
  * 4. Generates Markdown summary for GitHub Actions ($GITHUB_STEP_SUMMARY).
  */
 
@@ -25,7 +25,7 @@ async function runAutonomousSentinel() {
 
   // Phase 1: Repository Audit & PR Triage
   console.log('--- PHASE 1: GITHUB PORTFOLIO AUDIT & MERGE ---');
-  const repoAudit = checkRepoHealth({ autoMergeGreen: true });
+  const repoAudit = await checkRepoHealth({ autoMergeGreen: true });
 
   // Phase 2: Google Jules Autonomous Management
   console.log('\n--- PHASE 2: GOOGLE JULES SESSION AUDIT & LIFECYCLE ---');
@@ -51,6 +51,9 @@ async function runAutonomousSentinel() {
     summaryMd += `- **Failing CI Workflows**: ${repoAudit.failingWorkflows}\n`;
     if (repoAudit.mergedPRs > 0) {
       summaryMd += `- **PRs Automatically Merged**: ${repoAudit.mergedPRs}\n`;
+    }
+    if (repoAudit.healedPRs > 0) {
+      summaryMd += `- **Conflicted PRs Self-Healed**: ${repoAudit.healedPRs}\n`;
     }
     summaryMd += `\n`;
 
