@@ -48,8 +48,16 @@ function checkRepoHealth({ autoMergeGreen = false } = {}) {
     if (autoMergeGreen && prs.length > 0) {
       for (const pr of prs) {
         const checks = pr.statusCheckRollup || [];
-        const isAllGreen = checks.length > 0 && checks.every(c => c.conclusion === 'SUCCESS' || c.state === 'SUCCESS');
-        if (isAllGreen && pr.mergeable !== 'CONFLICTING') {
+        const hasChecks = checks.length > 0;
+        const allChecksGreen = hasChecks && checks.every(c => c.conclusion === 'SUCCESS' || c.state === 'SUCCESS');
+        const hasFailedChecks = checks.some(c => c.conclusion === 'FAILURE' || c.state === 'FAILURE' || c.conclusion === 'TIMED_OUT');
+        const isMergeable = pr.mergeable === 'MERGEABLE' || pr.mergeable === 'UNKNOWN';
+
+        const canAutoMerge = (allChecksGreen || (!hasChecks && !hasFailedChecks && isMergeable)) && pr.mergeable !== 'CONFLICTING';
+
+        if (pr.mergeable === 'CONFLICTING') {
+          console.log(`  ⚠️ PR #${pr.number} ("${pr.title}") on ${fullName} has merge conflicts.`);
+        } else if (canAutoMerge) {
           console.log(`  ⚡ Auto-merging clean, passing PR #${pr.number} ("${pr.title}") on ${fullName}...`);
           
           // Leave an authentic, natural human developer comment as the owner before merging
