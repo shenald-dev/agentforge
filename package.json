@@ -13,7 +13,10 @@
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "audit:all": "node scripts/audit-all-repos.js"
+    "audit:all": "node scripts/audit-all-repos.js",
+    "audit:repos": "node scripts/audit-all-repos.js",
+    "jules:manage": "node scripts/jules-manager.js",
+    "sentinel": "node scripts/autonomous-sentinel.js"
   },
   "keywords": [
     "cli",

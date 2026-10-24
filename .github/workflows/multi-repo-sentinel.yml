@@ -1,24 +1,31 @@
-name: Multi-Repo Sentinel Audit
+name: Autonomous Sentinel (Portfolio & Jules)
 
 on:
   schedule:
-    # Run every 6 hours
-    - cron: '0 */6 * * *'
+    # Runs autonomously every 4 hours
+    - cron: '0 */4 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
-  audit:
+  sentinel:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Run Multi-Repository Sentinel Audit
+      - name: Run Unified Autonomous Sentinel
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
         run: |
-          node scripts/audit-all-repos.js
+          npm run sentinel

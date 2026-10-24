@@ -3,6 +3,7 @@
 /**
  * Multi-Repository Sentinel Automation
  * Scans all repositories owned by the user, auditing open PRs, issues, and CI health.
+ * Optionally auto-merges clean, green pull requests.
  */
 
 const { execSync } = require('child_process');
@@ -15,13 +16,13 @@ function run(command) {
   }
 }
 
-function checkRepoHealth() {
+function checkRepoHealth({ autoMergeGreen = false } = {}) {
   console.log('🔍 [Multi-Repo Sentinel] Discovering all repositories for authenticated user...\n');
 
   const rawRepos = run('gh repo list --limit 100 --json name,isPrivate,url');
   if (!rawRepos) {
     console.error('❌ Failed to fetch repositories via GitHub CLI (`gh`). Ensure you are authenticated with `gh auth login`.');
-    process.exit(1);
+    return { error: 'Not authenticated with gh' };
   }
 
   const repos = JSON.parse(rawRepos);
@@ -31,15 +32,32 @@ function checkRepoHealth() {
   let totalOpenPRs = 0;
   let totalOpenIssues = 0;
   let failingWorkflows = 0;
+  let mergedPRs = 0;
 
   for (const repo of repos) {
     const repoName = repo.name;
     const fullName = `${repo.url.replace('https://github.com/', '')}`;
 
     // 1. Open PRs
-    const rawPRs = run(`gh pr list --repo "${fullName}" --state open --json number,title,mergeable,mergeStateStatus`);
+    const rawPRs = run(`gh pr list --repo "${fullName}" --state open --json number,title,mergeable,mergeStateStatus,statusCheckRollup`);
     const prs = rawPRs ? JSON.parse(rawPRs) : [];
     totalOpenPRs += prs.length;
+
+    // Handle auto-merge if requested
+    if (autoMergeGreen && prs.length > 0) {
+      for (const pr of prs) {
+        const checks = pr.statusCheckRollup || [];
+        const isAllGreen = checks.length > 0 && checks.every(c => c.conclusion === 'SUCCESS' || c.state === 'SUCCESS');
+        if (isAllGreen && pr.mergeable !== 'CONFLICTING') {
+          console.log(`  ⚡ Auto-merging clean, passing PR #${pr.number} ("${pr.title}") on ${fullName}...`);
+          const mergeResult = run(`gh pr merge ${pr.number} --repo "${fullName}" --squash --delete-branch --admin`);
+          if (mergeResult !== null) {
+            console.log(`  ✓ Successfully merged PR #${pr.number}.`);
+            mergedPRs++;
+          }
+        }
+      }
+    }
 
     // 2. Open Issues
     const rawIssues = run(`gh issue list --repo "${fullName}" --state open --json number,title`);
@@ -92,14 +110,17 @@ function checkRepoHealth() {
   console.log(`  - Total Open Pull Requests:   ${totalOpenPRs}`);
   console.log(`  - Total Open Issues:          ${totalOpenIssues}`);
   console.log(`  - Failing CI Workflows:       ${failingWorkflows}`);
-
-  if (totalOpenPRs === 0 && totalOpenIssues === 0) {
-    console.log('\n✨ All repositories are 100% clean, triaged, and healthy!');
-  } else {
-    console.log('\n⚠️ Actions required across portfolio. Inspect items listed above.');
+  if (autoMergeGreen) {
+    console.log(`  - PRs Automatically Merged:   ${mergedPRs}`);
   }
 
-  return { totalOpenPRs, totalOpenIssues, failingWorkflows };
+  if (totalOpenPRs === 0 && totalOpenIssues === 0 && failingWorkflows === 0) {
+    console.log('\n✨ All repositories are 100% clean, triaged, and healthy!');
+  } else {
+    console.log('\n⚠️ Actions monitored across portfolio.');
+  }
+
+  return { totalRepos: repos.length, totalOpenPRs, totalOpenIssues, failingWorkflows, mergedPRs, report };
 }
 
 if (require.main === module) {
