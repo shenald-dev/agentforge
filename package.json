@@ -30,7 +30,7 @@
     "@langchain/core": "^1.1.48",
     "@langchain/openai": "^1.4.7",
     "commander": "^12.1.0",
-    "handlebars": "4.7.9",
+    "handlebars": "^4.7.10",
     "ora": "^5.4.1",
     "picocolors": "^1.1.1"
   },
