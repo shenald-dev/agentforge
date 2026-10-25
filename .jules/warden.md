@@ -145,3 +145,14 @@ Docs Updated: none
 Release: none
 
 AI Summary: AI analysis failed, running basic checks only
+
+## 2026-10-24 — WARDEN Run
+
+QA Status: verified
+Dead Code Removed: 0 lines
+Dependencies Bumped: 0
+Security: Critical=0, High=1
+Docs Updated: CHANGELOG.md, .jules/warden.md
+Release: none
+
+AI Summary: Prevented sensitive data leakage in `ConfigManager.ts` by catching `SyntaxError` and suppressing the raw error message during config file parsing. Tests and builds verified.

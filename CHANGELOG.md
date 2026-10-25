@@ -1,5 +1,10 @@
 ## [2.0.20] - 2026-05-24
 
+## [Unreleased]
+
+### 🔒 Security
+- **Sensitive Data Leak**: Updated `ConfigManager.getConfig` to catch `SyntaxError` when parsing the config file and log a generic message to prevent leaking API keys from syntax error snippets.
+
 ## [2.0.26] - 2026-10-24
 
 ### 🔒 Security
