@@ -315,9 +315,11 @@ Provide your engineering directive to Jules:`;
 
       console.log(`[Session ${sessionId}] Repo: ${repo} | State: ${state} | Title: "${cleanTitle}"`);
 
-      // 1. Handle COMPLETED sessions
-      if (state === 'COMPLETED') {
-        results.completed.push({ id: sessionId, repo, title: cleanTitle });
+      // 1. Handle COMPLETED or FAILED sessions
+      if (state === 'COMPLETED' || state === 'FAILED') {
+        if (state === 'COMPLETED') {
+          results.completed.push({ id: sessionId, repo, title: cleanTitle });
+        }
         const outputs = session.outputs || [];
         const prs = outputs.map(o => o.pullRequest).filter(Boolean);
 
@@ -331,12 +333,12 @@ Provide your engineering directive to Jules:`;
             console.log(`  ℹ Open PRs still pending: ${prs.map(p => p.url).join(', ')}`);
           }
         } else {
-          // No PRs associated, safe to archive completed session
+          // No PRs associated, safe to archive completed/failed session
           canArchive = true;
         }
 
         if (canArchive && autoArchive) {
-          console.log(`  🗑 Archiving completed session ${sessionId}...`);
+          console.log(`  🗑 Archiving ${state.toLowerCase()} session ${sessionId}...`);
           try {
             const delRes = await this.deleteSession(sessionId);
             if (delRes.status === 200) {
