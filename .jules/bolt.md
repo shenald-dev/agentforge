@@ -244,3 +244,11 @@ When using `child_process.spawn`, Node.js automatically resolves `.exe` extensio
 
 Action:
 Removed manual `.exe` resolution for `docker-compose` in `PreviewServer.ts`, relying on Node's native cross-platform executable resolution.
+
+## 2026-10-25 — Prevent Sensitive Data Leakage in JSON Parsing
+
+Learning:
+When `JSON.parse()` fails (e.g., due to an invalid or incomplete JSON string), the resulting `SyntaxError` in modern Node.js versions often includes the surrounding text and problematic tokens. If a configuration file containing sensitive data (like API keys) fails to parse, logging the raw `error.message` can leak those secrets directly into the console logs.
+
+Action:
+Always catch `SyntaxError` exceptions explicitly during configuration parsing and sanitize the logged output by replacing the raw error message with a generic warning (e.g., "Invalid JSON format").

@@ -42,10 +42,14 @@ describe("ConfigManager", () => {
 
         it("should return empty object when config file contains invalid JSON", async () => {
             (fs.readFile as jest.Mock).mockResolvedValue("invalid json {");
+            const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
             const config = await configManager.getConfig();
 
             expect(config).toEqual({});
+            expect(consoleWarnSpy).toHaveBeenCalledWith("Failed to load config: Invalid JSON format");
+
+            consoleWarnSpy.mockRestore();
         });
     });
 
