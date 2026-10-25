@@ -30,7 +30,11 @@ export class ConfigManager {
             return ConfigManager.cachedConfig as AgentForgeConfig;
         } catch (error: any) {
             if (error.code !== "ENOENT") {
-                console.warn(`Failed to load config: ${error.message}`);
+                if (error instanceof SyntaxError) {
+                    console.warn("Failed to load config: Invalid JSON format");
+                } else {
+                    console.warn(`Failed to load config: ${error.message}`);
+                }
             }
             ConfigManager.cachedConfig = {};
             return ConfigManager.cachedConfig;
