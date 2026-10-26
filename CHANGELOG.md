@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- **[Docs]:** Updated `.jules/warden.md` ledger.
+
+
 ### 🔒 Security
 - **Sensitive Data Leak**: Updated `ConfigManager.getConfig` to catch `SyntaxError` when parsing the config file and log a generic message to prevent leaking API keys from syntax error snippets.
 
