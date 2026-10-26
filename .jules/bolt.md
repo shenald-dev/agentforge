@@ -244,3 +244,11 @@ When using `child_process.spawn`, Node.js automatically resolves `.exe` extensio
 
 Action:
 Removed manual `.exe` resolution for `docker-compose` in `PreviewServer.ts`, relying on Node's native cross-platform executable resolution.
+
+## 2026-10-24 — Docker Compose Exit Handling
+
+Learning:
+`docker-compose` can exit with code 0 before reaching a ready state (e.g. if a container starts and immediately stops without failure). If `spawn` exits with code 0 before a readiness condition is met, associated Promises waiting for that condition will hang indefinitely. Furthermore, allowing multiple `SIGINT` signals to spawn overlapping `docker-compose down` processes causes race conditions.
+
+Action:
+Always reject startup Promises when a process exits prematurely, even with code 0. Always use a boolean flag (e.g., `isShuttingDown`) to deduplicate shutdown requests triggered by `SIGINT` listeners.
