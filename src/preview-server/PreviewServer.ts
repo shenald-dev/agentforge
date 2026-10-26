@@ -56,11 +56,18 @@ export class PreviewServer {
                 if (code !== 0) {
                     spinner.fail(pc.red(`Docker compose exited with code ${code}`));
                     reject(new Error(`Docker compose failed`));
+                } else if (!isReady) {
+                    spinner.fail(pc.red(`Docker compose exited before server was ready`));
+                    reject(new Error(`Docker compose exited prematurely`));
                 }
             });
 
+            let isShuttingDown = false;
             // Handle graceful shutdown
             process.on('SIGINT', () => {
+                if (isShuttingDown) return;
+                isShuttingDown = true;
+
                 console.log(pc.magenta("\nGracefully shutting down preview containers..."));
                 const shutdownProcess = spawn(composeCmd, ["down"], { cwd: composePath, stdio: "inherit", shell: false });
 
@@ -69,8 +76,8 @@ export class PreviewServer {
                     process.exit(1);
                 });
 
-                shutdownProcess.on('close', () => {
-                    process.exit(0);
+                shutdownProcess.on('close', (code) => {
+                    process.exit(code || 0);
                 });
             });
         });
