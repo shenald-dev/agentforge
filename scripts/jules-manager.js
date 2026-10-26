@@ -375,14 +375,10 @@ Provide your engineering directive to Jules:`;
     return scheduled;
   }
 
-  async auditAndManageAll({ autoArchive = true, autoReply = true, autoApprove = true, autoSchedule = true } = {}) {
+  async auditAndManageAll({ autoArchive = true, autoReply = true, autoApprove = true } = {}) {
     console.log('\n========================================');
     console.log('🤖 JULES AUTONOMOUS MANAGER AUDIT');
     console.log('========================================\n');
-
-    if (autoSchedule) {
-      await this.ensureScheduledSessions();
-    }
 
     const sessions = await this.listSessions();
     console.log(`Discovered ${sessions.length} total Jules session(s).\n`);
