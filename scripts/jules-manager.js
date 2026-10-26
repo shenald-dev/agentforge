@@ -188,6 +188,43 @@ class JulesManager {
     return res;
   }
 
+  async createSession(repo, type = 'bolt', customTitle = null, customPrompt = null) {
+    const isMain = ['shenald-dev/prism', 'shenald-dev/sober', 'shenald-dev/echo', 'shenald-dev/zen'].includes(repo);
+    const startingBranch = isMain ? 'main' : 'master';
+    const cleanRepo = repo.replace('sources/github/', '');
+
+    let title = customTitle;
+    let prompt = customPrompt;
+
+    if (!title) {
+      title = type === 'warden' 
+        ? 'ATLAS-WARDEN: Autonomous Assurance, Pruning & Lifecycle Agent'
+        : 'APEX-BOLT: Autonomous Codebase Evolution Agent';
+    }
+
+    if (!prompt) {
+      if (type === 'warden') {
+        prompt = `2.  ATLAS-WARDEN 🛡️✂️ — Autonomous Assurance, Pruning & Lifecycle Agent\n\nYou are ATLAS-WARDEN, an autonomous Staff QA, Tech-Debt Pruning, and Release Readiness agent. You run after the primary improvement agent (\`APEX-BOLT\`) to audit recent changes, eliminate codebase entropy, synchronize documentation, and maintain release readiness.\n\n---\n\n## 1. Pre-Flight Check\nRead \`.jules/bolt.md\` and \`.jules/warden.md\`.\n\n## 2. Core Mission\n1. Adversarial QA & Veto Audit\n2. Entropy & Dead Code Elimination\n3. Safe Patch/Minor Hygiene\n4. Documentation & Changelog Sync\n\n## 3. Verify\nEnsure all linters, typecheckers, and test suites pass cleanly.`;
+      } else {
+        prompt = `# APEX-BOLT ⚡ — Autonomous Codebase Evolution Agent\n\nYou are APEX-BOLT, an autonomous Staff Software Engineering agent that continuously improves this GitHub repository across scheduled runs.\n\nYour mission is to leave the codebase measurably better on every run: faster, safer, cleaner, more reliable, more testable, and easier to maintain.\n\n---\n\n## 1. Pre-Flight Context Check\nBefore inspecting code, read \`.jules/bolt.md\` and \`.jules/warden.md\` (if they exist).\n\n## 2. Core Objective\nIdentify and complete the single highest-value, lowest-risk improvement available.\n\n## 3. Required Execution Workflow\n1. Inspect: Scan the codebase and journals.\n2. Implement: Write clean, minimal code.\n3. Verify: Run test suite and linters.\n4. Update Journal: Append insights to \`.jules/bolt.md\`.\n`;
+      }
+    }
+
+    const payload = {
+      title,
+      sourceContext: {
+        source: `sources/github/${cleanRepo}`,
+        githubRepoContext: {
+          startingBranch
+        },
+        environmentVariablesEnabled: true
+      },
+      prompt
+    };
+
+    return await this.request('/sessions', 'POST', payload);
+  }
+
   isPrMerged(prUrl) {
     if (!prUrl) return false;
     try {
@@ -278,6 +315,18 @@ Provide your engineering directive to Jules:`;
       }
     }
 
+    if (repo === 'shenald-dev/prism') {
+      if (lower.includes('ast') || lower.includes('contract') || lower.includes('graph') || lower.includes('parser') || lower.includes('radar')) {
+        return 'Approved. Ensure the zero-dependency core is strictly maintained (only rich and typer), verify 100% test pass rate with `pytest`, confirm `ruff check .` is clean, update `.jules/bolt.md`, and open the PR targeting main.';
+      }
+    }
+
+    if (repo === 'shenald-dev/sober') {
+      if (lower.includes('registry') || lower.includes('slopsquatting') || lower.includes('hallucination') || lower.includes('cure') || lower.includes('audit')) {
+        return 'Approved. Ensure online PyPI and npm registry lookups remain non-blocking with proper timeouts, verify all tests pass with `pytest`, update `.jules/bolt.md`, and open the PR targeting main.';
+      }
+    }
+
     if (repo === 'shenald-dev/agentforge') {
       if (lower.includes('handlebars') || lower.includes('audit fix') || lower.includes('depcheck')) {
         return 'Approved. All security updates and dependency cleanups look good. Please ensure `npm test` and `npm run build` pass, update documentation in `.jules/warden.md` and `CHANGELOG.md`, and open the PR targeting master.';
@@ -288,10 +337,52 @@ Provide your engineering directive to Jules:`;
     return 'Your proposed approach is approved. Please ensure you rebase on the latest `master` branch, verify all test suites and linting checks pass cleanly, document learnings in `.jules/`, and open the PR.';
   }
 
-  async auditAndManageAll({ autoArchive = true, autoReply = true, autoApprove = true } = {}) {
+  async ensureScheduledSessions(targetRepos = null) {
+    const reposToEnsure = targetRepos || [
+      'shenald-dev/prism',
+      'shenald-dev/sober'
+    ];
+
+    console.log('\n--- JULES AUTONOMOUS SESSION SCHEDULER ---');
+    const existingSessions = await this.listSessions();
+    const scheduled = [];
+
+    for (const repo of reposToEnsure) {
+      const cleanRepo = repo.replace('sources/github/', '');
+      const activeSession = existingSessions.find(s => {
+        const sRepo = (s.sourceContext?.source || '').replace('sources/github/', '');
+        return sRepo === cleanRepo && (s.state === 'IN_PROGRESS' || s.state === 'AWAITING_USER_FEEDBACK' || s.state === 'AWAITING_PLAN_APPROVAL');
+      });
+
+      if (activeSession) {
+        console.log(`  ✓ Active session already running for ${cleanRepo} (${activeSession.name}, state: ${activeSession.state})`);
+      } else {
+        console.log(`  ⚡ Scheduling new APEX-BOLT autonomous session for ${cleanRepo}...`);
+        try {
+          const createRes = await this.createSession(cleanRepo, 'bolt');
+          if (createRes.status === 200) {
+            console.log(`  ✓ Successfully scheduled session for ${cleanRepo}: ${createRes.data.url}`);
+            scheduled.push({ repo: cleanRepo, url: createRes.data.url, id: createRes.data.id });
+          } else {
+            console.warn(`  ⚠️ Failed to schedule session for ${cleanRepo}: status ${createRes.status}`, createRes.data || createRes.raw);
+          }
+        } catch (err) {
+          console.error(`  ❌ Error scheduling session for ${cleanRepo}:`, err.message);
+        }
+      }
+    }
+    console.log('-----------------------------------------\n');
+    return scheduled;
+  }
+
+  async auditAndManageAll({ autoArchive = true, autoReply = true, autoApprove = true, autoSchedule = true } = {}) {
     console.log('\n========================================');
     console.log('🤖 JULES AUTONOMOUS MANAGER AUDIT');
     console.log('========================================\n');
+
+    if (autoSchedule) {
+      await this.ensureScheduledSessions();
+    }
 
     const sessions = await this.listSessions();
     console.log(`Discovered ${sessions.length} total Jules session(s).\n`);
