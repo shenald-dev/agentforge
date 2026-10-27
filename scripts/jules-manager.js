@@ -337,44 +337,6 @@ Provide your engineering directive to Jules:`;
     return 'Your proposed approach is approved. Please ensure you rebase on the latest `master` branch, verify all test suites and linting checks pass cleanly, document learnings in `.jules/`, and open the PR.';
   }
 
-  async ensureScheduledSessions(targetRepos = null) {
-    const reposToEnsure = targetRepos || [
-      'shenald-dev/prism',
-      'shenald-dev/sober'
-    ];
-
-    console.log('\n--- JULES AUTONOMOUS SESSION SCHEDULER ---');
-    const existingSessions = await this.listSessions();
-    const scheduled = [];
-
-    for (const repo of reposToEnsure) {
-      const cleanRepo = repo.replace('sources/github/', '');
-      const activeSession = existingSessions.find(s => {
-        const sRepo = (s.sourceContext?.source || '').replace('sources/github/', '');
-        return sRepo === cleanRepo && (s.state === 'IN_PROGRESS' || s.state === 'AWAITING_USER_FEEDBACK' || s.state === 'AWAITING_PLAN_APPROVAL');
-      });
-
-      if (activeSession) {
-        console.log(`  ✓ Active session already running for ${cleanRepo} (${activeSession.name}, state: ${activeSession.state})`);
-      } else {
-        console.log(`  ⚡ Scheduling new APEX-BOLT autonomous session for ${cleanRepo}...`);
-        try {
-          const createRes = await this.createSession(cleanRepo, 'bolt');
-          if (createRes.status === 200) {
-            console.log(`  ✓ Successfully scheduled session for ${cleanRepo}: ${createRes.data.url}`);
-            scheduled.push({ repo: cleanRepo, url: createRes.data.url, id: createRes.data.id });
-          } else {
-            console.warn(`  ⚠️ Failed to schedule session for ${cleanRepo}: status ${createRes.status}`, createRes.data || createRes.raw);
-          }
-        } catch (err) {
-          console.error(`  ❌ Error scheduling session for ${cleanRepo}:`, err.message);
-        }
-      }
-    }
-    console.log('-----------------------------------------\n');
-    return scheduled;
-  }
-
   async auditAndManageAll({ autoArchive = true, autoReply = true, autoApprove = true } = {}) {
     console.log('\n========================================');
     console.log('🤖 JULES AUTONOMOUS MANAGER AUDIT');

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- **[Pruned]:** Removed dead `ensureScheduledSessions` code from `scripts/jules-manager.js`.
+
 - **[Docs]:** Updated `.jules/warden.md` ledger.
 
 
