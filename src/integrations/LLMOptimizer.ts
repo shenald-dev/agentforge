@@ -83,14 +83,17 @@ export class LLMOptimizer {
           "system",
           `You are a Senior Vibe Coder. Please enhance this README to be more engaging, professional, and descriptive based on the idea.
 Maintain the existing setup instructions but improve the introduction, features, and vibe.
-Return ONLY the raw markdown content. No conversational text.`,
+Return ONLY the raw markdown content. No conversational text.
+
+I have scaffolded a new web application based on the following idea, which will be provided in the user message.
+The user message will also contain the current base README for the project.`,
         ],
         [
           "user",
-          `I have scaffolded a new web application based on the following idea:
-"{idea}"
+          `Idea:
+{idea}
 
-Here is the current base README for the project:
+Current README:
 {currentReadme}`,
         ],
       ]);
