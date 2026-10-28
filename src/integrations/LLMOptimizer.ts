@@ -1,4 +1,5 @@
-import type { ChatOpenAI } from "@langchain/openai";
+import { ChatOpenAI } from "@langchain/openai";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 // Statically import heavy UI modules as LLMOptimizer is already dynamically lazy-loaded
 import pc from "picocolors";
 import * as p from "@clack/prompts";
@@ -17,7 +18,6 @@ export class LLMOptimizer {
     const openRouterBaseUrl = await this.configManager.getBaseUrl();
 
     if (openRouterKey) {
-      const { ChatOpenAI } = await import("@langchain/openai");
       this.model = new ChatOpenAI({
         modelName: "arcee-ai/trinity-large-preview:free",
         temperature: 0.7,
@@ -77,7 +77,6 @@ export class LLMOptimizer {
     spinner.start("Refining project documentation via LLM...");
 
     try {
-      const { ChatPromptTemplate } = await import("@langchain/core/prompts");
       const prompt = ChatPromptTemplate.fromMessages([
         [
           "system",
