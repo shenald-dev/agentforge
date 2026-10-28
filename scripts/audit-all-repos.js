@@ -11,6 +11,7 @@
  */
 
 const { execSync } = require('child_process');
+const { resolvePrConflicts } = require('./conflict-resolver');
 
 function run(command) {
   try {
@@ -48,6 +49,26 @@ function checkIfPrObsolete(fullName, pr) {
         if (cleanPrTitle && cleanMergedTitle && (cleanPrTitle === cleanMergedTitle || (cleanPrTitle.length > 15 && cleanMergedTitle.includes(cleanPrTitle)))) {
           return true;
         }
+      }
+    }
+
+    // 3. Check if all unit tests or core functions introduced in PR are already present on base branch
+    const diffRaw = run(`gh pr diff ${pr.number} --repo "${fullName}"`);
+    if (diffRaw) {
+      const addedTests = [];
+      const diffLines = diffRaw.split(/\r?\n/);
+      for (const line of diffLines) {
+        const mPy = line.match(/^\+\s*def\s+(test_\w+)\s*\(/);
+        if (mPy) addedTests.push(mPy[1]);
+        const mJs = line.match(/^\+\s*(?:test|it)\s*\(\s*['"]([^'"]+)['"]/);
+        if (mJs) addedTests.push(mJs[1]);
+      }
+      if (addedTests.length > 0) {
+        const allPresent = addedTests.every(testName => {
+          const search = run(`gh search code "${testName}" --repo "${fullName}"`);
+          return search && search.includes(testName);
+        });
+        if (allPresent) return true;
       }
     }
   } catch {
@@ -124,7 +145,24 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, onMerge, onHeal }
             }
           }
         } else {
-          console.log(`  ⚠️ Manual conflict resolution required for PR #${pr.number}.`);
+          // Step C: Deep Self-Healing Conflict Resolution (Isolated rebase + ledger/lockfile/LLM synthesis + test verification)
+          console.log(`  🧠 Deep Self-Healing: Resolving conflicts autonomously for PR #${pr.number} on ${fullName}...`);
+          try {
+            const deepRes = await resolvePrConflicts({ fullName, pr });
+            if (deepRes && deepRes.success) {
+              healedCount++;
+              if (onHeal) onHeal();
+              if (deepRes.merged) {
+                mergedCount++;
+                if (onMerge) onMerge();
+              }
+              continue;
+            } else {
+              console.log(`  ⚠️ Manual conflict resolution required for PR #${pr.number}: ${deepRes?.reason || 'Resolution failed'}`);
+            }
+          } catch (err) {
+            console.log(`  ⚠️ Deep conflict resolver error for PR #${pr.number}: ${err.message}`);
+          }
         }
         continue;
       }

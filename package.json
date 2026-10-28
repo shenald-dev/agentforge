@@ -15,6 +15,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "audit:all": "node scripts/audit-all-repos.js",
     "audit:repos": "node scripts/audit-all-repos.js",
+    "resolve:pr": "node scripts/conflict-resolver.js",
     "jules:manage": "node scripts/jules-manager.js",
     "sentinel": "node scripts/autonomous-sentinel.js"
   },
