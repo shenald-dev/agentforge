@@ -13,12 +13,20 @@
 const { execSync } = require('child_process');
 const { resolvePrConflicts } = require('./conflict-resolver');
 
-function run(command) {
-  try {
-    return execSync(command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-  } catch {
-    return null;
+function run(command, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return execSync(command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+    } catch {
+      if (i < retries) {
+        const waitTill = new Date(new Date().getTime() + 1000);
+        while (waitTill > new Date()) {}
+      } else {
+        return null;
+      }
+    }
   }
+  return null;
 }
 
 /**
