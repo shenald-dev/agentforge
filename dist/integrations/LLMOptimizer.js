@@ -37,6 +37,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LLMOptimizer = void 0;
+const openai_1 = require("@langchain/openai");
+const prompts_1 = require("@langchain/core/prompts");
 // Statically import heavy UI modules as LLMOptimizer is already dynamically lazy-loaded
 const picocolors_1 = __importDefault(require("picocolors"));
 const p = __importStar(require("@clack/prompts"));
@@ -51,8 +53,7 @@ class LLMOptimizer {
         const openRouterKey = await this.configManager.getApiKey();
         const openRouterBaseUrl = await this.configManager.getBaseUrl();
         if (openRouterKey) {
-            const { ChatOpenAI } = await Promise.resolve().then(() => __importStar(require("@langchain/openai")));
-            this.model = new ChatOpenAI({
+            this.model = new openai_1.ChatOpenAI({
                 modelName: "arcee-ai/trinity-large-preview:free",
                 temperature: 0.7,
                 openAIApiKey: openRouterKey,
@@ -96,20 +97,22 @@ class LLMOptimizer {
         const spinner = p.spinner();
         spinner.start("Refining project documentation via LLM...");
         try {
-            const { ChatPromptTemplate } = await Promise.resolve().then(() => __importStar(require("@langchain/core/prompts")));
-            const prompt = ChatPromptTemplate.fromMessages([
+            const prompt = prompts_1.ChatPromptTemplate.fromMessages([
                 [
                     "system",
                     `You are a Senior Vibe Coder. Please enhance this README to be more engaging, professional, and descriptive based on the idea.
 Maintain the existing setup instructions but improve the introduction, features, and vibe.
-Return ONLY the raw markdown content. No conversational text.`,
+Return ONLY the raw markdown content. No conversational text.
+
+I have scaffolded a new web application based on the following idea, which will be provided in the user message.
+The user message will also contain the current base README for the project.`,
                 ],
                 [
                     "user",
-                    `I have scaffolded a new web application based on the following idea:
-"{idea}"
+                    `Idea:
+{idea}
 
-Here is the current base README for the project:
+Current README:
 {currentReadme}`,
                 ],
             ]);
