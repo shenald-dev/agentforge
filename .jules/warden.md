@@ -178,3 +178,14 @@ Docs Updated: CHANGELOG.md, .jules/warden.md
 Release: none
 
 AI Summary: Removed the dead function `ensureScheduledSessions` from `scripts/jules-manager.js`, which was supposed to be removed in a recent refactor. Tests, linting, and build verified successfully.
+
+## 2026-10-28 — WARDEN Run
+
+QA Status: verified
+Dead Code Removed: 0 lines
+Dependencies Bumped: 0
+Security: Critical=0, High=0
+Docs Updated: .jules/warden.md
+Release: none
+
+AI Summary: Mocked `console.warn` in `tests/ConfigManager.test.ts` to cleanly suppress and verify the expected warning when invalid JSON is loaded, keeping test output clear.
