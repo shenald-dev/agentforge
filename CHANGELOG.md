@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- **[Fixed]:** Fixed jest test failure caused by incompatible `@types/jest` version after a dependency update.
+
 - **[Pruned]:** Removed dead `ensureScheduledSessions` code from `scripts/jules-manager.js`.
 
 - **[Docs]:** Updated `.jules/warden.md` ledger.
