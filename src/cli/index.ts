@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import * as fs from "fs";
+import * as path from "path";
 
 const program = new Command();
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pkgVersion = require('../../package.json').version;
+let pkgVersion = "unknown";
+try {
+    const pkgPath = path.join(__dirname, "../../package.json");
+    pkgVersion = JSON.parse(fs.readFileSync(pkgPath, "utf8")).version;
+} catch (error) {
+    console.warn("Failed to load package version:", error);
+}
 
 program
     .name("agentforge")
