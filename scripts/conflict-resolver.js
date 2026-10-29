@@ -514,7 +514,7 @@ Please fix the syntax error and output the pristine, complete file:`;
   }
 }
 
-module.exports = { resolvePrConflicts };
+module.exports = { resolvePrConflicts, askGemini, getGeminiApiKey };
 
 if (require.main === module) {
   const [,, fullName, prNum] = process.argv;

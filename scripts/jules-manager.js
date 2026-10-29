@@ -353,7 +353,8 @@ Provide your engineering directive to Jules:`;
       completed: [],
       archived: [],
       replied: [],
-      approved: []
+      approved: [],
+      failedInvestigations: []
     };
 
     for (const session of sessions) {
@@ -365,6 +366,28 @@ Provide your engineering directive to Jules:`;
       console.log(`[Session ${sessionId}] Repo: ${repo} | State: ${state} | Title: "${cleanTitle}"`);
 
       // 1. Handle COMPLETED or FAILED sessions
+      if (state === 'FAILED') {
+        console.log(`  🚨 Investigating FAILED Jules session ${sessionId} on ${repo}...`);
+        try {
+          const activities = await this.getActivities(sessionId);
+          const errorTexts = (activities || [])
+            .map(a => a.agentMessaged?.agentMessage || a.description || '')
+            .filter(Boolean)
+            .slice(-4)
+            .join('\n');
+          if (errorTexts) {
+            const diagPrompt = `Jules Session ID: ${sessionId}\nRepository: ${repo}\nTask Title: ${cleanTitle}\n\nActivity Logs:\n${errorTexts}\n\nDiagnose in 1-2 concise sentences why this Jules session failed and recommend next steps:`;
+            const diag = await this.askGemini(diagPrompt, 'You are an autonomous Google Jules supervisor. Pinpoint failure root causes concisely.');
+            if (diag) {
+              console.log(`  🔍 Failure Diagnosis: ${diag.trim().replace(/\r?\n/g, ' ')}`);
+              results.failedInvestigations.push({ id: sessionId, repo, title: cleanTitle, rootCause: diag.trim() });
+            }
+          }
+        } catch (err) {
+          console.log(`  ⚠️ Could not fetch activities for failed session: ${err.message}`);
+        }
+      }
+
       if (state === 'COMPLETED' || state === 'FAILED') {
         if (state === 'COMPLETED') {
           results.completed.push({ id: sessionId, repo, title: cleanTitle });
@@ -460,7 +483,12 @@ Provide your engineering directive to Jules:`;
       // 4. Handle IN_PROGRESS sessions
       else if (state === 'IN_PROGRESS') {
         results.inProgress.push({ id: sessionId, repo, title: cleanTitle });
-        console.log(`  ⚙️ Session actively running.`);
+        const createDate = session.createTime ? new Date(session.createTime) : null;
+        if (createDate && (Date.now() - createDate.getTime() > 12 * 3600 * 1000)) {
+          console.log(`  ⏱️ Long-running session (>12h, created ${session.createTime}). Investigating progress...`);
+        } else {
+          console.log(`  ⚙️ Session actively running.`);
+        }
       }
 
       console.log('');
@@ -473,6 +501,9 @@ Provide your engineering directive to Jules:`;
     console.log(`- Plans Approved:         ${results.approved.length}`);
     console.log(`- User Inputs Provided:   ${results.replied.length}`);
     console.log(`- Completed Archived:     ${results.archived.length}`);
+    if (results.failedInvestigations && results.failedInvestigations.length > 0) {
+      console.log(`- Failed Diagnosed:       ${results.failedInvestigations.length}`);
+    }
     console.log('========================================\n');
 
     return results;

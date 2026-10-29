@@ -5,13 +5,15 @@
  * 
  * End-to-end autonomous controller that:
  * 1. Audits all GitHub repositories across the portfolio (PRs, issues, CI pipeline checks).
- * 2. Merges clean, passing pull requests automatically and self-heals conflicts.
- * 3. Scans and manages Google Labs Jules sessions:
+ * 2. Investigates GitHub issues using Antigravity AI (Gemini 2.5 Flash), providing triage feedback and auto-closing resolved issues.
+ * 3. Diagnoses failing CI builds with root-cause analysis.
+ * 4. Merges clean, passing pull requests automatically and self-heals conflicts.
+ * 5. Scans, investigates, and manages Google Labs Jules sessions:
  *    - Answers sessions awaiting developer input using LLM-grounded guidance (Gemini).
  *    - Evaluates and approves/adjusts planned changes.
- *    - Monitors active runs.
+ *    - Investigates failed sessions and diagnoses error causes.
  *    - Archives completed sessions whose PRs are merged or closed.
- * 4. Generates Markdown summary for GitHub Actions ($GITHUB_STEP_SUMMARY).
+ * 6. Generates Markdown summary for GitHub Actions ($GITHUB_STEP_SUMMARY).
  */
 
 const { checkRepoHealth } = require('./audit-all-repos');
@@ -23,12 +25,12 @@ async function runAutonomousSentinel() {
   console.log('⚡ UNIFIED AUTONOMOUS SENTINEL: REPOS & JULES ⚡');
   console.log('====================================================\n');
 
-  // Phase 1: Repository Audit & PR Triage
-  console.log('--- PHASE 1: GITHUB PORTFOLIO AUDIT & MERGE ---');
-  const repoAudit = await checkRepoHealth({ autoMergeGreen: true });
+  // Phase 1: Repository Audit, PR Triage & GitHub Issue Investigation
+  console.log('--- PHASE 1: GITHUB PORTFOLIO AUDIT, PR MERGE & ISSUE INVESTIGATION ---');
+  const repoAudit = await checkRepoHealth({ autoMergeGreen: true, investigateIssues: true });
 
-  // Phase 2: Google Jules Autonomous Management
-  console.log('\n--- PHASE 2: GOOGLE JULES SESSION AUDIT & LIFECYCLE ---');
+  // Phase 2: Google Jules Autonomous Management & Issue Diagnosis
+  console.log('\n--- PHASE 2: GOOGLE JULES SESSION AUDIT, ISSUE INVESTIGATION & LIFECYCLE ---');
   let julesAudit = null;
   try {
     const jules = new JulesManager();
@@ -44,8 +46,8 @@ async function runAutonomousSentinel() {
   // Phase 3: Export GitHub Actions Step Summary (if running in CI)
   if (process.env.GITHUB_STEP_SUMMARY) {
     let summaryMd = `# 🛡️ Autonomous Sentinel Cycle Report\n\n`;
-    summaryMd += `### 📦 GitHub Portfolio Health\n`;
-    summaryMd += `- **Total Repositories Audited**: ${repoAudit.totalRepos || 13}\n`;
+    summaryMd += `### 📦 GitHub Portfolio Health & Issue Investigation\n`;
+    summaryMd += `- **Total Repositories Audited**: ${repoAudit.totalRepos || 18}\n`;
     summaryMd += `- **Open PRs**: ${repoAudit.totalOpenPRs}\n`;
     summaryMd += `- **Open Issues**: ${repoAudit.totalOpenIssues}\n`;
     summaryMd += `- **Failing CI Workflows**: ${repoAudit.failingWorkflows}\n`;
@@ -54,6 +56,9 @@ async function runAutonomousSentinel() {
     }
     if (repoAudit.healedPRs > 0) {
       summaryMd += `- **Conflicted PRs Self-Healed**: ${repoAudit.healedPRs}\n`;
+    }
+    if (repoAudit.resolvedIssues > 0) {
+      summaryMd += `- **GitHub Issues Autonomously Resolved**: ${repoAudit.resolvedIssues}\n`;
     }
     summaryMd += `\n`;
 
@@ -64,6 +69,9 @@ async function runAutonomousSentinel() {
       summaryMd += `- **User Inputs Provided**: ${julesAudit.replied.length}\n`;
       summaryMd += `- **Plans Approved**: ${julesAudit.approved.length}\n`;
       summaryMd += `- **Completed Sessions Archived**: ${julesAudit.archived.length}\n`;
+      if (julesAudit.failedInvestigations && julesAudit.failedInvestigations.length > 0) {
+        summaryMd += `- **Failed Sessions Investigated**: ${julesAudit.failedInvestigations.length}\n`;
+      }
     }
 
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summaryMd, 'utf8');

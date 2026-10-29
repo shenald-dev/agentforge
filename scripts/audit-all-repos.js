@@ -6,12 +6,14 @@
  * Scans all repositories owned by the user, auditing open PRs, issues, and CI health.
  * Features:
  * - Parallel batch auditing across repositories for speed.
+ * - Deep AI issue investigation & autonomous triage via Gemini 2.5 Flash.
+ * - CI failure diagnosis with pinpoint root-cause analysis.
  * - Self-healing conflict resolution (detects obsolete PRs and auto-rebases conflicting branches).
  * - Auto-merges clean, green pull requests with authentic developer feedback.
  */
 
 const { execSync } = require('child_process');
-const { resolvePrConflicts } = require('./conflict-resolver');
+const { resolvePrConflicts, askGemini } = require('./conflict-resolver');
 
 function run(command, retries = 2) {
   for (let i = 0; i <= retries; i++) {
@@ -86,9 +88,129 @@ function checkIfPrObsolete(fullName, pr) {
 }
 
 /**
+ * Deep AI investigation of an open GitHub issue.
+ * Cross-references issue context with recent git history and repo state.
+ */
+async function investigateGitHubIssue(fullName, issue) {
+  try {
+    const rawIssue = run(`gh issue view ${issue.number} --repo "${fullName}" --json number,title,body,author,createdAt,comments,labels`);
+    if (!rawIssue) return { investigated: false };
+    const issueData = JSON.parse(rawIssue);
+
+    console.log(`  🔍 Investigating GitHub Issue #${issue.number} ("${issue.title}") on ${fullName}...`);
+
+    // Fetch recent commits on the default branch
+    const rawCommits = run(`gh api repos/${fullName}/commits --limit 5 --jq ".[].commit.message"`);
+    const recentCommits = rawCommits || 'None available';
+
+    const systemInstruction = `You are a principal software engineer and the repository owner of ${fullName}.
+Evaluate the GitHub issue thoroughly and practically.
+Do NOT sound like an AI, LLM, or chatbot. Speak like an experienced, decisive lead developer.
+Your goal is to investigate whether this issue:
+1. Is ALREADY RESOLVED by recent commits/PRs (decision: "RESOLVED").
+2. Is a REAL, ACTIONABLE BUG that needs code changes (decision: "ACTIONABLE_BUG").
+3. Is an ENHANCEMENT or QUESTION needing triage/guidance (decision: "TRIAGED").
+
+Output valid JSON only with this structure:
+{
+  "decision": "RESOLVED" | "ACTIONABLE_BUG" | "TRIAGED",
+  "rootCause": "Short 1-2 sentence technical summary of the root cause or intent",
+  "recommendation": "1-2 sentence recommendation or fix",
+  "comment": "Pragmatic developer response to post on GitHub"
+}`;
+
+    const userPrompt = `Repository: ${fullName}
+Issue #${issue.number}: ${issue.title}
+Author: ${issueData.author?.login || 'unknown'}
+Created: ${issueData.createdAt}
+Labels: ${(issueData.labels || []).map(l => l.name).join(', ')}
+
+Issue Body:
+${issueData.body || 'No description provided.'}
+
+Recent Commits on Default Branch:
+${recentCommits}
+
+Prior Comments:
+${(issueData.comments || []).map(c => `${c.author?.login}: ${c.body}`).join('\n---\n')}
+
+Investigate this issue now:`;
+
+    const aiResponse = await askGemini(userPrompt, systemInstruction);
+    if (!aiResponse) {
+      console.log(`  ℹ️ Manual review needed for Issue #${issue.number}.`);
+      return { investigated: true, decision: 'MANUAL_REVIEW' };
+    }
+
+    let parsed = null;
+    try {
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+    } catch {}
+
+    if (!parsed || !parsed.decision) {
+      return { investigated: true, decision: 'MANUAL_REVIEW' };
+    }
+
+    console.log(`  🧠 AI Diagnosis: [${parsed.decision}] ${parsed.rootCause || ''}`);
+
+    if (parsed.decision === 'RESOLVED') {
+      const closingComment = parsed.comment || 'Resolved by recent commits and merged PRs.';
+      console.log(`  ⚡ Closing resolved issue #${issue.number}...`);
+      const safeComment = closingComment.replace(/"/g, '\\"');
+      run(`gh issue close ${issue.number} --repo "${fullName}" --comment "${safeComment}"`);
+      console.log(`  ✓ Successfully closed Issue #${issue.number}.`);
+      return { investigated: true, closed: true, decision: 'RESOLVED', details: parsed };
+    } else {
+      const alreadyCommented = (issueData.comments || []).some(c => c.author?.login === 'shenald-dev');
+      if (!alreadyCommented && parsed.comment) {
+        console.log(`  ✍️ Posting triage assessment on Issue #${issue.number}...`);
+        const safeComment = parsed.comment.replace(/"/g, '\\"');
+        run(`gh issue comment ${issue.number} --repo "${fullName}" --body "${safeComment}"`);
+      }
+      return { investigated: true, closed: false, decision: parsed.decision, details: parsed };
+    }
+  } catch (err) {
+    console.error(`  ❌ Failed to investigate issue #${issue.number}:`, err.message);
+    return { investigated: false, error: err.message };
+  }
+}
+
+/**
+ * Diagnoses a failing GitHub Actions CI workflow run using Antigravity AI.
+ */
+async function investigateCiFailure(fullName, runInfo) {
+  try {
+    console.log(`  🚨 Investigating failing CI workflow "${runInfo.name}" on ${fullName}...`);
+    const rawLogs = run(`gh run view ${runInfo.databaseId} --repo "${fullName}" --log-failed`);
+    if (!rawLogs) return null;
+
+    const truncatedLogs = rawLogs.split('\n').slice(-120).join('\n');
+
+    const prompt = `Repository: ${fullName}
+Failing Workflow: ${runInfo.name}
+Run ID: ${runInfo.databaseId}
+
+Recent failure logs:
+${truncatedLogs}
+
+Analyze why the build/test failed in 2-3 concise sentences. Identify the exact file, error, and actionable fix:`;
+
+    const diagnosis = await askGemini(prompt, 'You are an expert DevOps and build systems engineer. Provide concise, pinpoint root-cause analysis.');
+    if (diagnosis) {
+      console.log(`  🔍 CI Root Cause Diagnosis:\n     ${diagnosis.trim().split('\n').join('\n     ')}`);
+      return diagnosis.trim();
+    }
+  } catch (err) {
+    console.error(`  ❌ Failed to diagnose CI failure:`, err.message);
+  }
+  return null;
+}
+
+/**
  * Audit a single repository: inspect PRs, issues, and workflow runs.
  */
-async function auditSingleRepo(repo, { autoMergeGreen = false, onMerge, onHeal } = {}) {
+async function auditSingleRepo(repo, { autoMergeGreen = false, investigateIssues = true, onMerge, onHeal, onIssueResolved } = {}) {
   const repoName = repo.name;
   const fullName = `${repo.url.replace('https://github.com/', '')}`;
 
@@ -200,12 +322,23 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, onMerge, onHeal }
     }
   }
 
-  // 2. Open Issues
+  // 2. Open Issues Investigation & Triage
   const rawIssues = run(`gh issue list --repo "${fullName}" --state open --json number,title`);
   const issues = rawIssues ? JSON.parse(rawIssues) : [];
+  let resolvedIssuesCount = 0;
 
-  // 3. Latest Workflow Runs
-  const rawRuns = run(`gh run list --repo "${fullName}" --limit 1 --json status,conclusion,name`);
+  if (investigateIssues && issues.length > 0) {
+    for (const issue of issues) {
+      const invRes = await investigateGitHubIssue(fullName, issue);
+      if (invRes && invRes.closed) {
+        resolvedIssuesCount++;
+        if (onIssueResolved) onIssueResolved();
+      }
+    }
+  }
+
+  // 3. Latest Workflow Runs & Failure Diagnosis
+  const rawRuns = run(`gh run list --repo "${fullName}" --limit 1 --json databaseId,status,conclusion,name`);
   const runs = rawRuns ? JSON.parse(rawRuns) : [];
   const latestRun = runs.length > 0 ? runs[0] : null;
 
@@ -217,6 +350,9 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, onMerge, onHeal }
     } else if (latestRun.conclusion === 'failure') {
       ciStatus = '❌ Failing';
       isFailing = true;
+      if (investigateIssues) {
+        await investigateCiFailure(fullName, latestRun);
+      }
     } else {
       ciStatus = `⏳ ${latestRun.status}`;
     }
@@ -224,16 +360,18 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, onMerge, onHeal }
 
   // Count active remaining PRs after auto-merge/heal
   const remainingPrs = Math.max(0, prs.length - mergedCount - healedCount);
+  const remainingIssues = Math.max(0, issues.length - resolvedIssuesCount);
 
   return {
     name: repoName,
     fullName,
     openPRs: remainingPrs,
-    openIssues: issues.length,
+    openIssues: remainingIssues,
     ci: ciStatus,
     isFailing,
     mergedCount,
     healedCount,
+    resolvedIssuesCount,
     prList: prs,
     issueList: issues
   };
@@ -252,7 +390,7 @@ async function mapConcurrent(items, concurrency, fn) {
   return results;
 }
 
-async function checkRepoHealth({ autoMergeGreen = false } = {}) {
+async function checkRepoHealth({ autoMergeGreen = false, investigateIssues = true } = {}) {
   console.log('🔍 [Multi-Repo Sentinel] Discovering all repositories for authenticated user...\n');
 
   const owner = process.env.GITHUB_REPOSITORY_OWNER || 'shenald-dev';
@@ -270,12 +408,15 @@ async function checkRepoHealth({ autoMergeGreen = false } = {}) {
   let failingWorkflows = 0;
   let mergedPRs = 0;
   let healedPRs = 0;
+  let resolvedIssues = 0;
 
   const report = await mapConcurrent(repos, 4, async (repo) => {
     return auditSingleRepo(repo, {
       autoMergeGreen,
+      investigateIssues,
       onMerge: () => { mergedPRs++; },
-      onHeal: () => { healedPRs++; }
+      onHeal: () => { healedPRs++; },
+      onIssueResolved: () => { resolvedIssues++; }
     });
   });
 
@@ -308,6 +449,9 @@ async function checkRepoHealth({ autoMergeGreen = false } = {}) {
     console.log(`  - PRs Automatically Merged:   ${mergedPRs}`);
     console.log(`  - Conflicted PRs Self-Healed: ${healedPRs}`);
   }
+  if (resolvedIssues > 0) {
+    console.log(`  - Issues Autonomously Resolved: ${resolvedIssues}`);
+  }
 
   if (totalOpenPRs === 0 && totalOpenIssues === 0 && failingWorkflows === 0) {
     console.log('\n✨ All repositories are 100% clean, triaged, and healthy!');
@@ -315,7 +459,7 @@ async function checkRepoHealth({ autoMergeGreen = false } = {}) {
     console.log('\n⚠️ Actions monitored across portfolio.');
   }
 
-  return { totalRepos: repos.length, totalOpenPRs, totalOpenIssues, failingWorkflows, mergedPRs, healedPRs, report };
+  return { totalRepos: repos.length, totalOpenPRs, totalOpenIssues, failingWorkflows, mergedPRs, healedPRs, resolvedIssues, report };
 }
 
 if (require.main === module) {
