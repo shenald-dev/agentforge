@@ -1,0 +1,33 @@
+name: Jules AI Lifecycle Manager
+
+on:
+  schedule:
+    # Runs autonomously every 4 hours
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  jules:
+    name: Manage Jules Sessions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run Jules Autonomous Manager
+        env:
+          GH_TOKEN: ${{ secrets.PORTFOLIO_GH_TOKEN || secrets.GITHUB_TOKEN }}
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          npm run jules:manage

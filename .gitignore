@@ -3,3 +3,4 @@ dist/
 .env
 .codedna_cache/
 scratch/
+bonsai_pruned/
