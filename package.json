@@ -28,7 +28,7 @@
     "boilerplate"
   ],
   "author": "shenald-dev",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "dependencies": {
     "@clack/prompts": "^1.5.0",
     "@langchain/core": "^1.1.48",

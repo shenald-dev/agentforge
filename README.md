@@ -15,7 +15,7 @@
   [![Vibe](https://badgen.net/badge/vibe/coding/magenta)](https://github.com/shenald-dev)
   [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://docker.com)
   [![OpenRouter](https://badgen.net/badge/AI/Enabled/cyan)](https://openrouter.ai)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+  [![License: MIT](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
   
   <br />
 
