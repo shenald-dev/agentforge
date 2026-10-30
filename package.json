@@ -12,12 +12,7 @@
     "build": "tsc",
     "test": "jest",
     "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "audit:all": "node scripts/audit-all-repos.js",
-    "audit:repos": "node scripts/audit-all-repos.js",
-    "resolve:pr": "node scripts/conflict-resolver.js",
-    "jules:manage": "node scripts/jules-manager.js",
-    "sentinel": "node scripts/autonomous-sentinel.js"
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "keywords": [
     "cli",
@@ -39,7 +34,7 @@
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.11",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.19.41",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",

@@ -1,6 +1,8 @@
 ## [2.0.20] - 2026-05-24
 
 ## [Unreleased]
+- **[Pruned]:** Removed dead scripts (`autonomous-sentinel.js`, `conflict-resolver.js`, `audit-all-repos.js`, `jules-manager.js`) and their package.json entries to eliminate recent entropy.
+- **[Dependencies]:** Bumped `@types/jest` from `29.5.11` to `29.5.14`.
 
 - **[Fixed]:** Fixed jest test failure caused by incompatible `@types/jest` version after a dependency update.
 
