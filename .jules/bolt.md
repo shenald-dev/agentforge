@@ -252,3 +252,10 @@ Learning:
 
 Action:
 Always reject startup Promises when a process exits prematurely, even with code 0. Always use a boolean flag (e.g., `isShuttingDown`) to deduplicate shutdown requests triggered by `SIGINT` listeners.
+## 2026-10-31 — Proper Error Handling and Exit Codes in CLI Commands
+
+Learning:
+CLI commands (e.g., in `src/cli/index.ts`) must explicitly catch runtime errors and promise rejections (using `try/catch` blocks) and terminate with a non-zero exit code (`process.exit(1)`) to ensure reliability and prevent silent failures. For instance, `configManager.setConfig` inside the `auth` command can reject with file permission issues. Unhandled promise rejections can crash the application unexpectedly and exit with an incorrect code.
+
+Action:
+Always wrap operations that can fail in CLI commands in `try/catch` blocks. Handle the error by logging it to the user cleanly and explicitly calling `process.exit(1)`.
