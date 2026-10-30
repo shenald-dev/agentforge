@@ -19,10 +19,19 @@ jest.mock("ora", () => {
 
 describe("PreviewServer", () => {
     let mockSpawn: jest.Mock;
+    let consoleLogSpy: jest.SpyInstance;
+    let consoleErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
         mockSpawn = spawn as jest.Mock;
         mockSpawn.mockClear();
+        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        consoleLogSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
     });
 
     it("should spawn docker-compose with correct arguments and handle success", async () => {

@@ -47,10 +47,15 @@ program
 
         const s = p.spinner();
         s.start("Saving API key securely...");
-        await configManager.setConfig({ OPENROUTER_API_KEY: apiKey as string });
-        s.stop(pc.green("API key saved securely to ~/.agentforge/config.json"));
-        
-        p.outro(pc.cyan("You're ready to forge!"));
+        try {
+            await configManager.setConfig({ OPENROUTER_API_KEY: apiKey as string });
+            s.stop(pc.green("API key saved securely to ~/.agentforge/config.json"));
+
+            p.outro(pc.cyan("You're ready to forge!"));
+        } catch (error: unknown) {
+            s.stop(pc.red(`Failed to save API key: ${error instanceof Error ? error.message : String(error)}`));
+            process.exit(1);
+        }
     });
 
 // ─────────────────────────────────────
@@ -92,6 +97,7 @@ program
             console.log();
         } catch (err: unknown) {
             console.error(pc.red(`\n✖ Failed to list templates: ${err instanceof Error ? err.message : String(err)}`));
+            process.exit(1);
         }
     });
 
@@ -111,6 +117,7 @@ program
             await preview.start(targetPath);
         } catch (err: unknown) {
             console.error(pc.red(`\n✖ Preview server failed: ${err instanceof Error ? err.message : String(err)}`));
+            process.exit(1);
         }
     });
 
