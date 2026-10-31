@@ -25,35 +25,40 @@ program
     .command("auth")
     .description("Set your OpenRouter API key for LLM enchantments securely.")
     .action(async () => {
-        const [[{ default: pc }, p], { ConfigManager }] = await Promise.all([
-            Promise.all([import("picocolors"), import("@clack/prompts")]),
-            import("../utils/config")
-        ]);
-        const configManager = new ConfigManager();
-        
-        p.intro(pc.bgCyan(pc.black(" AgentForge Configuration ")));
-        
-        const apiKey = await p.password({
-            message: "Enter your OpenRouter API key:",
-            validate: (value) => {
-                if (!value) return "API key cannot be empty.";
-            }
-        });
-
-        if (p.isCancel(apiKey)) {
-            p.cancel("Operation cancelled.");
-            process.exit(0);
-        }
-
-        const s = p.spinner();
-        s.start("Saving API key securely...");
         try {
-            await configManager.setConfig({ OPENROUTER_API_KEY: apiKey as string });
-            s.stop(pc.green("API key saved securely to ~/.agentforge/config.json"));
+            const [[{ default: pc }, p], { ConfigManager }] = await Promise.all([
+                Promise.all([import("picocolors"), import("@clack/prompts")]),
+                import("../utils/config")
+            ]);
+            const configManager = new ConfigManager();
 
-            p.outro(pc.cyan("You're ready to forge!"));
+            p.intro(pc.bgCyan(pc.black(" AgentForge Configuration ")));
+
+            const apiKey = await p.password({
+                message: "Enter your OpenRouter API key:",
+                validate: (value) => {
+                    if (!value) return "API key cannot be empty.";
+                }
+            });
+
+            if (p.isCancel(apiKey)) {
+                p.cancel("Operation cancelled.");
+                process.exit(0);
+            }
+
+            const s = p.spinner();
+            s.start("Saving API key securely...");
+            try {
+                await configManager.setConfig({ OPENROUTER_API_KEY: apiKey as string });
+                s.stop(pc.green("API key saved securely to ~/.agentforge/config.json"));
+
+                p.outro(pc.cyan("You're ready to forge!"));
+            } catch (error: unknown) {
+                s.stop(pc.red(`Failed to save API key: ${error instanceof Error ? error.message : String(error)}`));
+                process.exit(1);
+            }
         } catch (error: unknown) {
-            s.stop(pc.red(`Failed to save API key: ${error instanceof Error ? error.message : String(error)}`));
+            console.error(`\n✖ Auth command failed: ${error instanceof Error ? error.message : String(error)}`);
             process.exit(1);
         }
     });
@@ -66,9 +71,14 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-        const { CLIController } = await import("./CLIController");
-        const cli = new CLIController();
-        await cli.handleCreateCommand(idea, options);
+        try {
+            const { CLIController } = await import("./CLIController");
+            const cli = new CLIController();
+            await cli.handleCreateCommand(idea, options);
+        } catch (error: unknown) {
+            console.error(`\n✖ Create command failed: ${error instanceof Error ? error.message : String(error)}`);
+            process.exit(1);
+        }
     });
 
 // ─────────────────────────────────────
@@ -78,25 +88,30 @@ program
     .command("list")
     .description("List all available project templates.")
     .action(async () => {
-        const [{ default: pc }, { TemplateManager }] = await Promise.all([
-            import("picocolors"),
-            import("../templates/TemplateManager")
-        ]);
-        const templateManager = new TemplateManager();
         try {
-            const templates = await templateManager.listTemplates();
-            console.log(pc.cyan(`\n✨ Available Templates:\n`));
-            templates.forEach((t) => {
-                const icons: Record<string, string> = {
-                    "saas": "🏢",
-                    "landing-api": "🚀",
-                    "realtime": "💬",
-                };
-                console.log(pc.white(`  ${icons[t] || "📦"}  ${pc.bold(t)}`));
-            });
-            console.log();
-        } catch (err: unknown) {
-            console.error(pc.red(`\n✖ Failed to list templates: ${err instanceof Error ? err.message : String(err)}`));
+            const [{ default: pc }, { TemplateManager }] = await Promise.all([
+                import("picocolors"),
+                import("../templates/TemplateManager")
+            ]);
+            const templateManager = new TemplateManager();
+            try {
+                const templates = await templateManager.listTemplates();
+                console.log(pc.cyan(`\n✨ Available Templates:\n`));
+                templates.forEach((t) => {
+                    const icons: Record<string, string> = {
+                        "saas": "🏢",
+                        "landing-api": "🚀",
+                        "realtime": "💬",
+                    };
+                    console.log(pc.white(`  ${icons[t] || "📦"}  ${pc.bold(t)}`));
+                });
+                console.log();
+            } catch (err: unknown) {
+                console.error(pc.red(`\n✖ Failed to list templates: ${err instanceof Error ? err.message : String(err)}`));
+                process.exit(1);
+            }
+        } catch (error: unknown) {
+            console.error(`\n✖ List command failed: ${error instanceof Error ? error.message : String(error)}`);
             process.exit(1);
         }
     });
@@ -108,15 +123,20 @@ program
     .command("preview <targetPath>")
     .description("Spin up the generated application locally using Docker Compose.")
     .action(async (targetPath) => {
-        const [{ default: pc }, { PreviewServer }] = await Promise.all([
-            import("picocolors"),
-            import("../preview-server/PreviewServer")
-        ]);
-        const preview = new PreviewServer();
         try {
-            await preview.start(targetPath);
-        } catch (err: unknown) {
-            console.error(pc.red(`\n✖ Preview server failed: ${err instanceof Error ? err.message : String(err)}`));
+            const [{ default: pc }, { PreviewServer }] = await Promise.all([
+                import("picocolors"),
+                import("../preview-server/PreviewServer")
+            ]);
+            const preview = new PreviewServer();
+            try {
+                await preview.start(targetPath);
+            } catch (err: unknown) {
+                console.error(pc.red(`\n✖ Preview server failed: ${err instanceof Error ? err.message : String(err)}`));
+                process.exit(1);
+            }
+        } catch (error: unknown) {
+            console.error(`\n✖ Preview command failed: ${error instanceof Error ? error.message : String(error)}`);
             process.exit(1);
         }
     });
