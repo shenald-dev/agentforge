@@ -66,9 +66,15 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-        const { CLIController } = await import("./CLIController");
-        const cli = new CLIController();
-        await cli.handleCreateCommand(idea, options);
+        try {
+            const { CLIController } = await import("./CLIController");
+            const cli = new CLIController();
+            await cli.handleCreateCommand(idea, options);
+        } catch (err: unknown) {
+            const pc = (await import("picocolors")).default;
+            console.error(pc.red(`\n✖ Failed to execute create command: ${err instanceof Error ? err.message : String(err)}`));
+            process.exit(1);
+        }
     });
 
 // ─────────────────────────────────────
