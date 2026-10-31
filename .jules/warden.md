@@ -200,3 +200,14 @@ Docs Updated: none
 Release: none
 
 AI Summary: Fixed jest test failure caused by incompatible `@types/jest` version after a dependency update. Tests, linting, and build verified successfully.
+
+## 2026-10-31 — WARDEN Run
+
+QA Status: verified
+Dead Code Removed: 0 lines
+Dependencies Bumped: 0
+Security: Critical=0, High=0
+Docs Updated: CHANGELOG.md, .jules/warden.md
+Release: none
+
+AI Summary: Added missing `try/catch` and `process.exit(1)` handling to the `create` command in `src/cli/index.ts` to prevent silent failures and unhandled promise rejections. Updated the `CHANGELOG.md` with the fix. Verified changes with test and build suites.

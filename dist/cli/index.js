@@ -76,9 +76,15 @@ program
     }
     const s = p.spinner();
     s.start("Saving API key securely...");
-    await configManager.setConfig({ OPENROUTER_API_KEY: apiKey });
-    s.stop(pc.green("API key saved securely to ~/.agentforge/config.json"));
-    p.outro(pc.cyan("You're ready to forge!"));
+    try {
+        await configManager.setConfig({ OPENROUTER_API_KEY: apiKey });
+        s.stop(pc.green("API key saved securely to ~/.agentforge/config.json"));
+        p.outro(pc.cyan("You're ready to forge!"));
+    }
+    catch (error) {
+        s.stop(pc.red(`Failed to save API key: ${error instanceof Error ? error.message : String(error)}`));
+        process.exit(1);
+    }
 });
 // ─────────────────────────────────────
 // agentforge create
@@ -88,9 +94,16 @@ program
     .description("Scaffold a new application from a natural language idea.")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
     .action(async (idea, options) => {
-    const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
-    const cli = new CLIController();
-    await cli.handleCreateCommand(idea, options);
+    try {
+        const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
+        const cli = new CLIController();
+        await cli.handleCreateCommand(idea, options);
+    }
+    catch (err) {
+        const pc = (await Promise.resolve().then(() => __importStar(require("picocolors")))).default;
+        console.error(pc.red(`\n✖ Failed to execute create command: ${err instanceof Error ? err.message : String(err)}`));
+        process.exit(1);
+    }
 });
 // ─────────────────────────────────────
 // agentforge list
@@ -119,6 +132,7 @@ program
     }
     catch (err) {
         console.error(pc.red(`\n✖ Failed to list templates: ${err instanceof Error ? err.message : String(err)}`));
+        process.exit(1);
     }
 });
 // ─────────────────────────────────────
@@ -138,6 +152,7 @@ program
     }
     catch (err) {
         console.error(pc.red(`\n✖ Preview server failed: ${err instanceof Error ? err.message : String(err)}`));
+        process.exit(1);
     }
 });
 program.parse();
