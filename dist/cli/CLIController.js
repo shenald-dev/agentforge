@@ -99,7 +99,7 @@ class CLIController {
     /**
      * Handles the creation command.
      */
-    async handleCreateCommand(idea, options) {
+    async handleCreateCommand(idea, options = {}) {
         try {
             const answers = await this.promptCreationDetails(idea);
             const templatePath = await this.templateManager.getTemplatePath(answers.template);
@@ -114,7 +114,7 @@ class CLIController {
             });
             s.stop(picocolors_1.default.green(`✨ Project scaffolded successfully!`));
             // ── Optional LLM Enhancement ──
-            if (options.llm !== false) {
+            if (options?.llm !== false) {
                 const [{ LLMOptimizer }] = await Promise.all([
                     Promise.resolve().then(() => __importStar(require("../integrations/LLMOptimizer")))
                 ]);

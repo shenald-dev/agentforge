@@ -52,13 +52,13 @@ class LLMOptimizer {
     async init() {
         const openRouterKey = await this.configManager.getApiKey();
         const openRouterBaseUrl = await this.configManager.getBaseUrl();
-        if (openRouterKey) {
+        if (openRouterKey && openRouterKey.trim()) {
             this.model = new openai_1.ChatOpenAI({
                 modelName: "arcee-ai/trinity-large-preview:free",
                 temperature: 0.7,
-                openAIApiKey: openRouterKey,
+                openAIApiKey: openRouterKey.trim(),
                 configuration: {
-                    baseURL: openRouterBaseUrl || "https://openrouter.ai/api/v1",
+                    baseURL: openRouterBaseUrl?.trim() || "https://openrouter.ai/api/v1",
                 },
             });
         }
@@ -132,7 +132,16 @@ Current README:
                 }
             });
             spinner.stop(picocolors_1.default.green("✨ README enhanced via LLM!"));
-            return String(response.content);
+            const content = response.content;
+            if (typeof content === "string") {
+                return content;
+            }
+            else if (Array.isArray(content)) {
+                return content
+                    .map((c) => (typeof c === "string" ? c : c.text || ""))
+                    .join("");
+            }
+            return String(content || "");
         }
         catch (err) {
             spinner.stop(picocolors_1.default.yellow(`LLM enhancement failed: ${err instanceof Error ? err.message : String(err)}. Falling back to default.`));

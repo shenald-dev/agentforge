@@ -41,6 +41,18 @@ describe("TemplateManager", () => {
         );
     });
 
+    it("should throw for empty, whitespace, or dot template names", async () => {
+        await expect(manager.getTemplatePath("")).rejects.toThrow(
+            "Template '' does not exist."
+        );
+        await expect(manager.getTemplatePath("   ")).rejects.toThrow(
+            "Template '   ' does not exist."
+        );
+        await expect(manager.getTemplatePath(".")).rejects.toThrow(
+            "Template '.' does not exist."
+        );
+    });
+
     it("should throw if the template is not a directory", async () => {
         const actualStat = jest.requireActual("fs/promises").stat;
         (fs.stat as jest.Mock).mockResolvedValueOnce({

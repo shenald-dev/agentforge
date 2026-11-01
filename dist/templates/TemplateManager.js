@@ -60,6 +60,9 @@ class TemplateManager {
         }
     }
     async getTemplatePath(templateName) {
+        if (!templateName || !templateName.trim()) {
+            throw new Error(`Template '${templateName}' does not exist.`);
+        }
         const templatePath = path.resolve(this.templatesDir, templateName);
         // Prevent path traversal
         const relativePath = path.relative(this.templatesDir, templatePath);
@@ -67,6 +70,9 @@ class TemplateManager {
             relativePath.startsWith(".." + path.sep) ||
             path.isAbsolute(relativePath)) {
             throw new Error(`Security Exception: Path traversal attempt blocked for template '${templateName}'`);
+        }
+        if (relativePath === "" || relativePath === ".") {
+            throw new Error(`Template '${templateName}' does not exist.`);
         }
         try {
             const stats = await fs.stat(templatePath);

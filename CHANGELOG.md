@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- **[Fixed]:** Disallowed empty, whitespace, and dot template names in TemplateManager.getTemplatePath to prevent boundary bypass to root templates directory.
+
+- **[Reliability]:** Guarded options parameter in CLIController.handleCreateCommand against undefined input.
+
+- **[Reliability]:** Validated non-whitespace API keys in LLMOptimizer.init and added robust array content extraction for LLM response blocks.
+
 - **[Fixed]:** Added proper error handling and non-zero exit codes to the create CLI command.
 
 - **[Fixed]:** Fixed jest test failure caused by incompatible `@types/jest` version after a dependency update.

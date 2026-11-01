@@ -17,13 +17,13 @@ export class LLMOptimizer {
     const openRouterKey = await this.configManager.getApiKey();
     const openRouterBaseUrl = await this.configManager.getBaseUrl();
 
-    if (openRouterKey) {
+    if (openRouterKey && openRouterKey.trim()) {
       this.model = new ChatOpenAI({
         modelName: "arcee-ai/trinity-large-preview:free",
         temperature: 0.7,
-        openAIApiKey: openRouterKey,
+        openAIApiKey: openRouterKey.trim(),
         configuration: {
-          baseURL: openRouterBaseUrl || "https://openrouter.ai/api/v1",
+          baseURL: openRouterBaseUrl?.trim() || "https://openrouter.ai/api/v1",
         },
       });
     }
@@ -118,7 +118,15 @@ Current README:
       });
 
       spinner.stop(pc.green("✨ README enhanced via LLM!"));
-      return String(response.content);
+      const content = response.content;
+      if (typeof content === "string") {
+        return content;
+      } else if (Array.isArray(content)) {
+        return content
+          .map((c) => (typeof c === "string" ? c : (c as any).text || ""))
+          .join("");
+      }
+      return String(content || "");
     } catch (err: unknown) {
       spinner.stop(
         pc.yellow(

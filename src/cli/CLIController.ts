@@ -65,7 +65,7 @@ export class CLIController {
     /**
      * Handles the creation command.
      */
-    async handleCreateCommand(idea: string, options: any) {
+    async handleCreateCommand(idea: string, options: any = {}) {
         try {
             const answers = await this.promptCreationDetails(idea);
             const templatePath = await this.templateManager.getTemplatePath(answers.template);
@@ -84,7 +84,7 @@ export class CLIController {
             s.stop(pc.green(`✨ Project scaffolded successfully!`));
 
             // ── Optional LLM Enhancement ──
-            if (options.llm !== false) {
+            if (options?.llm !== false) {
                 const [{ LLMOptimizer }] = await Promise.all([
                     import("../integrations/LLMOptimizer")
                 ]);
