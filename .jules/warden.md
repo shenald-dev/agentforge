@@ -211,3 +211,14 @@ Docs Updated: CHANGELOG.md, .jules/warden.md
 Release: none
 
 AI Summary: Added missing `try/catch` and `process.exit(1)` handling to the `create` command in `src/cli/index.ts` to prevent silent failures and unhandled promise rejections. Updated the `CHANGELOG.md` with the fix. Verified changes with test and build suites.
+
+## 2026-11-01 — WARDEN Run
+
+QA Status: verified
+Dead Code Removed: 0 lines (removed unused export)
+Dependencies Bumped: 0
+Security: Critical=0, High=0
+Docs Updated: .jules/warden.md
+Release: none
+
+AI Summary: Removed the unused export keyword from `GenerateOptions` in `src/generators/ProjectGenerator.ts`. Tests, linting, and build verified successfully.
