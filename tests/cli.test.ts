@@ -22,14 +22,13 @@ jest.mock("@clack/prompts", () => ({
     intro: jest.fn(),
     outro: jest.fn(),
     group: jest.fn().mockImplementation(async (config: any) => {
-        // Trigger the internal p.text calls which will set capturedValidate
         if (typeof config.projectName === 'function') config.projectName();
         if (typeof config.idea === 'function') config.idea();
         if (typeof config.template === 'function') config.template();
         return { projectName: "test-app", idea: "idea", template: "saas" };
     }),
     spinner: () => ({ start: jest.fn(), stop: jest.fn() }),
-    log: { message: jest.fn(), error: jest.fn(), step: jest.fn(), success: jest.fn() },
+    log: { message: jest.fn(), error: jest.fn(), step: jest.fn(), success: jest.fn(), warn: jest.fn() },
     cancel: jest.fn()
 }));
 
@@ -85,5 +84,28 @@ describe("CLIController", () => {
         expect(capturedIdeaValidate("Idea with $ sign")).toBe(invalidCharError);
         expect(capturedIdeaValidate("Idea with < angle >")).toBe(invalidCharError);
         expect(capturedIdeaValidate("Idea with * star")).toBe(invalidCharError);
+    });
+
+    it("should support non-interactive dry-run project creation", async () => {
+        const cli = new CLIController();
+        const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+        await cli.handleCreateCommand("A great automated app", {
+            name: "auto-test-app",
+            template: "saas",
+            dryRun: true,
+        });
+
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Dry Run Preview"));
+        consoleSpy.mockRestore();
+    });
+
+    it("should display template info in handleInfoCommand", async () => {
+        const cli = new CLIController();
+        const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+        await cli.handleInfoCommand("saas");
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Full-Stack SaaS Platform"));
+        consoleSpy.mockRestore();
     });
 });

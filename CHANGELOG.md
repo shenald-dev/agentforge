@@ -1,4 +1,15 @@
-## [2.0.20] - 2026-05-24
+# Changelog
+
+## [3.0.0] - 2026-11-01
+
+### 🚀 Added
+- **Autonomous Architecture Planner (ARCHITECTURE.md):** Automatically generates comprehensive system architecture specifications for scaffolded applications with Mermaid topology diagrams, REST and WebSocket service contracts, container network layouts, and deployment checklists.
+- **Scriptable Non-Interactive CLI Scaffolding:** Added support for --name, --template, --output, --skip-install, --dry-run, and --force flags to agentforge create, enabling headless execution in CI/CD and terminal scripts.
+- **System Doctor Diagnostics (agentforge doctor):** Added automated pre-flight environment scanning for Node.js (>= 18), Git CLI, Docker Engine daemon status, Docker Compose (v2 plugin & standalone), OpenRouter API keys, and port availability on ports 3000 and 8000.
+- **Template Metadata & Deep Inspection:** Added agentforge list --details and agentforge info <template> commands providing rich tech stack breakdowns, default port mappings, and architecture descriptions.
+- **Dry-Run Generation Simulation:** Added --dry-run flag to preview complete file trees, template compilation states, and file sizes without writing changes to disk.
+- **Adaptive Docker Compose Orchestration:** Upgraded PreviewServer to detect both Docker Compose v2 plugin (docker compose) and standalone binary (docker-compose) with leak-free signal management.
+- **Test Suite Expansion:** Expanded test suite to 10 suites and 54 tests with 100% pass rate.
 
 ## [Unreleased]
 

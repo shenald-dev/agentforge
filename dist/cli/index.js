@@ -48,7 +48,7 @@ catch (error) {
 }
 program
     .name("agentforge")
-    .description("✨ Autonomous Full-Stack App Builder CLI")
+    .description("✨ Autonomous Full-Stack App Builder CLI (Major v3)")
     .version(pkgVersion);
 async function handleCliError(commandName, err) {
     let errorFormatter = (msg) => msg;
@@ -56,7 +56,9 @@ async function handleCliError(commandName, err) {
         const pc = (await Promise.resolve().then(() => __importStar(require("picocolors")))).default;
         errorFormatter = pc.red;
     }
-    catch (_) { /* ignore */ }
+    catch (_) {
+        /* ignore */
+    }
     console.error(errorFormatter(`\n✖ Failed to execute ${commandName} command: ${err instanceof Error ? err.message : String(err)}`));
     process.exit(1);
 }
@@ -70,7 +72,7 @@ program
     try {
         const [[{ default: pc }, p], { ConfigManager }] = await Promise.all([
             Promise.all([Promise.resolve().then(() => __importStar(require("picocolors"))), Promise.resolve().then(() => __importStar(require("@clack/prompts")))]),
-            Promise.resolve().then(() => __importStar(require("../utils/config")))
+            Promise.resolve().then(() => __importStar(require("../utils/config"))),
         ]);
         const configManager = new ConfigManager();
         p.intro(pc.bgCyan(pc.black(" AgentForge Configuration ")));
@@ -79,7 +81,7 @@ program
             validate: (value) => {
                 if (!value)
                     return "API key cannot be empty.";
-            }
+            },
         });
         if (p.isCancel(apiKey)) {
             p.cancel("Operation cancelled.");
@@ -106,8 +108,15 @@ program
 // ─────────────────────────────────────
 program
     .command("create [idea]")
-    .description("Scaffold a new application from a natural language idea.")
+    .description("Scaffold a new full-stack application from a natural language idea.")
+    .option("-n, --name <name>", "Project name (kebab-case, e.g. my-vibe-app)")
+    .option("-t, --template <template>", "Template type (saas, landing-api, realtime)")
+    .option("-o, --output <dir>", "Custom output directory destination")
     .option("--no-llm", "Skip LLM-based README enhancement even if API key is set")
+    .option("--no-plan", "Skip ARCHITECTURE.md architectural blueprint generation")
+    .option("--skip-install", "Skip automatic npm install in generated project")
+    .option("--dry-run", "Preview file generation simulation without writing to disk")
+    .option("-f, --force", "Overwrite destination directory if it already exists")
     .action(async (idea, options) => {
     try {
         const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
@@ -124,27 +133,72 @@ program
 program
     .command("list")
     .description("List all available project templates.")
-    .action(async () => {
+    .option("-d, --details", "Display in-depth tech stack and port mappings for each template")
+    .action(async (options) => {
     try {
         const [{ default: pc }, { TemplateManager }] = await Promise.all([
             Promise.resolve().then(() => __importStar(require("picocolors"))),
-            Promise.resolve().then(() => __importStar(require("../templates/TemplateManager")))
+            Promise.resolve().then(() => __importStar(require("../templates/TemplateManager"))),
         ]);
         const templateManager = new TemplateManager();
-        const templates = await templateManager.listTemplates();
-        console.log(pc.cyan(`\n✨ Available Templates:\n`));
-        templates.forEach((t) => {
-            const icons = {
-                "saas": "🏢",
-                "landing-api": "🚀",
-                "realtime": "💬",
-            };
-            console.log(pc.white(`  ${icons[t] || "📦"}  ${pc.bold(t)}`));
-        });
-        console.log();
+        if (options.details) {
+            const templates = await templateManager.listTemplatesWithMetadata();
+            console.log(pc.bold(pc.cyan(`\n✨ Available AgentForge Templates:\n`)));
+            templates.forEach((t) => {
+                console.log(`  ${t.icon} ${pc.bold(pc.white(t.displayName))} (${pc.cyan(t.name)})`);
+                console.log(`     ${pc.dim("Description:")} ${t.description}`);
+                console.log(`     ${pc.dim("Tech Stack:")}  ${t.stack.join(", ")}`);
+                console.log(`     ${pc.dim("Ports:")}       Frontend: ${t.ports.frontend} | Backend: ${t.ports.backend}\n`);
+            });
+        }
+        else {
+            const templates = await templateManager.listTemplates();
+            console.log(pc.cyan(`\n✨ Available Templates:\n`));
+            templates.forEach((t) => {
+                const icons = {
+                    saas: "🏢",
+                    "landing-api": "🚀",
+                    realtime: "💬",
+                };
+                console.log(pc.white(`  ${icons[t] || "📦"}  ${pc.bold(t)}`));
+            });
+            console.log(pc.dim(`\nTip: Run 'agentforge list --details' or 'agentforge info <template>' for stack specs.\n`));
+        }
     }
     catch (err) {
         await handleCliError("list templates", err);
+    }
+});
+// ─────────────────────────────────────
+// agentforge info
+// ─────────────────────────────────────
+program
+    .command("info <template>")
+    .description("View architectural specifications and tech stack for a specific template.")
+    .action(async (template) => {
+    try {
+        const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
+        const cli = new CLIController();
+        await cli.handleInfoCommand(template);
+    }
+    catch (err) {
+        await handleCliError("info", err);
+    }
+});
+// ─────────────────────────────────────
+// agentforge doctor
+// ─────────────────────────────────────
+program
+    .command("doctor")
+    .description("Run developer environment health checks (Node, Git, Docker, Compose, Ports).")
+    .action(async () => {
+    try {
+        const { CLIController } = await Promise.resolve().then(() => __importStar(require("./CLIController")));
+        const cli = new CLIController();
+        await cli.handleDoctorCommand();
+    }
+    catch (err) {
+        await handleCliError("doctor", err);
     }
 });
 // ─────────────────────────────────────
@@ -156,7 +210,7 @@ program
     .action(async (targetPath) => {
     try {
         const [{ PreviewServer }] = await Promise.all([
-            Promise.resolve().then(() => __importStar(require("../preview-server/PreviewServer")))
+            Promise.resolve().then(() => __importStar(require("../preview-server/PreviewServer"))),
         ]);
         const preview = new PreviewServer();
         await preview.start(targetPath);

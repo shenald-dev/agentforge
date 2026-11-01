@@ -74,4 +74,25 @@ describe("TemplateManager", () => {
             "Security Exception: Path traversal attempt blocked for template '../../package.json'"
         );
     });
+
+    it("should retrieve rich metadata for known templates", async () => {
+        const saasMeta = await manager.getTemplateMetadata("saas");
+        expect(saasMeta).not.toBeNull();
+        expect(saasMeta?.name).toBe("saas");
+        expect(saasMeta?.displayName).toBe("Full-Stack SaaS Platform");
+        expect(saasMeta?.stack).toContain("FastAPI");
+        expect(saasMeta?.ports.backend).toBe(8000);
+
+        const nullMeta = await manager.getTemplateMetadata("unknown-xyz");
+        expect(nullMeta).toBeNull();
+    });
+
+    it("should list all templates with metadata", async () => {
+        const list = await manager.listTemplatesWithMetadata();
+        expect(list.length).toBeGreaterThanOrEqual(3);
+        const names = list.map((item) => item.name);
+        expect(names).toContain("saas");
+        expect(names).toContain("landing-api");
+        expect(names).toContain("realtime");
+    });
 });

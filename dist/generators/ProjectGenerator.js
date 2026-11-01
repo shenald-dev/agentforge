@@ -56,56 +56,85 @@ class ProjectGenerator {
      * Generates a new project from a template, replacing handlebar tokens concurrently.
      */
     async generate(options) {
-        const { templatePath, outputPath } = options;
+        const { templatePath, outputPath, dryRun = false } = options;
         // Sanitize context variables to prevent template injection vulnerabilities
         const sanitizedContext = {
             ...options,
             projectName: this.sanitize(options.projectName),
             idea: this.sanitize(options.idea),
         };
-        // 1. Create target output directory
-        await fs.mkdir(outputPath, { recursive: true });
         const normalizedBase = path.resolve(outputPath);
-        // 2. Recursively copy and parse concurrently
-        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, sanitizedContext);
+        if (!dryRun) {
+            await fs.mkdir(outputPath, { recursive: true });
+        }
+        const generatedFiles = [];
+        // Recursively copy and parse concurrently
+        await this.copyAndParseDir(templatePath, normalizedBase, normalizedBase, sanitizedContext, dryRun, generatedFiles);
+        return {
+            outputPath: normalizedBase,
+            files: generatedFiles,
+            totalFiles: generatedFiles.length,
+            dryRun,
+        };
     }
-    async copyAndParseDir(sourceDir, normalizedDestDir, normalizedBase, context) {
+    async copyAndParseDir(sourceDir, normalizedDestDir, normalizedBase, context, dryRun, generatedFiles) {
         const entries = await fs.readdir(sourceDir, { withFileTypes: true });
-        // Optimization: Process all file and directory entries concurrently
-        // instead of sequentially to significantly reduce I/O wait times.
         const operations = entries.map(async (entry) => {
             const srcPath = path.join(sourceDir, entry.name);
-            const destName = entry.name.endsWith(".hbs") ? entry.name.slice(0, -4) : entry.name;
+            const isHbs = entry.name.endsWith(".hbs") && entry.name.length > 4;
+            const destName = isHbs ? entry.name.slice(0, -4) : entry.name;
             const normalizedDestPath = path.join(normalizedDestDir, destName);
-            // Double check file-level traversal
+            // Path traversal security verification
             const relativePath = path.relative(normalizedBase, normalizedDestPath);
-            if (relativePath === ".." || relativePath.startsWith(".." + path.sep) || path.isAbsolute(relativePath)) {
+            if (relativePath === ".." ||
+                relativePath.startsWith(".." + path.sep) ||
+                path.isAbsolute(relativePath)) {
                 throw new Error(`Security Exception: Path traversal attempt blocked for file ${entry.name}`);
             }
             if (entry.isDirectory()) {
-                // Create target directory and recurse
-                await fs.mkdir(normalizedDestPath, { recursive: true });
-                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context);
+                if (!dryRun) {
+                    await fs.mkdir(normalizedDestPath, { recursive: true });
+                }
+                return this.copyAndParseDir(srcPath, normalizedDestPath, normalizedBase, context, dryRun, generatedFiles);
             }
             else if (entry.isFile()) {
-                if (entry.name.endsWith(".hbs")) {
+                if (isHbs) {
                     if (!this.handlebarsModulePromise) {
                         this.handlebarsModulePromise = Promise.resolve().then(() => __importStar(require("handlebars"))).then((h) => (h.default || h));
                     }
                     const hbs = await this.handlebarsModulePromise;
-                    // Read, compile Handlebars, and write
                     const content = await fs.readFile(srcPath, "utf-8");
                     const template = hbs.compile(content, { noEscape: true });
                     const rendered = template(context);
-                    return fs.writeFile(normalizedDestPath, rendered, "utf-8");
+                    generatedFiles.push({
+                        relativePath: relativePath.replace(/\\/g, "/"),
+                        isTemplate: true,
+                        size: Buffer.byteLength(rendered, "utf-8"),
+                    });
+                    if (!dryRun) {
+                        await fs.writeFile(normalizedDestPath, rendered, "utf-8");
+                    }
                 }
                 else {
-                    // Standard copy (images, lockfiles, etc)
-                    return fs.copyFile(srcPath, normalizedDestPath);
+                    let size;
+                    try {
+                        const stats = await fs.stat(srcPath);
+                        size = stats?.size;
+                    }
+                    catch {
+                        // Optional telemetry in mock or test environments
+                    }
+                    generatedFiles.push({
+                        relativePath: relativePath.replace(/\\/g, "/"),
+                        isTemplate: false,
+                        size,
+                    });
+                    if (!dryRun) {
+                        await fs.copyFile(srcPath, normalizedDestPath);
+                    }
                 }
             }
         });
-        // Await all file operations concurrently
         await Promise.all(operations);
     }
 }

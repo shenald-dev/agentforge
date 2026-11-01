@@ -33,17 +33,49 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TemplateManager = void 0;
+exports.TemplateManager = exports.KNOWN_TEMPLATES = void 0;
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
+exports.KNOWN_TEMPLATES = {
+    saas: {
+        name: "saas",
+        displayName: "Full-Stack SaaS Platform",
+        description: "Next.js 14 TypeScript frontend, FastAPI Python backend, and containerized Docker setup.",
+        category: "Enterprise SaaS",
+        stack: ["Next.js 14", "FastAPI", "Python 3.11", "Tailwind CSS", "Docker Compose"],
+        ports: { frontend: 3000, backend: 8000 },
+        icon: "🏢",
+    },
+    "landing-api": {
+        name: "landing-api",
+        displayName: "Landing Page + Node.js API",
+        description: "High-performance Next.js 14 landing page paired with an Express/TypeScript REST service.",
+        category: "Web & API",
+        stack: ["Next.js 14", "Express", "TypeScript", "Tailwind CSS", "Docker Compose"],
+        ports: { frontend: 3000, backend: 8000 },
+        icon: "🚀",
+    },
+    realtime: {
+        name: "realtime",
+        displayName: "Real-Time Collaborative App",
+        description: "Next.js 14 frontend with Socket.io real-time WebSocket backend for live updates.",
+        category: "Real-Time & Sync",
+        stack: ["Next.js 14", "Socket.io", "TypeScript", "Node.js", "Tailwind CSS", "Docker Compose"],
+        ports: { frontend: 3000, backend: 8000 },
+        icon: "💬",
+    },
+};
 /**
- * Validates and retrieves the absolute path of a requested template.
+ * Validates, retrieves, and provides metadata for scaffold templates.
  */
 class TemplateManager {
     templatesDir;
-    constructor() {
-        this.templatesDir = path.resolve(__dirname, "../../templates");
+    constructor(customTemplatesDir) {
+        this.templatesDir = customTemplatesDir || path.resolve(__dirname, "../../templates");
     }
+    /**
+     * Returns list of template directory names.
+     */
     async listTemplates() {
         try {
             const dirents = await fs.readdir(this.templatesDir, {
@@ -59,6 +91,40 @@ class TemplateManager {
             throw new Error(`Failed to read templates directory: ${err instanceof Error ? err.message : String(err)}`);
         }
     }
+    /**
+     * Returns detailed metadata for all available templates.
+     */
+    async listTemplatesWithMetadata() {
+        const names = await this.listTemplates();
+        return names.map((name) => this.getMetadataForTemplate(name));
+    }
+    /**
+     * Retrieves metadata for a specific template name.
+     */
+    async getTemplateMetadata(templateName) {
+        const templates = await this.listTemplates();
+        if (!templates.includes(templateName)) {
+            return null;
+        }
+        return this.getMetadataForTemplate(templateName);
+    }
+    getMetadataForTemplate(name) {
+        if (exports.KNOWN_TEMPLATES[name]) {
+            return exports.KNOWN_TEMPLATES[name];
+        }
+        return {
+            name,
+            displayName: name.charAt(0).toUpperCase() + name.slice(1),
+            description: `Custom ${name} application template.`,
+            category: "Custom",
+            stack: ["Next.js", "Docker Compose"],
+            ports: { frontend: 3000, backend: 8000 },
+            icon: "📦",
+        };
+    }
+    /**
+     * Resolves and validates the absolute path of a requested template.
+     */
     async getTemplatePath(templateName) {
         if (!templateName || !templateName.trim()) {
             throw new Error(`Template '${templateName}' does not exist.`);
