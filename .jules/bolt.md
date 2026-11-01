@@ -259,3 +259,11 @@ CLI commands (e.g., in `src/cli/index.ts`) must explicitly catch runtime errors 
 
 Action:
 Always wrap operations that can fail in CLI commands in `try/catch` blocks. Handle the error by logging it to the user cleanly and explicitly calling `process.exit(1)`.
+
+## 2026-11-01 — Centralize CLI Error Handling
+
+Learning:
+When multiple CLI commands share the exact same error handling logic (e.g., dynamically importing `picocolors` inside a catch block to format error messages, then exiting with code 1), duplicating this logic across every command increases technical debt and introduces the risk of secondary unhandled promise rejections if the inner import fails.
+
+Action:
+Abstract shared CLI error handling logic into a reusable helper function (e.g., `handleCliError`) that safely attempts to load UI formatters in a `try/catch` and falls back gracefully to a standard `console.error` before explicitly terminating with `process.exit(1)`.
