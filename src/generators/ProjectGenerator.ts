@@ -1,7 +1,7 @@
 import * as fs from "fs/promises";
 import * as path from "path";
 
-export interface GenerateOptions {
+interface GenerateOptions {
     projectName: string;
     idea: string;
     templatePath: string;

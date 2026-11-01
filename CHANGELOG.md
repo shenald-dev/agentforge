@@ -200,3 +200,6 @@
 
 * **[Lifecycle]:** Assessed codebase and verified structural soundness. Fixed `jest` missing types. Pruned nothing as there is no dead code.
 * **[Dependencies]:** Safely bumped minor/patch versions for `@clack/prompts` and `ts-jest`.
+
+## [Unreleased]
+**[Pruned]:** Removed unused `export` keyword from `GenerateOptions` interface in `ProjectGenerator.ts`.
