@@ -11,7 +11,10 @@
 - **Adaptive Docker Compose Orchestration:** Upgraded PreviewServer to detect both Docker Compose v2 plugin (docker compose) and standalone binary (docker-compose) with leak-free signal management.
 - **Test Suite Expansion:** Expanded test suite to 10 suites and 54 tests with 100% pass rate.
 
+
 ## [Unreleased]
+**[Fixed]:** Fixed test failures in `SystemDoctor.test.ts` by properly mocking `child_process.exec` with promisify support.
+
 
 - **[Fixed]:** Disallowed empty, whitespace, and dot template names in TemplateManager.getTemplatePath to prevent boundary bypass to root templates directory.
 
