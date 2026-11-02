@@ -1,5 +1,22 @@
-import { SystemDoctor } from "../src/diagnostics/SystemDoctor";
 import * as net from "net";
+import { exec } from "child_process";
+import * as util from "util";
+
+jest.mock("child_process", () => {
+  const custom = Symbol.for("nodejs.util.promisify.custom");
+  const mockExec = jest.fn();
+  (mockExec as any)[custom] = async (cmd: string) => {
+    if (cmd === "git --version") return { stdout: "git version 2.40.0", stderr: "" };
+    if (cmd === "docker --version") return { stdout: "Docker version 24.0.0", stderr: "" };
+    if (cmd === "docker info") return { stdout: "Containers: 0", stderr: "" };
+    if (cmd === "docker compose version") return { stdout: "Docker Compose version v2.18.0", stderr: "" };
+    if (cmd === "docker-compose --version") return { stdout: "docker-compose version 1.29.2", stderr: "" };
+    return { stdout: "", stderr: "" };
+  };
+  return { exec: mockExec };
+});
+
+import { SystemDoctor } from "../src/diagnostics/SystemDoctor";
 
 jest.mock("../src/utils/config", () => ({
   ConfigManager: jest.fn().mockImplementation(() => ({
