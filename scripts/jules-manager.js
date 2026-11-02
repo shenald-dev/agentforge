@@ -65,13 +65,19 @@ class JulesManager {
         method: method,
         headers: headers
       }, res => {
-        let data = '';
-        res.on('data', chunk => data += chunk);
+        const chunks = [];
+        let totalLen = 0;
+        res.on('data', chunk => {
+          chunks.push(chunk);
+          totalLen += chunk.length;
+        });
         res.on('end', () => {
           try {
-            resolve({ status: res.statusCode, data: JSON.parse(data) });
+            const buf = Buffer.concat(chunks, totalLen);
+            const str = buf.toString('utf8');
+            resolve({ status: res.statusCode, data: JSON.parse(str) });
           } catch (e) {
-            resolve({ status: res.statusCode, raw: data });
+            resolve({ status: res.statusCode, raw: e.message });
           }
         });
       });
@@ -151,7 +157,7 @@ class JulesManager {
   /**
    * Fetches all activity records with pagination support (up to maxPages).
    */
-  async getActivities(sessionId, maxPages = 30) {
+  async getActivities(sessionId, maxPages = 10) {
     const cleanId = sessionId.replace('sessions/', '');
     let allActivities = [];
     let pageToken = null;
