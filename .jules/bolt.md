@@ -267,3 +267,11 @@ When multiple CLI commands share the exact same error handling logic (e.g., dyna
 
 Action:
 Abstract shared CLI error handling logic into a reusable helper function (e.g., `handleCliError`) that safely attempts to load UI formatters in a `try/catch` and falls back gracefully to a standard `console.error` before explicitly terminating with `process.exit(1)`.
+
+## 2026-11-02 — Jest Mocking for `util.promisify(child_process.exec)`
+
+Learning:
+When mocking `child_process.exec` in Jest for code that relies on `util.promisify(exec)`, providing a standard callback mock (e.g., `callback(null, stdout, stderr)`) causes the resolved Promise to drop the stderr value and only return the first argument (stdout). To correctly replicate Node.js behavior (which returns an object `{ stdout, stderr }`), a custom promisify handler must be attached to the mock function via `[util.promisify.custom]`.
+
+Action:
+Always attach `[util.promisify.custom] = async (cmd) => ({ stdout: '...', stderr: '...' })` to custom `child_process.exec` mocks in Jest to ensure `execAsync` behaves consistently with the native Node.js API and prevents silent type errors when tests depend on the structured response format.

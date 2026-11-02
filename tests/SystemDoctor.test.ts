@@ -1,6 +1,31 @@
 import { SystemDoctor } from "../src/diagnostics/SystemDoctor";
 import * as net from "net";
 
+jest.mock("child_process", () => {
+  const util = require("util");
+
+  const mockedExec: any = jest.fn((cmd, options, callback) => {
+    if (typeof options === "function") {
+      callback = options;
+    }
+    if (cmd.includes("git --version")) return callback(null, "git version 2.39.2\n", "");
+    if (cmd.includes("docker --version")) return callback(null, "Docker version 24.0.2\n", "");
+    if (cmd.includes("docker info")) return callback(null, "Server Version: 24.0.2\n", "");
+    if (cmd.includes("docker compose version")) return callback(null, "Docker Compose version v2.18.1\n", "");
+    return callback(new Error("Command failed"), "", "Command failed");
+  });
+
+  mockedExec[util.promisify.custom] = async (cmd: any) => {
+    if (cmd.includes("git --version")) return { stdout: "git version 2.39.2\n", stderr: "" };
+    if (cmd.includes("docker --version")) return { stdout: "Docker version 24.0.2\n", stderr: "" };
+    if (cmd.includes("docker info")) return { stdout: "Server Version: 24.0.2\n", stderr: "" };
+    if (cmd.includes("docker compose version")) return { stdout: "Docker Compose version v2.18.1\n", stderr: "" };
+    throw new Error("Command failed");
+  };
+
+  return { exec: mockedExec };
+});
+
 jest.mock("../src/utils/config", () => ({
   ConfigManager: jest.fn().mockImplementation(() => ({
     getApiKey: jest.fn().mockResolvedValue("sk-or-v1-abcdef1234567890"),
