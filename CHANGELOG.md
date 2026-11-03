@@ -223,3 +223,4 @@
 
 ## [Unreleased]
 **[Pruned]:** Removed unused `export` keyword from `GenerateOptions` interface in `ProjectGenerator.ts`.
+**[Pruned]:** Removed unused `export` keywords from internal interfaces in SystemDoctor, ArchitecturePlanner, and ProjectGenerator.
