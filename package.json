@@ -29,6 +29,21 @@
   ],
   "author": "shenald-dev",
   "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shenald-dev/agentforge.git"
+  },
+  "homepage": "https://github.com/shenald-dev/agentforge#readme",
+  "bugs": {
+    "url": "https://github.com/shenald-dev/agentforge/issues"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "assets",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@clack/prompts": "^1.5.0",
     "@langchain/core": "^1.1.48",
