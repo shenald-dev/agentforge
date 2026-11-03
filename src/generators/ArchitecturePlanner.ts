@@ -4,7 +4,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ConfigManager } from "../utils/config";
 
-export interface ArchitecturePlanOptions {
+interface ArchitecturePlanOptions {
   projectName: string;
   idea: string;
   template: string;
