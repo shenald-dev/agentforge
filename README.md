@@ -10,6 +10,7 @@
   <br />
   <br />
 
+  [![npm version](https://img.shields.io/npm/v/@shenald/agentforge.svg?style=for-the-badge&color=00d4ff&labelColor=0d1117)](https://www.npmjs.com/package/@shenald/agentforge)
   [![TypeScript](https://badgen.net/badge/icon/typescript?icon=typescript&label)](https://typescriptlang.org)
   [![Version: 3.0.0](https://img.shields.io/badge/Version-3.0.0-emerald.svg)](package.json)
   [![Vibe](https://badgen.net/badge/vibe/coding/magenta)](https://github.com/shenald-dev)
@@ -102,19 +103,19 @@ Ensure the following tools are installed:
 
 Verify your environment anytime by running:
 ```bash
-npx agentforge doctor
+npx @shenald/agentforge doctor
 ```
 
 ### Install AgentForge
 
 Install globally via npm:
 ```bash
-npm install -g agentforge
+npm install -g @shenald/agentforge
 ```
 
 Or execute directly with `npx`:
 ```bash
-npx agentforge create "A developer productivity dashboard"
+npx @shenald/agentforge create "A developer productivity dashboard"
 ```
 
 ---
