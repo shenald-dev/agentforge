@@ -2,7 +2,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import type * as Handlebars from "handlebars";
 
-export interface GenerateOptions {
+interface GenerateOptions {
   projectName: string;
   idea: string;
   templatePath: string;
@@ -11,13 +11,13 @@ export interface GenerateOptions {
   force?: boolean;
 }
 
-export interface GeneratedFile {
+interface GeneratedFile {
   relativePath: string;
   isTemplate: boolean;
   size?: number;
 }
 
-export interface GenerateResult {
+interface GenerateResult {
   outputPath: string;
   files: GeneratedFile[];
   totalFiles: number;
