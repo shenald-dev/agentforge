@@ -6,7 +6,7 @@ import { ConfigManager } from "../utils/config";
 
 const execAsync = promisify(exec);
 
-export interface DiagnosticItem {
+interface DiagnosticItem {
   id: string;
   name: string;
   status: "ok" | "warn" | "fail";
@@ -14,7 +14,7 @@ export interface DiagnosticItem {
   recommendation?: string;
 }
 
-export interface DiagnosticReport {
+interface DiagnosticReport {
   timestamp: string;
   items: DiagnosticItem[];
   allHealthy: boolean;
