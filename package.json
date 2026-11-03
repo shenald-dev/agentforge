@@ -1,5 +1,5 @@
 {
-  "name": "agentforge",
+  "name": "@shenald/agentforge",
   "version": "3.0.0",
   "description": "Autonomous Full-Stack App Builder CLI. Scaffold containerized full-stack apps with architecture plans.",
   "main": "dist/cli/index.js",
