@@ -224,3 +224,4 @@
 ## [Unreleased]
 **[Pruned]:** Removed unused `export` keyword from `GenerateOptions` interface in `ProjectGenerator.ts`.
 **[Pruned]:** Removed unused `export` keywords from internal interfaces in SystemDoctor, ArchitecturePlanner, and ProjectGenerator.
+**[Lifecycle]:** Verified the removal of unused `export` keywords from `DiagnosticItem`, `DiagnosticReport`, `ArchitecturePlanOptions`, `GenerateOptions`, `GeneratedFile`, and `GenerateResult` interfaces across `SystemDoctor.ts`, `ArchitecturePlanner.ts`, and `ProjectGenerator.ts`. Confirmed build and tests are passing.
