@@ -121,8 +121,8 @@ class ProjectGenerator {
                         const stats = await fs.stat(srcPath);
                         size = stats?.size;
                     }
-                    catch {
-                        // Optional telemetry in mock or test environments
+                    catch (_) {
+                        /* ignore - Optional telemetry in mock or test environments */
                     }
                     generatedFiles.push({
                         relativePath: relativePath.replace(/\\/g, "/"),
