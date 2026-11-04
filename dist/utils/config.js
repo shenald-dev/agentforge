@@ -63,7 +63,7 @@ class ConfigManager {
                     console.warn("Failed to load config: Invalid JSON format in config file");
                 }
                 else {
-                    console.warn(`Failed to load config: ${error.message}`);
+                    console.warn(`Failed to load config: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
             ConfigManager.cachedConfig = {};

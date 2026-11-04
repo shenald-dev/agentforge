@@ -28,14 +28,14 @@ export class ConfigManager {
       const data = await fs.readFile(this.configPath, "utf-8");
       ConfigManager.cachedConfig = JSON.parse(data);
       return ConfigManager.cachedConfig as AgentForgeConfig;
-    } catch (error: any) {
-      if (error.code !== "ENOENT") {
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         if (error instanceof SyntaxError) {
           console.warn(
             "Failed to load config: Invalid JSON format in config file",
           );
         } else {
-          console.warn(`Failed to load config: ${error.message}`);
+          console.warn(`Failed to load config: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
       ConfigManager.cachedConfig = {};

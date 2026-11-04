@@ -182,8 +182,8 @@ export class CLIController {
           const currentReadme = await fs.readFile(readmePath, "utf-8");
           const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
           await fs.writeFile(readmePath, enhancedReadme, "utf-8");
-        } catch (err: any) {
-          if (err.code === "ENOENT") {
+        } catch (err: unknown) {
+          if ((err as NodeJS.ErrnoException).code === "ENOENT") {
             p.log.warn(pc.yellow(`⚠️  README.md not found in generated project, skipping enhancement.`));
           } else {
             p.log.warn(
