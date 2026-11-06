@@ -35,9 +35,11 @@ export class CLIController {
   /**
    * Guides the user through an interactive setup process for generation.
    */
-  async promptCreationDetails(defaultIdea: string) {
+  async promptCreationDetails(defaultIdea: string, defaultName?: string) {
     console.clear();
-    p.intro(`${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`);
+    p.intro(
+      `${pc.bgCyan(pc.black(" ✨ AgentForge Interactive Scaffolding "))}`,
+    );
 
     const templates = await this.templateManager.listTemplates();
 
@@ -47,7 +49,8 @@ export class CLIController {
           p.text({
             message: "What is the name of your new application?",
             placeholder: "my-vibe-app",
-            defaultValue: "my-vibe-app",
+            defaultValue: defaultName || "my-vibe-app",
+            initialValue: defaultName,
             validate: (value?: string) => {
               if (!value) return "Please enter a name.";
               if (!/^[a-z0-9-]+$/.test(value))
@@ -60,8 +63,10 @@ export class CLIController {
             placeholder: defaultIdea || "A stunning new web app.",
             defaultValue: defaultIdea || "A stunning new web app.",
             validate: (value?: string) => {
-              if (!value || value.trim().length === 0) return "Please enter an idea.";
-              if (value.length > 200) return "Idea is too long (maximum 200 characters).";
+              if (!value || value.trim().length === 0)
+                return "Please enter an idea.";
+              if (value.length > 200)
+                return "Idea is too long (maximum 200 characters).";
               if (!/^[a-zA-Z0-9\s.,!?'-]+$/.test(value))
                 return "Idea may only include letters, numbers, spaces, and basic punctuation.";
             },
@@ -93,14 +98,18 @@ export class CLIController {
       // Non-interactive / scripted flow if required options are provided
       if (options.name && options.template) {
         if (!/^[a-z0-9-]+$/.test(options.name)) {
-          throw new Error("Project name may only include lowercase letters, numbers, and dashes.");
+          throw new Error(
+            "Project name may only include lowercase letters, numbers, and dashes.",
+          );
         }
         const effectiveIdea = idea || "A stunning new web app.";
         if (effectiveIdea.length > 200) {
           throw new Error("Idea is too long (maximum 200 characters).");
         }
         if (!/^[a-zA-Z0-9\s.,!?'-]+$/.test(effectiveIdea)) {
-          throw new Error("Idea may only include letters, numbers, spaces, and basic punctuation.");
+          throw new Error(
+            "Idea may only include letters, numbers, spaces, and basic punctuation.",
+          );
         }
         answers = {
           projectName: options.name,
@@ -108,10 +117,12 @@ export class CLIController {
           template: options.template,
         };
       } else {
-        answers = (await this.promptCreationDetails(idea)) as any;
+        answers = (await this.promptCreationDetails(idea, options.name)) as any;
       }
 
-      const templatePath = await this.templateManager.getTemplatePath(answers.template);
+      const templatePath = await this.templateManager.getTemplatePath(
+        answers.template,
+      );
       const outputPath = options.output
         ? path.resolve(process.cwd(), options.output)
         : path.resolve(process.cwd(), answers.projectName);
@@ -129,14 +140,22 @@ export class CLIController {
         console.log(pc.bold(pc.cyan(`\n🔍 AgentForge Dry Run Preview:`)));
         console.log(pc.gray(`Output Location: ${outputPath}`));
         console.log(pc.gray(`Template: ${answers.template}\n`));
-        console.log(pc.yellow(`Files that would be generated (${dryResult.totalFiles} files):`));
+        console.log(
+          pc.yellow(
+            `Files that would be generated (${dryResult.totalFiles} files):`,
+          ),
+        );
 
         dryResult.files.forEach((f) => {
-          const badge = f.isTemplate ? pc.magenta("[compiled]") : pc.dim("[static]");
+          const badge = f.isTemplate
+            ? pc.magenta("[compiled]")
+            : pc.dim("[static]");
           console.log(`  ${pc.green("+")} ${f.relativePath} ${badge}`);
         });
 
-        console.log(pc.dim("\nDry run complete. No files were written to disk.\n"));
+        console.log(
+          pc.dim("\nDry run complete. No files were written to disk.\n"),
+        );
         return;
       }
 
@@ -151,12 +170,18 @@ export class CLIController {
         force: options.force,
       });
 
-      s.stop(pc.green(`✨ Project scaffolded successfully! (${genResult.totalFiles} files)`));
+      s.stop(
+        pc.green(
+          `✨ Project scaffolded successfully! (${genResult.totalFiles} files)`,
+        ),
+      );
 
       // ── Architectural Specification Generation ──
       if (options.plan !== false) {
         const planSpinner = p.spinner();
-        planSpinner.start("Generating system architecture blueprint (ARCHITECTURE.md)...");
+        planSpinner.start(
+          "Generating system architecture blueprint (ARCHITECTURE.md)...",
+        );
         try {
           await this.planner.generateArchitecturePlan({
             projectName: answers.projectName,
@@ -165,29 +190,46 @@ export class CLIController {
             outputPath: outputPath,
             enableLLM: options.llm !== false,
           });
-          planSpinner.stop(pc.green("📐 System architecture blueprint generated (ARCHITECTURE.md)!"));
+          planSpinner.stop(
+            pc.green(
+              "📐 System architecture blueprint generated (ARCHITECTURE.md)!",
+            ),
+          );
         } catch (err: unknown) {
           planSpinner.stop(
-            pc.yellow(`⚠️ Architecture plan fallback used: ${err instanceof Error ? err.message : String(err)}`),
+            pc.yellow(
+              `⚠️ Architecture plan fallback used: ${err instanceof Error ? err.message : String(err)}`,
+            ),
           );
         }
       }
 
       // ── Optional LLM Enhancement ──
       if (options?.llm !== false) {
-        const [{ LLMOptimizer }] = await Promise.all([import("../integrations/LLMOptimizer")]);
+        const [{ LLMOptimizer }] = await Promise.all([
+          import("../integrations/LLMOptimizer"),
+        ]);
         const optimizer = new LLMOptimizer();
         const readmePath = path.join(outputPath, "README.md");
         try {
           const currentReadme = await fs.readFile(readmePath, "utf-8");
-          const enhancedReadme = await optimizer.enhanceReadme(answers.idea, currentReadme);
+          const enhancedReadme = await optimizer.enhanceReadme(
+            answers.idea,
+            currentReadme,
+          );
           await fs.writeFile(readmePath, enhancedReadme, "utf-8");
         } catch (err: unknown) {
           if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-            p.log.warn(pc.yellow(`⚠️  README.md not found in generated project, skipping enhancement.`));
+            p.log.warn(
+              pc.yellow(
+                `⚠️  README.md not found in generated project, skipping enhancement.`,
+              ),
+            );
           } else {
             p.log.warn(
-              pc.yellow(`⚠️  Failed to enhance README: ${err instanceof Error ? err.message : String(err)}`),
+              pc.yellow(
+                `⚠️  Failed to enhance README: ${err instanceof Error ? err.message : String(err)}`,
+              ),
             );
           }
         }
@@ -197,7 +239,9 @@ export class CLIController {
 
       // ── Post-generation npm install ──
       if (options.skipInstall) {
-        p.log.warn(pc.gray("⏭  Dependency installation skipped (--skip-install flag)"));
+        p.log.warn(
+          pc.gray("⏭  Dependency installation skipped (--skip-install flag)"),
+        );
       } else {
         const installSpinner = p.spinner();
         installSpinner.start("Installing dependencies in generated project...");
@@ -214,13 +258,17 @@ export class CLIController {
               resolve();
             } else {
               installSpinner.stop(
-                pc.yellow("npm install returned non-zero. You may need to install dependencies manually."),
+                pc.yellow(
+                  "npm install returned non-zero. You may need to install dependencies manually.",
+                ),
               );
               resolve(); // Don't block on install failure
             }
           });
           install.on("error", () => {
-            installSpinner.stop(pc.yellow("Could not run npm install automatically."));
+            installSpinner.stop(
+              pc.yellow("Could not run npm install automatically."),
+            );
             resolve();
           });
         });
@@ -236,7 +284,11 @@ export class CLIController {
       p.log.step(pc.cyan(`$ cd ${options.output || answers.projectName}`));
       p.log.step(pc.cyan(`$ agentforge preview .`));
     } catch (err: unknown) {
-      p.cancel(pc.red(`\n✖ Generation failed: ${err instanceof Error ? err.message : String(err)}`));
+      p.cancel(
+        pc.red(
+          `\n✖ Generation failed: ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
       process.exit(1);
     }
   }
@@ -251,11 +303,19 @@ export class CLIController {
       process.exit(1);
     }
 
-    console.log(pc.bold(pc.cyan(`\n${meta.icon} Template: ${meta.displayName} (${meta.name})\n`)));
+    console.log(
+      pc.bold(
+        pc.cyan(
+          `\n${meta.icon} Template: ${meta.displayName} (${meta.name})\n`,
+        ),
+      ),
+    );
     console.log(`  ${pc.bold("Description:")}  ${meta.description}`);
     console.log(`  ${pc.bold("Category:")}     ${meta.category}`);
     console.log(`  ${pc.bold("Tech Stack:")}   ${meta.stack.join(", ")}`);
-    console.log(`  ${pc.bold("Default Ports:")} Frontend: http://localhost:${meta.ports.frontend} | Backend: http://localhost:${meta.ports.backend}`);
+    console.log(
+      `  ${pc.bold("Default Ports:")} Frontend: http://localhost:${meta.ports.frontend} | Backend: http://localhost:${meta.ports.backend}`,
+    );
     console.log();
   }
 
