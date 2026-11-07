@@ -18,6 +18,7 @@
 
 const { checkRepoHealth } = require('./audit-all-repos');
 const { JulesManager } = require('./jules-manager');
+const { syncAllLocalRepos } = require('./sync-all-local-repos');
 const fs = require('fs');
 
 async function runAutonomousSentinel() {
@@ -43,11 +44,19 @@ async function runAutonomousSentinel() {
     console.error('⚠️ Jules Autonomous Manager encountered an error:', err.message);
   }
 
-  // Phase 3: Export GitHub Actions Step Summary (if running in CI)
+  // Phase 3: Synchronize Local Repositories on D:\
+  console.log('\n--- PHASE 3: LOCAL REPOSITORY SYNCHRONIZATION (D:\\) ---');
+  try {
+    syncAllLocalRepos();
+  } catch (err) {
+    console.error('⚠️ Local repository sync encountered an error:', err.message);
+  }
+
+  // Phase 4: Export GitHub Actions Step Summary (if running in CI)
   if (process.env.GITHUB_STEP_SUMMARY) {
     let summaryMd = `# 🛡️ Autonomous Sentinel Cycle Report\n\n`;
     summaryMd += `### 📦 GitHub Portfolio Health & Issue Investigation\n`;
-    summaryMd += `- **Total Repositories Audited**: ${repoAudit.totalRepos || 18}\n`;
+    summaryMd += `- **Total Repositories Audited**: ${repoAudit.totalRepos || 21}\n`;
     summaryMd += `- **Open PRs**: ${repoAudit.totalOpenPRs}\n`;
     summaryMd += `- **Open Issues**: ${repoAudit.totalOpenIssues}\n`;
     summaryMd += `- **Failing CI Workflows**: ${repoAudit.failingWorkflows}\n`;

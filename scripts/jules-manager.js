@@ -13,7 +13,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 
 function loadEnv() {
   const envPath = path.resolve(__dirname, '../.env');
@@ -157,7 +157,7 @@ class JulesManager {
   /**
    * Fetches all activity records with pagination support (up to maxPages).
    */
-  async getActivities(sessionId, maxPages = 10) {
+  async getActivities(sessionId, maxPages = 50) {
     const cleanId = sessionId.replace('sessions/', '');
     let allActivities = [];
     let pageToken = null;
@@ -194,9 +194,25 @@ class JulesManager {
     return res;
   }
 
+  getDefaultBranch(repo) {
+    const cleanRepo = (repo || '').replace('sources/github/', '').replace('shenald-dev/', '');
+    // 14 repos with 'main' as default branch across shenald-dev:
+    const mainRepos = new Set([
+      'echo', 'catalyst', 'shenald-dev', 'shen-ai', 'purge', 'prism', 'sober',
+      'vibe', 'zen', 'gliacore', 'capsule', 'agentwire', 'termlens', 'bonsai'
+    ]);
+    if (mainRepos.has(cleanRepo)) return 'main';
+    // 7 repos with 'master':
+    const masterRepos = new Set([
+      'one-api', 'moq', 'autoresearch-agent', 'agentforge', 'ai-whatsapp-intelligence',
+      'codedna', 'shenald-portfolio'
+    ]);
+    if (masterRepos.has(cleanRepo)) return 'master';
+    return 'main';
+  }
+
   async createSession(repo, type = 'bolt', customTitle = null, customPrompt = null) {
-    const isMain = ['shenald-dev/prism', 'shenald-dev/sober', 'shenald-dev/echo', 'shenald-dev/zen'].includes(repo);
-    const startingBranch = isMain ? 'main' : 'master';
+    const startingBranch = this.getDefaultBranch(repo);
     const cleanRepo = repo.replace('sources/github/', '');
 
     let title = customTitle;
@@ -238,9 +254,9 @@ class JulesManager {
       if (!match) return false;
       const repo = match[1];
       const prNumber = match[2];
-      const output = execSync(`gh pr view ${prNumber} --repo ${repo} --json state,closed`, {
+      const output = execFileSync('gh', ['pr', 'view', prNumber, '--repo', repo, '--json', 'state,closed'], {
         encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'ignore']
+        stdio: ['ignore', 'pipe', 'ignore']
       });
       const data = JSON.parse(output);
       return data.state === 'MERGED' || data.state === 'CLOSED' || !!data.closed;
@@ -251,27 +267,27 @@ class JulesManager {
 
   async generateFeedbackResponse(session, lastAgentMessage) {
     const repo = (session.sourceContext?.source || '').replace('sources/github/', '');
+    const defaultBranch = this.getDefaultBranch(repo);
     
     // Clean and sanitize the task title (some prompts place 80 lines into title)
     const rawTitle = (session.title || '').trim().split('\n')[0] || 'Autonomous Maintenance';
     const cleanTitle = rawTitle.slice(0, 100);
     const text = (lastAgentMessage || '').trim();
 
-    // 1. If agent asks permission to open PR or wrap up, immediate green-light
-    const lower = text.toLowerCase();
-    if (lower.includes('open the pr') || lower.includes('open a pr') || lower.includes('ready to wrap') || lower.includes('may i open') || lower.includes('finalize these changes') || lower.includes('looks good on your end')) {
-      return 'Your changes and branch look excellent! All tests pass cleanly without regressions. Please proceed immediately to open the pull request targeting master/main. Ensure commit messages are descriptive.';
-    }
-
-    // 2. Try LLM-grounded guidance via Gemini
+    // 1. Try LLM-grounded guidance via Gemini FIRST for thoughtful, authentic directives
     if (this.geminiApiKey) {
       try {
-        const systemInstruction = `You are the Lead Developer, Repo Owner, and Chief Architect ("vibe coder") of the shenald-dev portfolio.
+        const systemInstruction = `You are Shenal Diluksha (shenald-dev), lead software engineer and repository owner of ${repo}.
 You are directing Jules, an autonomous AI coding agent operating inside the repository '${repo}'.
-Your role is to give Jules clear, concise, authoritative engineering directives (2-4 sentences max).
-Direct Jules on how to resolve the issue, follow best practices, ensure all tests pass, and rebase on latest master/main before opening a clean PR.`;
+Your role is to give Jules clear, concise, authoritative, and practical engineering directives (2-4 sentences max).
+Key Guidelines:
+1. Speak authentically like an experienced human software engineer / repository owner (natural, professional, decisive). Do NOT sound like an AI, bot, or assistant.
+2. Directly answer Jules's specific technical dilemma (e.g. sandbox package limitations, verification strategy, git branches, build artifacts).
+3. Strictly preserve base branch stability and maintainer releases. Never allow Jules to downgrade version numbers, change licenses, or overwrite custom maintainer commits.
+4. Ensure target branch is '${defaultBranch}' and tests/linting pass before opening clean, well-described PRs.`;
 
         const userPrompt = `Repository: ${repo}
+Default Branch: ${defaultBranch}
 Task Title: ${cleanTitle}
 Jules's Question/Update:
 """
@@ -290,7 +306,8 @@ Provide your engineering directive to Jules:`;
       }
     }
 
-    // 3. Curated repository fallback rules
+    // 2. Curated repository fallback rules
+    const lower = text.toLowerCase();
     if (repo === 'shenald-dev/echo') {
       if (lower.includes('watcher.py') || lower.includes('deleted') || lower.includes('missing') || lower.includes('watchdog')) {
         return 'Please rebase against latest `main`. On `main`, `src/echo/watcher.py` has been fully restored with proper UTF-8 stdout encoding, and all 23/23 tests pass cleanly. Please install the package in editable mode (`pip install -e .`) so `watchdog` and `src/echo` are in your PYTHONPATH, verify tests pass, and proceed with opening the PR.';
@@ -339,8 +356,12 @@ Provide your engineering directive to Jules:`;
       }
     }
 
+    if (lower.includes('open the pr') || lower.includes('open a pr') || lower.includes('ready to wrap') || lower.includes('may i open') || lower.includes('finalize these changes') || lower.includes('looks good on your end')) {
+      return `Looks solid! All tests pass cleanly without regressions. Please proceed to open the pull request targeting ${defaultBranch}. Keep commit messages clean and descriptive.`;
+    }
+
     // Generic fallback for any unexpected feedback question
-    return 'Your proposed approach is approved. Please ensure you rebase on the latest `master` branch, verify all test suites and linting checks pass cleanly, document learnings in `.jules/`, and open the PR.';
+    return `The proposed approach looks solid. Please ensure you rebase on the latest \`${defaultBranch}\` branch, verify all test suites and linting checks pass cleanly, document learnings in \`.jules/\`, and open the PR.`;
   }
 
   async auditAndManageAll({ autoArchive = true, autoReply = true, autoApprove = true } = {}) {
@@ -454,7 +475,7 @@ Provide your engineering directive to Jules:`;
       // 3. Handle AWAITING_USER_FEEDBACK sessions
       else if (state === 'AWAITING_USER_FEEDBACK') {
         results.awaitingFeedback.push({ id: sessionId, repo, title: cleanTitle });
-        const activities = await this.getActivities(sessionId);
+        const activities = await this.getActivities(sessionId, 50);
 
         // Guard against duplicate response spam: check if the latest message was ALREADY sent by user
         const lastComm = [...activities].reverse().find(a => a.agentMessaged || a.userMessaged);

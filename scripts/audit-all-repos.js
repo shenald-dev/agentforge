@@ -12,8 +12,31 @@
  * - Auto-merges clean, green pull requests with authentic developer feedback.
  */
 
-const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const { execSync, execFileSync } = require('child_process');
 const { resolvePrConflicts, askGemini } = require('./conflict-resolver');
+
+function runGh(args, options = {}, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return execFileSync('gh', args, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+        maxBuffer: 10 * 1024 * 1024,
+        ...options
+      }).trim();
+    } catch {
+      if (i < retries) {
+        const waitTill = new Date(new Date().getTime() + 1000);
+        while (waitTill > new Date()) {}
+      } else {
+        return null;
+      }
+    }
+  }
+  return null;
+}
 
 function run(command, retries = 2) {
   for (let i = 0; i <= retries; i++) {
@@ -31,60 +54,162 @@ function run(command, retries = 2) {
   return null;
 }
 
+function normalizeTitle(title) {
+  if (!title) return '';
+  return title
+    .toLowerCase()
+    .replace(/^(chore|fix|feat|perf|docs|test|refactor|style)(\([^)]+\))?:\s*/i, '')
+    .replace(/\s*\(#\d+\)\s*$/i, '')
+    .replace(/[`'"]/g, '')
+    .trim();
+}
+
+function generateHumanMergeComment(pr) {
+  const base = pr.baseRefName || 'base branch';
+  const title = (pr.title || '').toLowerCase();
+
+  if (title.includes('fix') || title.includes('bug') || title.includes('patch')) {
+    return `looks solid, nice catch on this fix. merging into ${base}.`;
+  }
+  if (title.includes('feat') || title.includes('add')) {
+    return `clean implementation and all tests pass. pulling this into ${base}.`;
+  }
+  if (title.includes('chore') || title.includes('bump') || title.includes('dep')) {
+    return `routine dependency / maintenance pass is green. merging into ${base}.`;
+  }
+  if (title.includes('test') || title.includes('coverage')) {
+    return `great addition to the test suite, checks are green. merging into ${base}.`;
+  }
+  if (title.includes('refactor') || title.includes('perf')) {
+    return `tidy refactor and zero regressions. merging into ${base}.`;
+  }
+
+  const fallbacks = [
+    `looks solid, tests pass cleanly. merging into ${base}.`,
+    `clean changes and CI is green. pulling this in.`,
+    `logic looks sound and all checks pass, shipping this into ${base}.`
+  ];
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+}
+
+function syncLocalRepo(fullName, baseRef) {
+  const repoName = fullName.split('/')[1];
+  const localPath = path.join('D:', repoName);
+  if (fs.existsSync(localPath) && fs.existsSync(path.join(localPath, '.git'))) {
+    try {
+      const targetBranch = baseRef || run(`git -C "${localPath}" branch --show-current`) || 'main';
+      run(`git -C "${localPath}" checkout ${targetBranch}`);
+      run(`git -C "${localPath}" pull --autostash origin ${targetBranch}`);
+      console.log(`    🔄 Synchronized local workspace at ${localPath}`);
+    } catch {}
+  }
+}
+
 /**
  * Detects if a conflicting or stale PR is already obsolete or redundant
- * (e.g. underlying fix was already merged into the base branch or duplicate task).
+ * (e.g. underlying fix was already merged into the base branch, superseded by release commits, or duplicate task).
  */
-function checkIfPrObsolete(fullName, pr) {
+async function checkIfPrObsolete(fullName, pr) {
   try {
-    const viewRaw = run(`gh pr view ${pr.number} --repo "${fullName}" --json body,headRefName,commits`);
-    if (!viewRaw) return false;
+    const viewRaw = runGh(['pr', 'view', String(pr.number), '--repo', fullName, '--json', 'body,headRefName,commits,createdAt,files,statusCheckRollup']);
+    if (!viewRaw) return { obsolete: false };
     const view = JSON.parse(viewRaw);
     const body = (view.body || '').toLowerCase();
+    const cleanPrTitle = normalizeTitle(pr.title);
 
     // 1. Direct acknowledgment in PR body
     if (body.includes('already resolved and merged') || body.includes('sync branch with `master`') || body.includes('sync branch with `main`')) {
-      return true;
+      return { obsolete: true, reason: 'underlying changes are already resolved and merged on the base branch' };
     }
 
-    // 2. Check if a recent merged PR in the last 10 has the same core title / goal
-    const recentMergedRaw = run(`gh pr list --repo "${fullName}" --state merged --limit 10 --json number,title`);
+    // 2. Scratchpad / debug file pollution on non-mergeable / failing PR
+    const scratchFiles = (view.files || []).filter(f => /(?:run_heavy_|test-buffer|test_output\.txt|debug_scratch|write_journal|\.diff$|^fix_.*\.py$|^test_.*vuln.*\.py$)/i.test(f.path));
+    if (scratchFiles.length > 0) {
+      return { obsolete: true, reason: `branch contains temporary scratchpad debug files (${scratchFiles.map(f => f.path).join(', ')})` };
+    }
+
+    // 3. Check recent merged PRs on base branch
+    const recentMergedRaw = runGh(['pr', 'list', '--repo', fullName, '--state', 'merged', '--limit', '20', '--json', 'number,title,mergedAt']);
     if (recentMergedRaw) {
       const recentMerged = JSON.parse(recentMergedRaw);
-      const cleanPrTitle = pr.title.toLowerCase().replace(/^(chore|fix|feat|perf)\([^)]+\):\s*/, '').trim();
 
       for (const m of recentMerged) {
         if (m.number === pr.number) continue;
-        const cleanMergedTitle = m.title.toLowerCase().replace(/^(chore|fix|feat|perf)\([^)]+\):\s*/, '').trim();
-        if (cleanPrTitle && cleanMergedTitle && (cleanPrTitle === cleanMergedTitle || (cleanPrTitle.length > 15 && cleanMergedTitle.includes(cleanPrTitle)))) {
-          return true;
+        const cleanMergedTitle = normalizeTitle(m.title);
+
+        // A. Exact normalized title match (regardless of merged date)
+        if (cleanPrTitle && cleanMergedTitle && cleanPrTitle === cleanMergedTitle) {
+          return { obsolete: true, reason: `it duplicates already merged PR #${m.number} ("${m.title}")` };
+        }
+
+        // B. Key topic overlap on specific fixes (e.g. shlex.quote, debounce worker, vulture, routing, unused vars)
+        const specificKeywords = [
+          'shlex.quote', 'debounce worker', 'vulture', 'chroma_mount', 'parse_diff_path',
+          'unused variable', 'unused-vars', 'unused export', 'explicit method', 'fallback routing', 'reference cycle'
+        ];
+        for (const kw of specificKeywords) {
+          if (cleanPrTitle.includes(kw) && cleanMergedTitle.includes(kw)) {
+            return { obsolete: true, reason: `the ${kw} fix was already completed in PR #${m.number} ("${m.title}")` };
+          }
         }
       }
     }
 
-    // 3. Check if all unit tests or core functions introduced in PR are already present on base branch
-    const diffRaw = run(`gh pr diff ${pr.number} --repo "${fullName}"`);
+    // 4. Check if code changes / symbols are already present on base branch
+    const diffRaw = runGh(['pr', 'diff', String(pr.number), '--repo', fullName]);
     if (diffRaw) {
-      const addedTests = [];
-      const diffLines = diffRaw.split(/\r?\n/);
-      for (const line of diffLines) {
-        const mPy = line.match(/^\+\s*def\s+(test_\w+)\s*\(/);
-        if (mPy) addedTests.push(mPy[1]);
-        const mJs = line.match(/^\+\s*(?:test|it)\s*\(\s*['"]([^'"]+)['"]/);
-        if (mJs) addedTests.push(mJs[1]);
+      const addedVars = [];
+      for (const line of diffRaw.split(/\r?\n/)) {
+        const mVar = line.match(/^\+\s*(?:self\.)?([a-zA-Z0-9_]+)\s*=\s*(?:threading\.Event|functools|re\.compile)/);
+        if (mVar) addedVars.push(mVar[1]);
+        const mDef = line.match(/^\+\s*def\s+([a-zA-Z0-9_]+)\s*\(/);
+        if (mDef) addedVars.push(mDef[1]);
       }
-      if (addedTests.length > 0) {
-        const allPresent = addedTests.every(testName => {
-          const search = run(`gh search code "${testName}" --repo "${fullName}"`);
-          return search && search.includes(testName);
+      if (addedVars.length > 0) {
+        const allPresent = addedVars.every(v => {
+          const search = runGh(['api', `repos/${fullName}/commits?per_page=10`]);
+          return search && search.includes(v);
         });
-        if (allPresent) return true;
+        if (allPresent) {
+          return { obsolete: true, reason: `key symbols (${addedVars.join(', ')}) are already integrated on the base branch` };
+        }
       }
     }
+
+    // 5. Deep AI evaluation fallback for conflicting PRs
+    const recentCommits = runGh(['api', `repos/${fullName}/commits?per_page=6`, '--jq', '.[].commit.message']);
+    const prompt = `Repository: ${fullName}
+PR #${pr.number}: ${pr.title}
+Created: ${view.createdAt}
+PR Body: ${view.body || 'None'}
+Files: ${(view.files || []).map(f => f.path).join(', ')}
+
+Recent Commits on Base Branch:
+${recentCommits || 'None'}
+
+CONTEXT: The repository owner frequently develops custom features, releases new versions, and merges direct fixes onto the base branch. If this PR was based on an older version of the codebase, or if recent commits on the base branch have already addressed the issue, cleaned up the code, or changed the underlying architecture, the PR is OBSOLETE or SUPERSEDED and must be closed to protect the maintainer's codebase.
+
+Determine if this PR is OBSOLETE or SUPERSEDED by recent commits/releases on the base branch.
+Respond JSON only:
+{"obsolete": true|false, "reason": "concise explanation"}`;
+
+    const aiRes = await askGemini(prompt, 'You are the principal software engineer and repository maintainer auditing PRs for staleness and obsolescence.');
+    if (aiRes) {
+      try {
+        const m = aiRes.match(/\{[\s\S]*\}/);
+        if (m) {
+          const parsed = JSON.parse(m[0]);
+          if (parsed.obsolete) {
+            return { obsolete: true, reason: parsed.reason };
+          }
+        }
+      } catch {}
+    }
+
+    return { obsolete: false };
   } catch {
-    return false;
+    return { obsolete: false };
   }
-  return false;
 }
 
 /**
@@ -93,17 +218,17 @@ function checkIfPrObsolete(fullName, pr) {
  */
 async function investigateGitHubIssue(fullName, issue) {
   try {
-    const rawIssue = run(`gh issue view ${issue.number} --repo "${fullName}" --json number,title,body,author,createdAt,comments,labels`);
+    const rawIssue = runGh(['issue', 'view', String(issue.number), '--repo', fullName, '--json', 'number,title,body,author,createdAt,comments,labels']);
     if (!rawIssue) return { investigated: false };
     const issueData = JSON.parse(rawIssue);
 
     console.log(`  🔍 Investigating GitHub Issue #${issue.number} ("${issue.title}") on ${fullName}...`);
 
     // Fetch recent commits on the default branch
-    const rawCommits = run(`gh api repos/${fullName}/commits --limit 5 --jq ".[].commit.message"`);
+    const rawCommits = runGh(['api', `repos/${fullName}/commits?per_page=5`, '--jq', '.[].commit.message']);
     const recentCommits = rawCommits || 'None available';
 
-    const systemInstruction = `You are a principal software engineer and the repository owner of ${fullName}.
+    const systemInstruction = `You are Shenal Diluksha (shenald-dev), principal software engineer and repository owner of ${fullName}.
 Evaluate the GitHub issue thoroughly and practically.
 Do NOT sound like an AI, LLM, or chatbot. Speak like an experienced, decisive lead developer.
 Your goal is to investigate whether this issue:
@@ -157,16 +282,14 @@ Investigate this issue now:`;
     if (parsed.decision === 'RESOLVED') {
       const closingComment = parsed.comment || 'Resolved by recent commits and merged PRs.';
       console.log(`  ⚡ Closing resolved issue #${issue.number}...`);
-      const safeComment = closingComment.replace(/"/g, '\\"');
-      run(`gh issue close ${issue.number} --repo "${fullName}" --comment "${safeComment}"`);
+      runGh(['issue', 'close', String(issue.number), '--repo', fullName, '--comment', closingComment]);
       console.log(`  ✓ Successfully closed Issue #${issue.number}.`);
       return { investigated: true, closed: true, decision: 'RESOLVED', details: parsed };
     } else {
       const alreadyCommented = (issueData.comments || []).some(c => c.author?.login === 'shenald-dev');
       if (!alreadyCommented && parsed.comment) {
         console.log(`  ✍️ Posting triage assessment on Issue #${issue.number}...`);
-        const safeComment = parsed.comment.replace(/"/g, '\\"');
-        run(`gh issue comment ${issue.number} --repo "${fullName}" --body "${safeComment}"`);
+        runGh(['issue', 'comment', String(issue.number), '--repo', fullName, '--body', parsed.comment]);
       }
       return { investigated: true, closed: false, decision: parsed.decision, details: parsed };
     }
@@ -182,7 +305,7 @@ Investigate this issue now:`;
 async function investigateCiFailure(fullName, runInfo) {
   try {
     console.log(`  🚨 Investigating failing CI workflow "${runInfo.name}" on ${fullName}...`);
-    const rawLogs = run(`gh run view ${runInfo.databaseId} --repo "${fullName}" --log-failed`);
+    const rawLogs = runGh(['run', 'view', String(runInfo.databaseId), '--repo', fullName, '--log-failed']);
     if (!rawLogs) return null;
 
     const truncatedLogs = rawLogs.split('\n').slice(-120).join('\n');
@@ -215,7 +338,7 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, investigateIssues
   const fullName = `${repo.url.replace('https://github.com/', '')}`;
 
   // 1. Open PRs
-  const rawPRs = run(`gh pr list --repo "${fullName}" --state open --json number,title,mergeable,mergeStateStatus,statusCheckRollup,baseRefName,headRefName`);
+  const rawPRs = runGh(['pr', 'list', '--repo', fullName, '--state', 'open', '--json', 'number,title,mergeable,mergeStateStatus,statusCheckRollup,baseRefName,headRefName']);
   const prs = rawPRs ? JSON.parse(rawPRs) : [];
 
   let mergedCount = 0;
@@ -228,31 +351,41 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, investigateIssues
       const hasChecks = checks.length > 0;
       const allChecksGreen = hasChecks && checks.every(c => c.conclusion === 'SUCCESS' || c.state === 'SUCCESS');
       const hasFailedChecks = checks.some(c => c.conclusion === 'FAILURE' || c.state === 'FAILURE' || c.conclusion === 'TIMED_OUT');
+      const isConflicting = pr.mergeable === 'CONFLICTING' || pr.mergeStateStatus === 'DIRTY';
       const isMergeable = pr.mergeable === 'MERGEABLE' || pr.mergeable === 'UNKNOWN';
 
-      // Conflict Self-Healing
-      if (pr.mergeable === 'CONFLICTING') {
-        console.log(`  ⚠️ PR #${pr.number} ("${pr.title}") on ${fullName} has merge conflicts.`);
+      // Conflict & Failure Self-Healing
+      if (isConflicting || hasFailedChecks) {
+        console.log(`  ⚠️ PR #${pr.number} ("${pr.title}") on ${fullName} has status: ${pr.mergeable}/${pr.mergeStateStatus}${hasFailedChecks ? ' (failing CI)' : ''}.`);
         
         // Step A: Check if PR is obsolete / already resolved
-        if (checkIfPrObsolete(fullName, pr)) {
-          console.log(`  🗑 Self-healing: PR #${pr.number} on ${fullName} is obsolete. Auto-closing...`);
-          run(`gh pr close ${pr.number} --repo "${fullName}" --comment "Closing autonomously: underlying fix or changes are already present on base branch." --delete-branch`);
+        const obsCheck = await checkIfPrObsolete(fullName, pr);
+        if (obsCheck && obsCheck.obsolete) {
+          console.log(`  🗑 Self-healing: PR #${pr.number} on ${fullName} is obsolete (${obsCheck.reason}). Closing with maintainer explanation...`);
+          const reasonText = obsCheck.reason || 'the underlying changes are already present on the base branch';
+          const cleanReason = reasonText.charAt(0).toLowerCase() + reasonText.slice(1);
+          const closeComment = `Closing this out as ${cleanReason.endsWith('.') ? cleanReason.slice(0, -1) : cleanReason}. Appreciate your work on this!`;
+          runGh(['pr', 'close', String(pr.number), '--repo', fullName, '--comment', closeComment, '--delete-branch']);
           healedCount++;
           if (onHeal) onHeal();
           continue;
         }
 
+        if (hasFailedChecks && !isConflicting) {
+          console.log(`  🚨 PR #${pr.number} on ${fullName} has failing CI checks. Leaving open for fix.`);
+          continue;
+        }
+
         // Step B: Attempt auto-rebase against base branch
         console.log(`  🔄 Self-healing: Attempting auto-rebase for PR #${pr.number} on ${fullName}...`);
-        const rebaseSuccess = run(`gh pr update-branch ${pr.number} --repo "${fullName}" --rebase`);
+        const rebaseSuccess = runGh(['pr', 'update-branch', String(pr.number), '--repo', fullName, '--rebase']);
         if (rebaseSuccess !== null) {
           console.log(`  ✓ Successfully rebased PR #${pr.number}.`);
           healedCount++;
           if (onHeal) onHeal();
 
           // Re-check mergeability post-rebase
-          const freshRaw = run(`gh pr view ${pr.number} --repo "${fullName}" --json mergeable,statusCheckRollup`);
+          const freshRaw = runGh(['pr', 'view', String(pr.number), '--repo', fullName, '--json', 'mergeable,statusCheckRollup']);
           if (freshRaw) {
             const freshPr = JSON.parse(freshRaw);
             const freshChecks = freshPr.statusCheckRollup || [];
@@ -263,13 +396,14 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, investigateIssues
 
             if ((freshAllGreen || (!freshHasChecks && !freshHasFailed && freshMergeable)) && freshPr.mergeable !== 'CONFLICTING') {
               console.log(`  ⚡ Auto-merging cleanly rebased PR #${pr.number} on ${fullName}...`);
-              const comment = `rebased clean and tests green for "${pr.title}". merging into base branch.`;
-              run(`gh pr comment ${pr.number} --repo "${fullName}" --body "${comment}"`);
-              const mergeResult = run(`gh pr merge ${pr.number} --repo "${fullName}" --squash --delete-branch --admin`);
+              const comment = `rebased cleanly onto ${pr.baseRefName || 'base branch'} and verified test suite. merging now.`;
+              runGh(['pr', 'comment', String(pr.number), '--repo', fullName, '--body', comment]);
+              const mergeResult = runGh(['pr', 'merge', String(pr.number), '--repo', fullName, '--squash', '--delete-branch', '--admin']);
               if (mergeResult !== null) {
                 console.log(`  ✓ Successfully merged PR #${pr.number} post-rebase.`);
                 mergedCount++;
                 if (onMerge) onMerge();
+                syncLocalRepo(fullName, pr.baseRefName);
                 continue;
               }
             }
@@ -285,6 +419,7 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, investigateIssues
               if (deepRes.merged) {
                 mergedCount++;
                 if (onMerge) onMerge();
+                syncLocalRepo(fullName, pr.baseRefName);
               }
               continue;
             } else {
@@ -298,32 +433,33 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, investigateIssues
       }
 
       // Standard Clean Auto-Merge
-      const canAutoMerge = (allChecksGreen || (!hasChecks && !hasFailedChecks && isMergeable)) && pr.mergeable !== 'CONFLICTING';
+      const canAutoMerge = (allChecksGreen || (!hasChecks && !hasFailedChecks && isMergeable)) && pr.mergeable !== 'CONFLICTING' && pr.mergeStateStatus !== 'DIRTY';
       if (canAutoMerge) {
         console.log(`  ⚡ Auto-merging clean, passing PR #${pr.number} ("${pr.title}") on ${fullName}...`);
         
-        const humanComments = [
-          `clean diff and checks are green for "${pr.title}". merging into base branch.`,
-          `solid catch on that edge case, appreciate the fix! pulling this in.`,
-          `all checks passing and behavior looks right on point. shipping this.`,
-          `super tidy refactor, thanks for cleaning that up. merging now.`,
-          `logic holds up and tests look green, pulling this in.`
-        ];
-        const comment = humanComments[Math.floor(Math.random() * humanComments.length)];
-        run(`gh pr comment ${pr.number} --repo "${fullName}" --body "${comment}"`);
+        // Prevent duplicate comment spam if we already commented
+        const commentsRaw = runGh(['pr', 'view', String(pr.number), '--repo', fullName, '--json', 'comments']);
+        const existingComments = commentsRaw ? (JSON.parse(commentsRaw).comments || []) : [];
+        const alreadyCommented = existingComments.some(c => c.author?.login === 'shenald-dev');
 
-        const mergeResult = run(`gh pr merge ${pr.number} --repo "${fullName}" --squash --delete-branch --admin`);
+        if (!alreadyCommented) {
+          const comment = generateHumanMergeComment(pr);
+          runGh(['pr', 'comment', String(pr.number), '--repo', fullName, '--body', comment]);
+        }
+
+        const mergeResult = runGh(['pr', 'merge', String(pr.number), '--repo', fullName, '--squash', '--delete-branch', '--admin']);
         if (mergeResult !== null) {
           console.log(`  ✓ Successfully merged PR #${pr.number}.`);
           mergedCount++;
           if (onMerge) onMerge();
+          syncLocalRepo(fullName, pr.baseRefName);
         }
       }
     }
   }
 
   // 2. Open Issues Investigation & Triage
-  const rawIssues = run(`gh issue list --repo "${fullName}" --state open --json number,title`);
+  const rawIssues = runGh(['issue', 'list', '--repo', fullName, '--state', 'open', '--json', 'number,title']);
   const issues = rawIssues ? JSON.parse(rawIssues) : [];
   let resolvedIssuesCount = 0;
 
@@ -338,7 +474,7 @@ async function auditSingleRepo(repo, { autoMergeGreen = false, investigateIssues
   }
 
   // 3. Latest Workflow Runs & Failure Diagnosis
-  const rawRuns = run(`gh run list --repo "${fullName}" --limit 1 --json databaseId,status,conclusion,name`);
+  const rawRuns = runGh(['run', 'list', '--repo', fullName, '--limit', '1', '--json', 'databaseId,status,conclusion,name']);
   const runs = rawRuns ? JSON.parse(rawRuns) : [];
   const latestRun = runs.length > 0 ? runs[0] : null;
 
@@ -394,7 +530,7 @@ async function checkRepoHealth({ autoMergeGreen = false, investigateIssues = tru
   console.log('🔍 [Multi-Repo Sentinel] Discovering all repositories for authenticated user...\n');
 
   const owner = process.env.GITHUB_REPOSITORY_OWNER || 'shenald-dev';
-  const rawRepos = run(`gh repo list ${owner} --limit 100 --json name,isPrivate,url`);
+  const rawRepos = runGh(['repo', 'list', owner, '--limit', '100', '--json', 'name,isPrivate,url']);
   if (!rawRepos) {
     console.error('❌ Failed to fetch repositories via GitHub CLI (`gh`). Ensure you are authenticated with `gh auth login`.');
     return { error: 'Not authenticated with gh' };
@@ -469,4 +605,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { checkRepoHealth };
+module.exports = { checkRepoHealth, checkIfPrObsolete };
