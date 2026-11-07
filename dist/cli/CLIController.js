@@ -60,7 +60,7 @@ class CLIController {
     /**
      * Guides the user through an interactive setup process for generation.
      */
-    async promptCreationDetails(defaultIdea) {
+    async promptCreationDetails(defaultIdea, defaultName) {
         console.clear();
         p.intro(`${picocolors_1.default.bgCyan(picocolors_1.default.black(" ✨ AgentForge Interactive Scaffolding "))}`);
         const templates = await this.templateManager.listTemplates();
@@ -68,7 +68,8 @@ class CLIController {
             projectName: () => p.text({
                 message: "What is the name of your new application?",
                 placeholder: "my-vibe-app",
-                defaultValue: "my-vibe-app",
+                defaultValue: defaultName || "my-vibe-app",
+                initialValue: defaultName,
                 validate: (value) => {
                     if (!value)
                         return "Please enter a name.";
@@ -126,7 +127,7 @@ class CLIController {
                 };
             }
             else {
-                answers = (await this.promptCreationDetails(idea));
+                answers = (await this.promptCreationDetails(idea, options.name));
             }
             const templatePath = await this.templateManager.getTemplatePath(answers.template);
             const outputPath = options.output
@@ -146,7 +147,9 @@ class CLIController {
                 console.log(picocolors_1.default.gray(`Template: ${answers.template}\n`));
                 console.log(picocolors_1.default.yellow(`Files that would be generated (${dryResult.totalFiles} files):`));
                 dryResult.files.forEach((f) => {
-                    const badge = f.isTemplate ? picocolors_1.default.magenta("[compiled]") : picocolors_1.default.dim("[static]");
+                    const badge = f.isTemplate
+                        ? picocolors_1.default.magenta("[compiled]")
+                        : picocolors_1.default.dim("[static]");
                     console.log(`  ${picocolors_1.default.green("+")} ${f.relativePath} ${badge}`);
                 });
                 console.log(picocolors_1.default.dim("\nDry run complete. No files were written to disk.\n"));
@@ -182,7 +185,9 @@ class CLIController {
             }
             // ── Optional LLM Enhancement ──
             if (options?.llm !== false) {
-                const [{ LLMOptimizer }] = await Promise.all([Promise.resolve().then(() => __importStar(require("../integrations/LLMOptimizer")))]);
+                const [{ LLMOptimizer }] = await Promise.all([
+                    Promise.resolve().then(() => __importStar(require("../integrations/LLMOptimizer"))),
+                ]);
                 const optimizer = new LLMOptimizer();
                 const readmePath = path.join(outputPath, "README.md");
                 try {
